@@ -38,13 +38,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun startSystem() {
         if(checkStorage()) {
-            //Stargae를 사용 할 준비가 되었다면 FRAGMENT_INIT부터 시작한다.
+            //Storage 를 사용 할 준비가 되었다면 FRAGMENT_INIT부터 시작한다.
             showFragment(FragmentFactory.Index.FRAGMENT_INIT)
         }
     }
 
     private fun checkStorage(): Boolean {
-        Log.d("OS의 API_LEVEL[${Const.Version.API_LEVEL}]" )
+        Log.d("OS의 API_LEVEL[${Build.VERSION.SDK_INT}]" )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             requestAllFilesAccessPermission()
             return false
@@ -54,12 +54,13 @@ class MainActivity : AppCompatActivity() {
             finishApp("외부 저장소 경로(Root)를 가져오는 데 실패했습니다.")
             return false
         }
-        else {
-            Const.Path.DIR_ROOT = Environment.getExternalStorageDirectory()!!.absolutePath
+        else { //권한이 있으므로 초기 경로 Setting
+            Const.Path.Device.DIR_ROOT = Environment.getExternalStorageDirectory()!!.absolutePath
+            Const.Path.Device.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
         }
 
-        if(makeDir(Const.Path.DIR_IQS) == null) {
-            finishApp("PATH[${Const.Path.DIR_IQS}] 폴더 생성 실패")
+        if(makeDir(Const.Path.Device.DIR_IQS) == null) {
+            finishApp("PATH[${Const.Path.Device.DIR_IQS}] 폴더 생성 실패")
             return false
         }
         return true

@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">IQSDisplayerKotlin</string>
+
+    <!--초기화면-->
+    <string name="setting">설정</string>
+    <string name="reboot">재실행</string>
+    <string name="program_shutdown">프로그램 종료</string>
+    <string name="connect">서버접속중...</string>
+    <string name="FTPimage">이미지파일 다운로드중...</string>
+    <string name="FTPvideo">동영상파일 다운로드중...</string>
+    <string name="FTPsound">사운드파일 다운로드중...</string>
+    <string name="FTPpatch">패치파일 다운로드중...</string>
 </resources>

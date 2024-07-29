@@ -1,11 +1,25 @@
 package com.kct.iqsdisplayer.util
 
+import android.content.Context
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.ProgressBar
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.kct.iqsdisplayer.common.Const
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.net.Inet4Address
+import java.net.NetworkInterface
+import java.net.SocketException
 
 /**
  * 보안키패드 비밀번호 검증 시 연속된 문자인지 확인
@@ -80,3 +94,93 @@ fun makeDir(path: String): File? {
     }
     return dir
 }
+
+fun copyFile(context: Context, sourcePath: String, destPath: String) {
+    val builder = AlertDialog.Builder(context)
+    builder.setTitle("파일 복사 중")
+    val progressBar = ProgressBar(context)
+    builder.setView(progressBar)
+    val dialog = builder.create()
+    dialog.setCancelable(false)
+    dialog.show()
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val sourceFile = File(sourcePath)
+            val destFile = File(destPath)
+
+            val totalSize = sourceFile.length()
+            var copiedSize: Long = 0
+
+            FileInputStream(sourceFile).use { input ->
+                FileOutputStream(destFile).use { output ->
+                    val buffer = ByteArray(1024)
+                    var length: Int
+                    while (input.read(buffer).also { length = it } > 0) {
+                        output.write(buffer, 0, length)
+                        copiedSize += length
+                        val progress = (copiedSize * 100 / totalSize).toInt()
+                        withContext(Dispatchers.Main) {
+                            progressBar.progress = progress
+                        }
+                    }
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                dialog.dismiss()
+                // 복사 성공
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                dialog.dismiss()
+                // 복사 실패
+            }
+        }
+    }
+}
+
+/** IPv4 얻어오기 */
+fun getLocalIpAddress(): String? {
+    try {
+        return NetworkInterface.getNetworkInterfaces()
+            .toList()
+            .flatMap { it.inetAddresses.toList() }
+            .firstOrNull { !it.isLoopbackAddress && it is Inet4Address }
+            ?.hostAddress
+    } catch (e: SocketException) {
+        e.printStackTrace()
+        return null
+    }
+}
+
+/** 기기 맥주소 반환, 일반적으로 유선 네트워크 인터페이스(Ethernet)의 MAC 주소*/
+fun getMacAddress(): String? {
+    try {
+        val filePath = Const.Path.Device.FILE_MAC_ADDRESS
+        File(filePath).useLines { lines ->
+            return lines.firstOrNull()?.uppercase()?.substring(0, 17)
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+        Log.e("기기 맥주소 반환 실패[IOException]" )
+        return null
+    }
+}
+
+/** wlan0 네트워크 인터페이스의 MAC 주소 반환, wlan0은 Wi-Fi 네트워크 인터페이스 */
+fun getMacAddress2(): String {
+    try {
+        return NetworkInterface.getNetworkInterfaces()
+            .toList()
+            .firstOrNull { it.name.equals("wlan0", ignoreCase = true) }
+            ?.hardwareAddress
+            ?.takeIf { it.isNotEmpty() }
+            ?.joinToString(":") { String.format("%02x", it) } ?: ""
+    } catch (ex: Exception) {
+        ex.printStackTrace()
+        return ""
+    }
+}
+
