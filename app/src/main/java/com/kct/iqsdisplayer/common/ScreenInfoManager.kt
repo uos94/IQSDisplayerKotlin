@@ -19,7 +19,6 @@ class ScreenInfoManager private constructor() {
         val instance: ScreenInfoManager = ScreenInfoManager()
     }
 
-
     //기본변수들 모두 teller에 포함되어 있음.
     var tellerID: Int = 0 // 직원 ID
     var winID: Int = 0 // 소속 창구 ID
@@ -40,11 +39,11 @@ class ScreenInfoManager private constructor() {
     var winName: String = ""       // 소속 창구명
     /** 창구 번호 , 기본값 0 */
     var winNum: Int = 0            // 창구 번호
-    var winNumIndex: Int = 0 // 230531, by HAHU  창구 인덱스 저장
-    var winNumIndexList: String = "" // 230531, by HAHU  창구 인덱스 저장
-    var displayType: String = "" // 표시기 화면 타입
-    var displayColor: String = "" // 표시기 색상
-    var winDesc: String = "" // 창구 설명
+    //var winNumIndex: Int = 0 // 230531, by HAHU  창구 인덱스 저장, HISON del : 안쓰고 있음
+    //var winNumIndexList: String = "" // 230531, by HAHU  창구 인덱스 저장, HISON del : 안쓰고 있음
+    //var displayType: String = "" // 표시기 화면 타입, HISON del : CommunicationInfo의 CallView와 중복됨
+    //var displayColor: String = "" // 표시기 색상, HISON del : 안쓰고 있음
+    //var winDesc: String = "" // 창구 설명, HISON del : 안쓰고 있음
     var emptyMsg: String = ""      // 부재 메세지
     var flagEmpty: Int = 0 // 부재 여부
     var availableWaitInfo: Int = 0 // 대기인수 표시 유무 T/F
@@ -103,10 +102,10 @@ class ScreenInfoManager private constructor() {
     var tellerMent: String = "" // 하단 안내 문구
 
     // 볼륨 테스트 데이터
-    var volumWin: Int = 0 // 볼륨테스트 창구 번호
+    var volumeWin: Int = 0 // 볼륨테스트 창구 번호
     var callVolumeSize: Int = 0 // 호출시 볼륨 크기
     var ticketVolumeSize: Int = 0 // 발권시 볼륨 크기
-    var volumName: String = "" // 벨소리 파일 명
+    var volumeName: String = "" // 벨소리 파일 명
     var playNum: Int = 0 // 재생 횟수
     var infoSound: Int = 0 // 안내 음성 종류 0 : 창구로 오십시오, 1 : 창구로 모시겠습니다. 2: 창구에서 도와드리겠습니다.
 
@@ -761,15 +760,15 @@ class ScreenInfoManager private constructor() {
             }
 
             // 데이터 추출 및 변환
-            val day = dataList1[0]
-            val branchNum = dataList1[1]
-            val reserveNum = dataList1[2]
+            val day         = dataList1[0]
+            val branchNum   = dataList1[1]
+            val reserveNum  = dataList1[2]
             val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 // null-safe 처리
-            val tellerNum = dataList1[4]
-            val tellerName = dataList1[5]
-            val tellerJob = dataList1[6]
+            val tellerNum   = dataList1[4]
+            val tellerName  = dataList1[5]
+            val tellerJob   = dataList1[6]
             val customerNum = dataList1[7]
-            val customerName = dataList1[8]
+            val customerName= dataList1[8]
             val customerTel = dataList1[9]
             val customerGrade = dataList1[10]
             val resvWinID = dataList1[12].toIntOrNull() ?: 0 // null-safe 처리
@@ -780,7 +779,7 @@ class ScreenInfoManager private constructor() {
                     day, branchNum, reserveNum, reserveTime, customerNum, customerName, customerTel,
                     customerGrade, tellerNum, tellerName, tellerJob, winID, winName, "00:00:00", "N", "00:00:00", "N"
                 )
-                reserveList?.add(reserve) // reservList가 null일 수 있으므로 null-safe하게 추가
+                reserveList.add(reserve) // reservList가 null일 수 있으므로 null-safe하게 추가
                 compareToList()
             }
         } catch (e: Exception) {
@@ -792,16 +791,16 @@ class ScreenInfoManager private constructor() {
     fun setUpdateReserve(data: String) {
         try {
             Log.d("SetUpdateReserve Data : $data")
-            val dataList1 = data.splitData("#")
-            val day = dataList1[0]              // 예약 일자
-            val branchNum = dataList1[1]
-            val reserveNum = dataList1[2]
+            val dataList1   = data.splitData("#")
+            val day         = dataList1[0]              // 예약 일자
+            val branchNum   = dataList1[1]
+            val reserveNum  = dataList1[2]
             val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0
-            val tellerNum = dataList1[4]
-            val tellerName = dataList1[5]
-            val tellerJob = dataList1[6]
+            val tellerNum   = dataList1[4]
+            val tellerName  = dataList1[5]
+            val tellerJob   = dataList1[6]
             val customerNum = dataList1[7]
-            val customerName = dataList1[8]
+            val customerName= dataList1[8]
             val customerTel = dataList1[9]
             val customerGrade = isNullString(dataList1[10])
             val winID = if (dataList1.size > 11) dataList1[12].toIntOrNull() ?: 0 else 0
@@ -827,16 +826,16 @@ class ScreenInfoManager private constructor() {
         Log.d("SetCancel Data : $data")
 
         try {
-            val dataList1 = data.splitData("#")
-            val day = dataList1[0]              // 예약 일자
-            val branchNum = dataList1[1].toIntOrNull() ?: 0 // null-safe 처리
-            val reserveNum = dataList1[2]
+            val dataList1   = data.splitData("#")
+            val day         = dataList1[0]              // 예약 일자
+            val branchNum   = dataList1[1].toIntOrNull() ?: 0 // null-safe 처리
+            val reserveNum  = dataList1[2]
             val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 // null-safe 처리
-            val tellerNum = dataList1[4].toIntOrNull() ?: 0 // null-safe 처리
-            val tellerName = dataList1[5]
-            val tellerJob = dataList1[6]
+            val tellerNum   = dataList1[4].toIntOrNull() ?: 0 // null-safe 처리
+            val tellerName  = dataList1[5]
+            val tellerJob   = dataList1[6]
             val customerNum = dataList1[7]
-            val customerName = dataList1[8]
+            val customerName= dataList1[8]
             val customerTel = dataList1[9]
             val customerGrade = isNullString(dataList1[10]).toIntOrNull() ?: 0 // null-safe 처리
 
