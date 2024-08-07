@@ -42,10 +42,6 @@ data class Reserve(
         isArrive = strIsArrive
     }
 
-    fun setCallTime(callTime: String) {
-        this.callTime = callTime
-    }
-
     fun cancelReserve() {
         this.isCancel = "Y"
     }

@@ -12,7 +12,7 @@ import java.util.Locale
 
 
 class LogFile {
-    private val logFullPath = Const.Path.DIR_LOG + Const.Path.getLogFileName()
+    private val logFullPath = Const.Path.DIR_LOG + Const.Name.getLogFileName()
 
     init {
         createDir()

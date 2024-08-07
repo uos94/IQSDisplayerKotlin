@@ -1,5 +1,6 @@
 package com.kct.iqsdisplayer.ui
 
+import FragmentInit
 import androidx.annotation.IntDef
 import androidx.fragment.app.Fragment
 

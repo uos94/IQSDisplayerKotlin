@@ -21,33 +21,6 @@ import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.SocketException
 
-/**
- * 보안키패드 비밀번호 검증 시 연속된 문자인지 확인
- * 3글자 이상 연속 되는 문자면 연속된 것으로 본다.
- */
-fun isSequential(bytes: ByteArray): Boolean {
-    for (i in 2..bytes.lastIndex) {
-        if (bytes[i] - bytes[i - 1] == 1 && bytes[i - 1] - bytes[i - 2] == 1 ||
-            bytes[i] - bytes[i - 1] == -1 && bytes[i - 1] - bytes[i - 2] == -1
-        ) {
-            return true
-        }
-    }
-    return false
-}
-
-/**
- * 보안키패드 비밀번호 검증 시 반복되는 문자인지 확인
- * 3글자 이상 반복 되는 문자면 반복된 것으로 본다.
- */fun isRepeat(bytes: ByteArray): Boolean {
-    for (i in 2..bytes.lastIndex) {
-        if (bytes[i] == bytes[i - 1] && bytes[i - 1] == bytes[i - 2]) {
-            return true
-        }
-    }
-    return false
-}
-
 fun AppCompatActivity.setFullScreen() {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         supportActionBar?.hide()    //상단 Action Bar Hide
@@ -141,6 +114,17 @@ fun copyFile(context: Context, sourcePath: String, destPath: String) {
     }
 }
 
+fun saveFile(fileName: String, directory: String, data: ByteArray) {
+    val dir = File(directory)
+    if (!dir.exists()) dir.mkdirs()
+
+    val file = File(directory, fileName)
+    FileOutputStream(file).use { fos ->
+        fos.write(data)
+    }
+}
+
+
 /** IPv4 얻어오기 */
 fun getLocalIpAddress(): String? {
     try {
@@ -158,7 +142,7 @@ fun getLocalIpAddress(): String? {
 /** 기기 맥주소 반환, 일반적으로 유선 네트워크 인터페이스(Ethernet)의 MAC 주소*/
 fun getMacAddress(): String? {
     try {
-        val filePath = Const.Path.Device.FILE_MAC_ADDRESS
+        val filePath = Const.Path.FILE_MAC_ADDRESS
         File(filePath).useLines { lines ->
             return lines.firstOrNull()?.uppercase()?.substring(0, 17)
         }
@@ -184,3 +168,13 @@ fun getMacAddress2(): String {
     }
 }
 
+
+fun String.removeChar(replacement: String) = this.replace(replacement, "")
+
+fun String.splitData(delimiter: String): Array<String> {
+    return if (this.endsWith(delimiter)) {
+        this.split(delimiter.toRegex()).dropLast(1).toTypedArray()
+    } else {
+        this.split(delimiter.toRegex()).toTypedArray()
+    }
+}

@@ -10,52 +10,53 @@ import java.util.Locale
 
 object Const {
     object Path {
-        object Device {
-            /**
-             * 최초 앱 시작 시 권한이 없을 경우 init되지 않았음에 주의.
-             * ExternalStorage 사용 권한을 얻은 후에 경로가 셋팅 됨. 경로는 다음과 같음.
-             * 예상경로 : /storage/emulated/0
-             * @see android.os.Environment.getExternalStorageDirectory()
-             * **/
-            lateinit var DIR_ROOT: String
 
-            /** 예상경로 : /storage/emulated/0/IQS/ */
-            val DIR_IQS = "${DIR_ROOT}/IQS/"
+        /**
+         * 최초 앱 시작 시 권한이 없을 경우 init되지 않았음에 주의.
+         * ExternalStorage 사용 권한을 얻은 후에 경로가 셋팅 됨. 경로는 다음과 같음.
+         * 예상경로 : /storage/emulated/0
+         * @see android.os.Environment.getExternalStorageDirectory()
+         * **/
+        lateinit var DIR_ROOT: String
 
-            /** 예상경로 : /storage/emulated/0/IQS/LOG/ */
-            val DIR_LOG = "$DIR_IQS/LOG/"
+        /** 예상경로 : /storage/emulated/0/IQS/ */
+        val DIR_IQS = "${DIR_ROOT}/IQS/"
 
-            // 이미지, 비디오, 사운드, 패치파일을 저장하는 디렉토리 경로(디바이스)
+        /** 예상경로 : /storage/emulated/0/IQS/LOG/ */
+        val DIR_LOG = "${DIR_IQS}LOG/"
 
-            /** 예상경로 : /storage/emulated/0/IQS/Image/ */
-            val DIR_IMAGE = "$DIR_IQS/Image/"
-            /** 예상경로 : /storage/emulated/0/IQS/Video/ */
-            val DIR_VIDEO = "$DIR_IQS/Video/"
-            /** 예상경로 : /storage/emulated/0/IQS/Sound/ */
-            val DIR_SOUND = "$DIR_IQS/Sound/"
-            /** 예상경로 : /storage/emulated/0/IQS/Patch/ */
-            val DIR_PATCH = "$DIR_IQS/Patch/"
+        // 이미지, 비디오, 사운드, 패치파일을 저장하는 디렉토리 경로(디바이스)
+        /** 예상경로 : /storage/emulated/0/IQS/Image/ */
+        val DIR_IMAGE = "${DIR_IQS}Image/"
+        /** 예상경로 : /storage/emulated/0/IQS/Video/ */
+        val DIR_VIDEO = "${DIR_IQS}Video/"
+        /** 예상경로 : /storage/emulated/0/IQS/Sound/ */
+        val DIR_SOUND = "${DIR_IQS}Sound/"
+        /** 예상경로 : /storage/emulated/0/IQS/Patch/ */
+        val DIR_PATCH = "${DIR_IQS}Patch/"
+        /** 경로 : dicontrol/agent/resource/image/ */
+        val SUB_PATH_IMAGE = "dicontrol/agent/resource/image/"
+        /** 경로 : dicontrol/agent/resource/movie/ */
+        val SUB_PATH_VIDEO = "dicontrol/agent/resource/movie/"
+        /** 경로 : dicontrol/agent/resource/sound/ */
+        val SUB_PATH_SOUND = "dicontrol/agent/resource/sound/"
+        /** 경로 : dicontrol/agent/patch/ */
+        val SUB_PATH_PATCH = "dicontrol/agent/patch/"
+        /** 경로 : dicontrol/agent/DisplayLog/ */
+        val SUB_PATH_LOG: String = "dicontrol/agent/DisplayLog/"
+        /** 예상경로 : /storage/emulated/0/IQS/DownLoadSound/ */
+        val DIR_DOWNLOAD_SOUND = "${DIR_IQS}DownLoadSound/"
+        /** 예상경로 : /storage/emulated/0/IQS/DownLoadVideo/ */
+        val DIR_DOWNLOAD_VIDEO = "${DIR_IQS}DownLoadVideo/"
+        /** 경로 /sys/class/net/eth0/address */
+        val FILE_MAC_ADDRESS = "/sys/class/net/eth0/address"
+        // 이미지 비디오 사운드 패치파일을 가지고 있는 디렉토리 경로(IQS)
 
-            /** 경로 /sys/class/net/eth0/address */
-            val FILE_MAC_ADDRESS = "/sys/class/net/eth0/address"
+        /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
+        lateinit var DIR_SHARED_PREFS: String
 
-            /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
-            lateinit var DIR_SHARED_PREFS: String
-        }
         object Server {
-            // 이미지 비디오 사운드 패치파일을 가지고 있는 디렉토리 경로(IQS)
-            /** 경로 : dicontrol/agent/resource/image/ */
-            var DIR_IMAGE: String = "dicontrol/agent/resource/image/"
-            /** 경로 : dicontrol/agent/resource/movie/ */
-            var DIR_VIDEO: String = "dicontrol/agent/resource/movie/"
-            /** 경로 : dicontrol/agent/resource/sound/ */
-            var DIR_SOUND: String = "dicontrol/agent/resource/sound/"
-            /** 경로 : dicontrol/agent/patch/ */
-            var DIR_PATCH: String = "dicontrol/agent/patch/"
 
-            // ADD sblee 2019-12-10 IQS 로그 경로 추가
-            /** 경로 : dicontrol/agent/DisplayLog/ */
-            var DIR_LOG: String = "dicontrol/agent/DisplayLog/"
         }
     }
 
@@ -81,13 +82,13 @@ object Const {
          *       백업 서버 PORT           BkServerPORT
          *       보조 순번 표시            SubDisplayer
          */
-        val PREF_DISPLAYER_SETTING = "iqs_displayer_setting"
+        const val PREF_DISPLAYER_SETTING = "iqs_displayer_setting"
         fun getPrefDisplayerSettingName() = "$PREF_DISPLAYER_SETTING.xml"
         /**
          *    // 내용                       KEY
          *    하단안내문구               StatusText
          */
-        val PREF_DISPLAY_INFO = "iqs_display_info"
+        const val PREF_DISPLAY_INFO = "iqs_display_info"
         fun getPrefDisplayInfoName() = "$PREF_DISPLAY_INFO.xml"
 
         object Key {
@@ -133,7 +134,9 @@ object Const {
         /** 기본값 1.1.1.100 */
         var IQS_IP: String = "1.1.1.100"
         /** 기본값 8697 */
-        var TCP_PORT: Int = 8697
+        var IQS_PORT: Int = 8697
+        /** 기본값 8697 */
+        //var TCP_PORT: Int = 8697
         /** 기본값 8696 */
         var UDP_PORT: Int = 8696
         // 2022.07.20 dyyoon 파일 서버 배포 포트
@@ -145,8 +148,7 @@ object Const {
         var FTP_ID: String = "anonymous"
         /** 기본값 kcikci */
         var FTP_PW: String = "kcikci"
-        /** 기본값 8697 */
-        var IQS_PORT: Int = 8697
+
         /** 기본값 null */
         var MY_IP: String? = null
         /** 기본값 null */
@@ -168,7 +170,7 @@ object Const {
             IQS_IP = getString(Name.Key.DisplayerSettingKeys.IQS_IP, IQS_IP)!!
             IQS_PORT = getInt(Name.Key.DisplayerSettingKeys.IQS_PORT, IQS_PORT)
 
-            FTP_PORT = getInt(Name.Key.DisplayerSettingKeys.FTP_SERVER_PORT, TCP_PORT)
+            FTP_PORT = getInt(Name.Key.DisplayerSettingKeys.FTP_SERVER_PORT, FTP_PORT)
             FTP_ID = getString(Name.Key.DisplayerSettingKeys.FTP_USER_ID, FTP_ID) ?: FTP_ID
             FTP_PW = getString(Name.Key.DisplayerSettingKeys.FTP_USER_PW, FTP_PW) ?: FTP_PW
 
@@ -194,12 +196,12 @@ object Const {
     @Deprecated("File들을 정리하려고 만들었으나 별로 필요없을 것으로 보임")
     object File {
         val logFile: java.io.File
-            get() = File(Path.Device.DIR_LOG, Name.getLogFileName())
+            get() = File(Path.DIR_LOG, Name.getLogFileName())
 
         val prefDisplayerSetting
-            get() = File(Path.Device.DIR_SHARED_PREFS, Name.getPrefDisplayerSettingName())
+            get() = File(Path.DIR_SHARED_PREFS, Name.getPrefDisplayerSettingName())
 
         val prefDisplayInfo
-            get() = File(Path.Device.DIR_SHARED_PREFS, Name.getPrefDisplayInfoName())
+            get() = File(Path.DIR_SHARED_PREFS, Name.getPrefDisplayInfoName())
     }
 }

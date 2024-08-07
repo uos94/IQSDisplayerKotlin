@@ -23,7 +23,7 @@ import com.kct.iqsdisplayer.util.setFullScreen
 import java.io.File
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), FragmentResultListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -55,12 +55,12 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         else { //권한이 있으므로 초기 경로 Setting
-            Const.Path.Device.DIR_ROOT = Environment.getExternalStorageDirectory()!!.absolutePath
-            Const.Path.Device.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
+            Const.Path.DIR_ROOT = Environment.getExternalStorageDirectory()!!.absolutePath
+            Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
         }
 
-        if(makeDir(Const.Path.Device.DIR_IQS) == null) {
-            finishApp("PATH[${Const.Path.Device.DIR_IQS}] 폴더 생성 실패")
+        if(makeDir(Const.Path.DIR_IQS) == null) {
+            finishApp("PATH[${Const.Path.DIR_IQS}] 폴더 생성 실패")
             return false
         }
         return true
@@ -117,4 +117,14 @@ class MainActivity : AppCompatActivity() {
         transaction.commit()
         LogFile.write("화면 변경 : $tagName")
     }
+
+    override fun onResult(isSuccess: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+
+}
+
+interface FragmentResultListener {
+    fun onResult(isSuccess: Boolean)
 }
