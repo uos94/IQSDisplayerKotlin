@@ -11,16 +11,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.FragmentManager
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
-import java.io.File
 
 
 class MainActivity : AppCompatActivity(), FragmentResultListener {
@@ -91,14 +87,24 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         }
     }
 
-    private fun finishApp(message: String = "앱 종료 호출") {
+    fun rebootIQSDisplayer() {
+        val pb = ProcessBuilder(*arrayOf("su", "-c", "/system/bin/reboot"))
+        var process: Process? = null
+        try {
+            process = pb.start()
+            process.waitFor()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    fun finishApp(message: String = "앱 종료 호출") {
         Log.e(message)
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         finishAffinity()
     }
 
 
-    private fun showFragment(@FragmentFactory.Index index: Int) {
+    fun showFragment(@FragmentFactory.Index index: Int) {
         val tagName = FragmentFactory.getTagName(index)
         val fragment = FragmentFactory.getFragment(index)
         val transaction = supportFragmentManager.beginTransaction()

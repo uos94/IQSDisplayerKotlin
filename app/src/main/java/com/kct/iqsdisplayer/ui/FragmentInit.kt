@@ -11,13 +11,16 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.BuildConfig
+import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.Const.CommunicationInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.databinding.FragmentInitBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
+import com.kct.iqsdisplayer.ui.FragmentFactory
 import com.kct.iqsdisplayer.ui.FragmentResultListener
+import com.kct.iqsdisplayer.ui.MainActivity
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.copyFile
@@ -36,11 +39,6 @@ class FragmentInit : Fragment() {
 
     private var listener: FragmentResultListener? = null
     private lateinit var checkService: CheckService
-
-    private val TIMEOUT_CAHNGE_FRAGMENT_TIME = 5000L //화면 전환 타임
-    private val TIMEOUT_CAHNGE_FRAGMENT_MESSAGE = 0 //화면 전환 메시지 define
-    private val RETRY_SERVICE_TIME = 5000L // 서비스 retry 타임
-    private val RETRY_SERVICE_MESSAGE = 1001 //서비스 retry 메시지
 
     // 서비스 결과 수신 Receiver
     private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
@@ -80,6 +78,10 @@ class FragmentInit : Fragment() {
 
     private fun startInit() {
         // SharedPreferences 값 CommunicationInfo에 저장
+        binding.btSetting.setOnClickListener(clickListener)
+        binding.btReboot.setOnClickListener(clickListener)
+        binding.btShutdown.setOnClickListener(clickListener)
+
         initCommunicationInfo()
 
         binding.tvVersionInfo.text = BuildConfig.VERSION_NAME
@@ -92,6 +94,29 @@ class FragmentInit : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private val clickListener = View.OnClickListener {
+        val mainActivity = activity as MainActivity
+        when (it.id) {
+            R.id.btSetting -> {
+                Log.i("설정버튼 선택")
+                stopIQSService()
+                timerHandler.removeMessages(Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE)
+                mainActivity.showFragment(FragmentFactory.Index.FRAGMENT_SETTING)
+            }
+            R.id.btReboot -> {
+                Log.i("재부팅버튼 선택")
+                mainActivity.rebootIQSDisplayer()
+            }
+            R.id.btShutdown -> {
+                Log.i("프로그램종료버튼 선택")
+                mainActivity.finishApp("프로그램종료버튼 선택")
+            }
+            else -> {
+                Log.e("알 수 없는 버튼")
+            }
+        }
     }
 
     /**
@@ -215,8 +240,8 @@ class FragmentInit : Fragment() {
 
                         listener?.onResult(false)
                         timerHandler.sendEmptyMessageDelayed(
-                            TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
-                            TIMEOUT_CAHNGE_FRAGMENT_TIME
+                            Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
+                            Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME
                         ) // 엑티비티 전환 타이머 시작
                     }
                 } else {
@@ -226,8 +251,8 @@ class FragmentInit : Fragment() {
 
                     listener?.onResult(true)
                     timerHandler.sendEmptyMessageDelayed(
-                        TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
-                        TIMEOUT_CAHNGE_FRAGMENT_TIME
+                        Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
+                        Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME
                     )
                 }
             }
@@ -277,22 +302,22 @@ class FragmentInit : Fragment() {
                     if (bFTPSuccess) {
                         activity?.setResult(AppCompatActivity.RESULT_OK)
                         timerHandler.sendEmptyMessageDelayed(
-                            TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
-                            TIMEOUT_CAHNGE_FRAGMENT_TIME
+                            Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE,
+                            Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME
                         )
                     } else {
                         binding.pbLoading.visibility = View.INVISIBLE
                         timerHandler.sendEmptyMessageDelayed(
-                            RETRY_SERVICE_MESSAGE,
-                            RETRY_SERVICE_TIME
+                            Const.Handle.RETRY_SERVICE_MESSAGE,
+                            Const.Handle.RETRY_SERVICE_TIME
                         )
                     }
                 } else {
                     binding.tvInfo.text = "$strResult\n사운드파일 다운로드 실패"
                     binding.pbLoading.visibility = View.INVISIBLE
                     timerHandler.sendEmptyMessageDelayed(
-                        RETRY_SERVICE_MESSAGE,
-                        RETRY_SERVICE_TIME
+                        Const.Handle.RETRY_SERVICE_MESSAGE,
+                        Const.Handle.RETRY_SERVICE_TIME
                     )
                 }
             }
@@ -315,7 +340,6 @@ class FragmentInit : Fragment() {
             }
         }
     }
-
 
     // 업체 패치 파일 업데이트 함수
     private fun installSilent(fileName: String): Int {
@@ -381,17 +405,16 @@ class FragmentInit : Fragment() {
     private val timerHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                TIMEOUT_CAHNGE_FRAGMENT_MESSAGE -> {
-                    Log.i("ActivityTimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
-                    LogFile.write("ActivityTimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
+                Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE -> {
+                    Log.i("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
+                    LogFile.write("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
                     checkService.setRunning(false)
 
-                    // finish() 대신 MainActivity에 결과 전달 및 Fragment 전환 요청
                     listener?.onResult(true) // 초기화 성공 시 true 전달
                 }
 
-                RETRY_SERVICE_MESSAGE -> {
-                    Log.i("ActivityTimerHandler: 서비스 retry")
+                Const.Handle.RETRY_SERVICE_MESSAGE -> {
+                    Log.i("TimerHandler: 서비스 retry")
 
                     // 서비스 재시작
                     stopIQSService() // IQSComClass 서비스 중지

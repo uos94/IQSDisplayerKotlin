@@ -179,6 +179,13 @@ object Const {
         }
     }
 
+    object Handle {
+        const val TIMEOUT_CAHNGE_FRAGMENT_TIME = 5000L //화면 전환 타임
+        const val TIMEOUT_CAHNGE_FRAGMENT_MESSAGE = 0 //화면 전환 메시지 define
+        const val RETRY_SERVICE_TIME = 5000L // 서비스 retry 타임
+        const val RETRY_SERVICE_MESSAGE = 1001 //서비스 retry 메시지
+    }
+
     //==============================================================================================
     // 예비로 남겨둠.
     //==============================================================================================
