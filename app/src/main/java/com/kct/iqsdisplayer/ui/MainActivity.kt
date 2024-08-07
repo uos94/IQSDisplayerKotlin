@@ -1,5 +1,7 @@
 package com.kct.iqsdisplayer.ui
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -12,7 +14,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.kct.iqsdisplayer.R
+import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.service.IQSComClass
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.makeDir
@@ -124,13 +128,54 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         LogFile.write("화면 변경 : $tagName")
     }
 
-    override fun onResult(isSuccess: Boolean) {
-        TODO("Not yet implemented")
+    override fun onResult(result: Const.FragmentResult) {
+        when(result) {
+            Const.FragmentResult.INIT_NONE_PATCH -> { //상태정상이면 화면 초기화진행
+                //TODO : 여기서부터 작업해야함.
+                startIQSService()
+            }
+            Const.FragmentResult.INIT_PATCH -> {  //상태 비정상이면 프로그램 종료
+                finishApp("앱 설치로 인한 앱 종료")
+            }
+            else -> {
+
+            }
+        }
     }
 
+
+    /**
+     * 서비스를 MainActivity에서 돌리고 각각의 fragment에서는 bind만해서 동작하도록 하는것이 좋을 것 같으나
+     * 우선 동작하는게 우선이라 그대로 로직을 따라간다.
+     */
+    fun startIQSService(commResultReceiver: CommResultReceiver) {
+        if(isMyServiceRunning(IQSComClass::class.java)) {
+            stopIQSService()
+        }
+        val intent = Intent(this, IQSComClass::class.java)
+        intent.putExtra("receiver", commResultReceiver)
+        startService(intent)
+    }
+
+    fun stopIQSService() {
+        val intent = Intent(this, IQSComClass::class.java)
+        stopService(intent)
+    }
+    /**
+     * Android 8.0(API 레벨 26)부터 사용 안되는 것으로 보여 확인 요망, 시스템 App이라 될 수도 있음.
+     */
+    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
+        for (service in manager!!.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
 
 }
 
 interface FragmentResultListener {
-    fun onResult(isSuccess: Boolean)
+    fun onResult(result: Const.FragmentResult)
 }
