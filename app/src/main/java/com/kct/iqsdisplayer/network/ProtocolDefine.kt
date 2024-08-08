@@ -5,10 +5,6 @@ package com.kct.iqsdisplayer.network
  * IQS 간 TCP 통신 프로토콜 ID 정의 클래스
  * 모두 Short로 2Byte를 가짐
  * 기존 코드 확인 결과 요청하고 있는 프로토콜은 아래와 같았음
- * ACCEPT_REQUEST               : 접속 성공 응답 (IQS -> 표시기)
- * RESERVE_LIST_REQUEST         : 상담 예약 리스트 요청 (표시기 -> IQS)
- * RESERVE_UPDATE_INFO_REQUEST  : 업데이트 정보 요청 (IQS -> 표시기)
- * VIDEO_LIST_REQUEST           : 비디오 리스트 요청 (표시기 -> IQS)
  */
 enum class ProtocolDefine(val value: Short) {
     // 접속 관련 프로토콜 (Connection)

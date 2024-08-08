@@ -5,6 +5,9 @@ import com.kct.iqsdisplayer.data.Reserve
 import com.kct.iqsdisplayer.data.Sound
 import com.kct.iqsdisplayer.data.Teller
 import com.kct.iqsdisplayer.data.WinWait
+import com.kct.iqsdisplayer.data.packet.AcceptAuthResponseData
+import com.kct.iqsdisplayer.data.packet.CallCancelData
+import com.kct.iqsdisplayer.data.packet.CallRequestData
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.removeChar
@@ -76,7 +79,7 @@ class ScreenInfoManager private constructor() {
     // public static int winWaitNum;           // 대기 인수
     var callBkDisplay: Int = 0 // 백업 표시기 번호
     var callBkWay: Int = 0 // 화살표 방향
-    var resrv: Int = 0 // 예약 구분 0:일반고객, 1:예약발권 예약 고객, 2:즉시발권 예약고객
+    var reserve: Int = 0 // 예약 구분 0:일반고객, 1:예약발권 예약 고객, 2:즉시발권 예약고객
     var flagVIP: Int = 0 // VIP실 구분 -  [2023.05.17][add kimhj]
 
     var isCrowded: Int = 0 // 혼잡여부 BOOL
@@ -250,25 +253,16 @@ class ScreenInfoManager private constructor() {
     }
 
     // 호출 취소
-    fun setCallCancel(
-        cancelError: Int,
-        cancelCallNum: Int,
-        ticketWinID: Int,
-        callWinID: Int,
-        wait: Int,
-        callWinNum: Int,
-        lastCallNumList: String,
-        bkNum: Int
-    ) {
-        this.cancelError = cancelError
-        this.cancelcallNum = cancelCallNum
-        this.ticketWinID = ticketWinID
-        this.callWinID = callWinID
-        this.waitNum = wait
-        this.callWinNum = callWinNum
-        this.bkNum = bkNum
+    fun setCallCancel(param : CallCancelData) {
+        this.cancelError    = param.cancelError
+        this.cancelcallNum  = param.cancelCallNum
+        this.ticketWinID    = param.ticketWinID
+        this.callWinID      = param.callWinID
+        this.waitNum        = param.wait
+        this.callWinNum     = param.callWinNum
+        this.bkNum          = param.bkNum
 
-        lastCallList = lastCallNumList.splitData("#")
+        lastCallList = param.lastCallNumList.splitData("#")
             .mapNotNull { item ->
                 val data1 = item.splitData(";")
                 if (data1.size == 5) {
@@ -288,35 +282,25 @@ class ScreenInfoManager private constructor() {
 
     // 호출 및 재호출
     // [2023.05.17][modify kimhj] VIP실 음성 대응
-    //public boolean setcallNum(int errorStatus,int callNum,int ticketWinID,int callWinID,int winWaitNum,int callWinNum,String lastcallNum,int callBkDisplay,int callBkWay,int resrv)
+    //public boolean setcallNum(int errorStatus,int callNum,int ticketWinID,int callWinID,int winWaitNum,int callWinNum,String lastCallNum,int callBkDisplay,int callBkWay,int reserve)
     fun setCallNum(
-        errorStatus: Int,
-        callNum: Int,
-        ticketWinID: Int,
-        callWinID: Int,
-        winWaitNum: Int,
-        callWinNum: Int,
-        lastcallNum: String,
-        callBkDisplay: Int,
-        callBkWay: Int,
-        resrv: Int,
-        flagVIP: Int
+        param: CallRequestData
     ): Boolean {
         try {
-            this.errorStatus = errorStatus
-            this.callNum = callNum
-            this.ticketWinID = ticketWinID
-            this.callWinID = callWinID
-            this.waitNum = winWaitNum
-            this.callWinNum = callWinNum
-            this.callBkDisplay = callBkDisplay
-            this.callBkWay = callBkWay
-            this.resrv = resrv
-            this.flagVIP = flagVIP // [2023.05.17][add kimhj]
+            this.errorStatus    = param.errorStatus
+            this.callNum        = param.callNum
+            this.ticketWinID    = param.ticketWinID
+            this.callWinID      = param.callWinID
+            this.waitNum        = param.winWaitNum
+            this.callWinNum     = param.callWinNum
+            this.callBkDisplay  = param.bkDisplay
+            this.callBkWay      = param.bkWay
+            this.reserve        = param.reserve
+            this.flagVIP        = param.vipFlag // [2023.05.17][add kimhj]
 
             lastCallList = ArrayList()
 
-            val data = lastcallNum.splitData("#")
+            val data = param.lastCallNum.splitData("#")
             for (i in data.indices) {
                 val data1 = data[i].splitData(";")
                 if (data1.size == 5) {
@@ -588,10 +572,23 @@ class ScreenInfoManager private constructor() {
     }
 
     // 화면 설정 정보
-    fun setScreenInfo(wait: String, mentNum: String, isAbsence: String, isEmpty: String, bellInfo: String, callInfo: String, mediaInfo: String, volumeInfo: String) {
+    fun setScreenInfo(param: AcceptAuthResponseData) {
+        val wait = param.settingInfo
+        val mentNum = param.reserve1
+        val isAbsence = param.reserve2// 전산 장애 표시, 부재중데이터로 보임
+        //val dontcare = param.reserve3 // 공석 표시, 기존코드에서 사용하지 않고 있었음.
+
         LogFile.write(wait)
         LogFile.write(mentNum)
         LogFile.write(isAbsence)
+
+        // 안내 멘트 설정
+        ment = when (mentNum) {
+            "0" -> "창구로 오십시오."
+            "1" -> "창구로 모시겠습니다."
+            "2" -> "창구에서 도와드리겠습니다."
+            else -> ""
+        }
 
         val splitWaitData = wait.splitData(";")
 
@@ -614,23 +611,15 @@ class ScreenInfoManager private constructor() {
             }
         }
 
-        this.bellInfo = bellInfo
-        this.callInfo = callInfo
-        this.volumeInfo = volumeInfo
+        this.bellInfo = param.bellInfo
+        this.callInfo = param.callInfo
+        this.volumeInfo = param.volumeInfo
 
-        // 안내 멘트 설정
-        ment = when (mentNum) {
-            "0" -> "창구로 오십시오."
-            "1" -> "창구로 모시겠습니다."
-            "2" -> "창구에서 도와드리겠습니다."
-            else -> ""
-        }
-
-        Log.d("Media Info : $mediaInfo")
+        Log.d("Media Info : ${param.mediaInfo}")
 
         try {
-            val slideMediaInfo = mediaInfo.splitData("#") // 모드, 메인화면, 보조화면, 홍보화면 시간, 파일명으로 분할
-            LogFile.write("Media Info : $mediaInfo length : ${slideMediaInfo.size}")
+            val slideMediaInfo = param.mediaInfo.splitData("#") // 모드, 메인화면, 보조화면, 홍보화면 시간, 파일명으로 분할
+            LogFile.write("Media Info : ${param.mediaInfo} length : ${slideMediaInfo.size}")
 
             mainDisplayTime = slideMediaInfo.getOrNull(0)?.toIntOrNull() ?: 30 // 기본값 30 설정
             playSub = slideMediaInfo.getOrNull(1)?.toIntOrNull() ?: 0 // 보조 사용 여부

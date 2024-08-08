@@ -15,14 +15,17 @@ class Packet(buffer: ByteArray) {
 
     init {
         // header
+        // length(2) + id(2)
         length = bytesToInt(buffer[1], buffer[0])
         id = bytesToInt(buffer[3], buffer[2])
 
         // data
         data = if (length > 0) {
+            // ByteBuffer를 초기화
             ByteBuffer.allocate(buffer.size - 4).apply {
+                // byte[] 의 4번째부터 buffer의 마지막 까지 -> 4번째 까지는 데이터부 길이, 프로토콜 아이디가 존재
                 put(buffer, 4, buffer.size - 4)
-                rewind()
+                rewind()    // Position을 맨 앞으로 돌아감
             }
         } else {
             ByteBuffer.allocate(0)
@@ -44,7 +47,6 @@ class Packet(buffer: ByteArray) {
     val byte: Byte
         get() {
             val value = data.get()
-            data.rewind()
             return value
         }
 
