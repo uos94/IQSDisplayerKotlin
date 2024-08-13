@@ -124,6 +124,19 @@ fun saveFile(fileName: String, directory: String, data: ByteArray) {
     }
 }
 
+fun String.getFileExtension(): String {
+    if (isNullOrEmpty()) {
+        return ""
+    }
+
+    val lastIndexOfDot = lastIndexOf(".")
+    return if (lastIndexOfDot > 0 && lastIndexOfDot < length - 1) {
+        substring(lastIndexOfDot + 1)
+    } else {
+        ""
+    }
+}
+
 
 /** IPv4 얻어오기 */
 fun getLocalIpAddress(): String? {
