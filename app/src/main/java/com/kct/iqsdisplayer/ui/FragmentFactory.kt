@@ -1,6 +1,5 @@
 package com.kct.iqsdisplayer.ui
 
-import FragmentInit
 import androidx.annotation.IntDef
 import androidx.fragment.app.Fragment
 
@@ -52,7 +51,7 @@ object FragmentFactory {
     @IntDef(
         Index.NONE,                 //최초실행 아직 Fragment없음
         Index.FRAGMENT_INIT,        //init
-        Index.FRAGMENT_SETTING,        //setting
+        Index.FRAGMENT_SETTING,     //setting
         Index.FRAGMENT_MAIN,        //메인
         Index.FRAGMENT_BACKUP_CALL, //백업호출
         Index.FRAGMENT_MOVIE,       //동영상표출

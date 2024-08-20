@@ -55,9 +55,6 @@ object Const {
         /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
         lateinit var DIR_SHARED_PREFS: String
 
-        object Server {
-
-        }
     }
 
     object Name {
@@ -65,6 +62,8 @@ object Const {
             val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
             return "$today.txt"
         }
+
+        val DEFAULT_TELLER_IMAGE = "no_image.png"
         /**
          *     //  내용                       KEY
          *       표시기IP                DisplayerIP
@@ -90,43 +89,43 @@ object Const {
          */
         const val PREF_DISPLAY_INFO = "iqs_display_info"
         fun getPrefDisplayInfoName() = "$PREF_DISPLAY_INFO.xml"
+    }
 
-        object Key {
-            object DisplayerSettingKeys {
-                /** 실제 키값 : DisplayerIP */
-                const val DISPLAYER_IP = "DisplayerIP"
-                /** 실제 키값 :  PathSoundFile */
-                const val PATH_SOUND_FILE = "PathSoundFile"
-                /** 실제 키값 :  PathVideoFile */
-                const val PATH_VIDEO_FILE = "PathVideoFile"
-                /** 실제 키값 :  PathImgFile */
-                const val PATH_IMG_FILE = "PathImgFile"
-                /** 실제 키값 :  Iqs_IP */
-                const val IQS_IP = "Iqs_IP"
-                /** 실제 키값 :  Iqs_PORT */
-                const val IQS_PORT = "Iqs_PORT"
-                /** 실제 키값 :  FTPServerIP */
-                const val FTP_SERVER_IP = "FTPServerIP"
-                /** 실제 키값 :  FTPServerPORT */
-                const val FTP_SERVER_PORT = "FTPServerPORT"
-                /** 실제 키값 :  FTPServerSettingPath */
-                const val FTP_SERVER_SETTING_PATH = "FTPServerSettingPath"
-                /** 실제 키값 :  FTPUserID */
-                const val FTP_USER_ID = "FTPUserID"
-                /** 실제 키값 :  FTPUserPW */
-                const val FTP_USER_PW = "FTPUserPW"
-                /** 실제 키값 :  BkServerIP */
-                const val BK_SERVER_IP = "BkServerIP"
-                /** 실제 키값 :  BkServerPORT */
-                const val BK_SERVER_PORT = "BkServerPORT"
-                /** 실제 키값 :  CallView */
-                const val CALL_VIEW = "CallView"
-            }
+    object Key {
+        object DisplayerSetting {
+            /** 실제 키값 : DisplayerIP */
+            const val DISPLAYER_IP = "DisplayerIP"
+            /** 실제 키값 :  PathSoundFile */
+            const val PATH_SOUND_FILE = "PathSoundFile"
+            /** 실제 키값 :  PathVideoFile */
+            const val PATH_VIDEO_FILE = "PathVideoFile"
+            /** 실제 키값 :  PathImgFile */
+            const val PATH_IMG_FILE = "PathImgFile"
+            /** 실제 키값 :  Iqs_IP */
+            const val IQS_IP = "Iqs_IP"
+            /** 실제 키값 :  Iqs_PORT */
+            const val IQS_PORT = "Iqs_PORT"
+            /** 실제 키값 :  FTPServerIP */
+            const val FTP_SERVER_IP = "FTPServerIP"
+            /** 실제 키값 :  FTPServerPORT */
+            const val FTP_SERVER_PORT = "FTPServerPORT"
+            /** 실제 키값 :  FTPServerSettingPath */
+            const val FTP_SERVER_SETTING_PATH = "FTPServerSettingPath"
+            /** 실제 키값 :  FTPUserID */
+            const val FTP_USER_ID = "FTPUserID"
+            /** 실제 키값 :  FTPUserPW */
+            const val FTP_USER_PW = "FTPUserPW"
+            /** 실제 키값 :  BkServerIP */
+            const val BK_SERVER_IP = "BkServerIP"
+            /** 실제 키값 :  BkServerPORT */
+            const val BK_SERVER_PORT = "BkServerPORT"
+            /** 실제 키값 :  CallView */
+            const val CALL_VIEW = "CallView"
+        }
 
-            object DisplayInfoKeys {
-                /** 실제 키값 :  StatusText */
-                const val STATUS_TEXT = "StatusText"
-            }
+        object DisplayInfo {
+            /** 실제 키값 :  StatusText */
+            const val STATUS_TEXT = "StatusText"
         }
     }
 
@@ -167,14 +166,15 @@ object Const {
         /** SharedPreferences값을 CommunicationInfo로 복사한다.
          * SharedPreferences에 없으면 기본값을 유지한다.*/
         fun  SharedPreferences.loadCommunicationInfo() {
-            IQS_IP = getString(Name.Key.DisplayerSettingKeys.IQS_IP, IQS_IP)!!
-            IQS_PORT = getInt(Name.Key.DisplayerSettingKeys.IQS_PORT, IQS_PORT)
+            IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
+            IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
+            IQS_PORT = getInt(Key.DisplayerSetting.IQS_PORT, IQS_PORT)
 
-            FTP_PORT = getInt(Name.Key.DisplayerSettingKeys.FTP_SERVER_PORT, FTP_PORT)
-            FTP_ID = getString(Name.Key.DisplayerSettingKeys.FTP_USER_ID, FTP_ID) ?: FTP_ID
-            FTP_PW = getString(Name.Key.DisplayerSettingKeys.FTP_USER_PW, FTP_PW) ?: FTP_PW
+            FTP_PORT = getInt(Key.DisplayerSetting.FTP_SERVER_PORT, FTP_PORT)
+            FTP_ID = getString(Key.DisplayerSetting.FTP_USER_ID, FTP_ID) ?: FTP_ID
+            FTP_PW = getString(Key.DisplayerSetting.FTP_USER_PW, FTP_PW) ?: FTP_PW
 
-            CALLVIEW_MODE = getString(Name.Key.DisplayerSettingKeys.CALL_VIEW, CALLVIEW_MODE) ?: CALLVIEW_MODE
+            CALLVIEW_MODE = getString(Key.DisplayerSetting.CALL_VIEW, CALLVIEW_MODE) ?: CALLVIEW_MODE
             //TODO : 우선은 보이는 것들만 옮겨두었음. 추가로 Load할 것이 있을 수 있음.
         }
     }

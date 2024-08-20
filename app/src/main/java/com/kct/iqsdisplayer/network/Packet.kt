@@ -57,7 +57,7 @@ class Packet(buffer: ByteArray) {
             while (data.hasRemaining()) {
                 temp = data.get()
                 if (temp.toInt() == 0x00) break
-                sb.append(temp.toChar())
+                sb.append(temp.toInt().toChar())
             }
             val result = String(sb.toString().toByteArray(charset("euc-kr"))).trim()
             Log.d("getString : $result")

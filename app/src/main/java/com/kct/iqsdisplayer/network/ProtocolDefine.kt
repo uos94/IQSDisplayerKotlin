@@ -4,7 +4,6 @@ package com.kct.iqsdisplayer.network
 /**
  * IQS 간 TCP 통신 프로토콜 ID 정의 클래스
  * 모두 Short로 2Byte를 가짐
- * 기존 코드 확인 결과 요청하고 있는 프로토콜은 아래와 같았음
  */
 enum class ProtocolDefine(val value: Short) {
     // 접속 관련 프로토콜 (Connection)

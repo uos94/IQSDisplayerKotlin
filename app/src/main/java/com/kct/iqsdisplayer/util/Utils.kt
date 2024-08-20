@@ -1,6 +1,8 @@
 package com.kct.iqsdisplayer.util
 
+import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -42,7 +44,7 @@ fun AppCompatActivity.setFullScreen() {
     }
     else {
         supportActionBar?.hide()    //Action Nar를 숨기지 않으면 뜨는 경우가 있다고 함.
-
+        @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility =
                     View.SYSTEM_UI_FLAG_IMMERSIVE or
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
@@ -137,6 +139,30 @@ fun String.getFileExtension(): String {
     }
 }
 
+inline fun <reified T> Context.savePreference(prefName: String, key: String, value: T) {
+    val sp: SharedPreferences = getSharedPreferences(prefName, Activity.MODE_PRIVATE)
+    val editor = sp.edit()
+
+    when (value) {
+        is String   -> editor.putString(key, value)
+        is Int      -> editor.putInt(key, value)
+        // 필요한 경우 다른 타입에 대한 처리 추가 (예: Boolean, Long, Float 등)
+        else -> throw IllegalArgumentException("Unsupported type")
+    }
+
+    editor.apply()
+}
+
+inline fun <reified T> Context.getPreference(prefName: String, key: String, defaultValue: T): T {
+    val sp: SharedPreferences = getSharedPreferences(prefName, Activity.MODE_PRIVATE)
+
+    return when (T::class) {
+        String::class   -> sp.getString(key, defaultValue as? String) as T
+        Int::class      -> sp.getInt(key, defaultValue as? Int ?: 0) as T
+        // 필요한 경우 다른 타입에 대한 처리 추가 (예: Boolean, Long, Float 등)
+        else -> throw IllegalArgumentException("Unsupported type")
+    }
+}
 
 /** IPv4 얻어오기 */
 fun getLocalIpAddress(): String? {

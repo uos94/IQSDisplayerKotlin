@@ -9,7 +9,6 @@ import com.kct.iqsdisplayer.data.packet.AcceptAuthResponseData
 import com.kct.iqsdisplayer.data.packet.CallCancelData
 import com.kct.iqsdisplayer.data.packet.CallRequestData
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.removeChar
 import com.kct.iqsdisplayer.util.splitData
 import java.text.SimpleDateFormat
@@ -271,7 +270,7 @@ class ScreenInfoManager private constructor() {
                             data1[0].toInt(), data1[1].toInt(), data1[2].toInt(), data1[3].toInt(), data1[4].toInt()
                         )
                     } catch (e: NumberFormatException) {
-                        LogFile.write("Call Cancel Failed: ${e.message}")
+                        Log.e("Call Cancel Failed: ${e.message}")
                         null
                     }
                 } else {
@@ -310,7 +309,7 @@ class ScreenInfoManager private constructor() {
                     )
                     lastCallList.add(lastCall)
                 } else {
-                    LogFile.write("Last Call Num Length is not 5")
+                    Log.w("Last Call Num Length is not 5")
                 }
             }
 
@@ -318,7 +317,7 @@ class ScreenInfoManager private constructor() {
             subList.add(subCall)
             if (subList.size > 4) subList.removeAt(0)
         } catch (e: Exception) {
-            LogFile.write("callNum Exception")
+            Log.e("callNum Exception")
             return false
         }
         return true
@@ -349,11 +348,11 @@ class ScreenInfoManager private constructor() {
             val tellerData = tellerDatas[i].splitData(";")
             if (tellerData.size < 18) {
                 Log.d("Data length < 18")
-                LogFile.write("Data length < 18. i = $i")
+                Log.w("Data length < 18. i = $i")
                 continue
             }
 
-            LogFile.write(
+            Log.d(
                 "직원 IDX : ${tellerData[0]} 소속 창구 ID ${tellerData[1]} 직무명 ${tellerData[2]} 직원 사진 : ${tellerData[3]} " +
                         "직원 PC IP : ${tellerData[4]} 백업 표시기 번호 : ${tellerData[5]} 백업 화살표 방향 : ${tellerData[6]} " +
                         "프로필1 : ${tellerData[7]} 프로필2 : ${tellerData[8]} 직원 행번 : ${tellerData[9]} 표시기 IP : ${tellerData[10]} " +
@@ -399,11 +398,11 @@ class ScreenInfoManager private constructor() {
                         mainPJT = putPJT(tellerData[12])        //tellerData[12] : 공석여부
                     }
                 } catch (e: Exception) {
-                    LogFile.write("Failed Empty check")
+                    Log.e("Failed Empty check")
                     break
                 }
             } catch (e: Exception) {
-                LogFile.write("Failed Set Teller info")
+                Log.e("Failed Set Teller info")
                 break
             }
         }
@@ -431,11 +430,11 @@ class ScreenInfoManager private constructor() {
             val tellerData = tellerInfo.splitData(";")
             if (tellerData.size < 18) {
                 Log.d("Data length < 18")
-                LogFile.write("Data length < 18. i = $i")
+                Log.d("Data length < 18. i = $i")
                 continue
             }
 
-            LogFile.write(
+            Log.d(
                 "직원 IDX : ${tellerData[0]} 소속 창구 ID ${tellerData[1]} 직무명 ${tellerData[2]} 직원 사진 : ${tellerData[3]} " +
                     "직원 PC IP : ${tellerData[4]} 백업 표시기 번호 : ${tellerData[5]} 백업 화살표 방향 : ${tellerData[6]} " +
                     "프로필1 : ${tellerData[7]} 프로필2 : ${tellerData[8]} 직원 행번 : ${tellerData[9]} 표시기 IP : ${tellerData[10]} " +
@@ -525,7 +524,7 @@ class ScreenInfoManager private constructor() {
         winList.clear()
 
         if (winIdList.size == winNameList.size && winIdList.size == winWaitList.size) {
-            LogFile.write(winIdList.size.toString())
+            Log.d(winIdList.size.toString())
             winIdList.forEachIndexed { i, winId ->
                 try {
                     val winWait = WinWait(winId.toInt(), winNameList[i], winWaitList[i].toInt())
@@ -534,7 +533,7 @@ class ScreenInfoManager private constructor() {
                         waitNum = winWaitList[i].toInt()
                     }
                 } catch (e: Exception) {
-                    LogFile.write("Failed SetWinList")
+                    Log.e("Failed SetWinList")
                 }
             }
         }
@@ -544,7 +543,7 @@ class ScreenInfoManager private constructor() {
     // 접속 승인 시 받아온 직원 정보를 분해하여 저장
     fun setTellerInfo(infoString: String) {
         val splitData = infoString.splitData(";") // ;으로 문자열을 자름
-        LogFile.write("InfoString = $infoString")
+        Log.d("InfoString = $infoString")
 
         // 데이터가 없이 올 경우 기본값으로 설정 (불필요한 변수 초기화 제거)
         if (splitData.size >= 18) {
@@ -578,9 +577,9 @@ class ScreenInfoManager private constructor() {
         val isAbsence = param.reserve2// 전산 장애 표시, 부재중데이터로 보임
         //val dontcare = param.reserve3 // 공석 표시, 기존코드에서 사용하지 않고 있었음.
 
-        LogFile.write(wait)
-        LogFile.write(mentNum)
-        LogFile.write(isAbsence)
+        Log.d(wait)
+        Log.d(mentNum)
+        Log.d(isAbsence)
 
         // 안내 멘트 설정
         ment = when (mentNum) {
@@ -619,7 +618,7 @@ class ScreenInfoManager private constructor() {
 
         try {
             val slideMediaInfo = param.mediaInfo.splitData("#") // 모드, 메인화면, 보조화면, 홍보화면 시간, 파일명으로 분할
-            LogFile.write("Media Info : ${param.mediaInfo} length : ${slideMediaInfo.size}")
+            Log.d("Media Info : ${param.mediaInfo} length : ${slideMediaInfo.size}")
 
             mainDisplayTime = slideMediaInfo.getOrNull(0)?.toIntOrNull() ?: 30 // 기본값 30 설정
             playSub = slideMediaInfo.getOrNull(1)?.toIntOrNull() ?: 0 // 보조 사용 여부
@@ -632,7 +631,7 @@ class ScreenInfoManager private constructor() {
             // 240115, by HAHU  초기화 시키고 수행. 앱 재시작 안 하고 패킷이 올 수도 있어서
             adFileList = emptyArray()
 
-            LogFile.write("MediaInfo length : ${slideMediaInfo.size}")
+            Log.d("MediaInfo length : ${slideMediaInfo.size}")
             if (slideMediaInfo.size >= 6) {
                 adFileList = slideMediaInfo[5].splitData(";") // ;로 구분하여 파일리스트 저장
             }
@@ -711,17 +710,17 @@ class ScreenInfoManager private constructor() {
                     )
                     reserveList.add(reserve) // reservList가 null일 수 있으므로 null-safe하게 추가
 
-                    LogFile.write("예약리스트 추가 - 예약번호 : $reserveNum")
+                    Log.d("예약리스트 추가 - 예약번호 : $reserveNum")
                     Log.d(
                         "예약일 : $day 지점번호 : $branchNum 예약 번호 : $reserveNum 예약 시간 : $reserveTime 고객 번호 : $customerNum 고객 이름 : $customerName 고객 연락처 : $customerTel " +
                                 "고객 등급 : $customerGrade 상담직원 번호 : $tellerNum 상담직원 이름 : $tellerName 상담 업무 : $tellerJob 창구 ID : $resvWinID 창구명 : $winName 도착 시간 : $arriveTime " +
                                 "도착 여부 : $isArrive 호출 시간 : $callTime 취소여부 : $isCancel"
                     )
                 } else {
-                    LogFile.write("예약 번호 : $reserveNum 창구 ID : $resvWinID 다른창구로 리스트 추가 안함 - 소속 창구ID : $winID")
+                    Log.d("예약 번호 : $reserveNum 창구 ID : $resvWinID 다른창구로 리스트 추가 안함 - 소속 창구ID : $winID")
                 }
             } catch (e: Exception) {
-                LogFile.write("Failed reserv List")
+                Log.e("Failed reserve List")
             }
         }
         compareToList()
@@ -744,7 +743,7 @@ class ScreenInfoManager private constructor() {
 
             // 데이터 유효성 검사
             if (dataList1.size <= 11) {
-                LogFile.write("Failed SetAddReserve: Invalid data format")
+                Log.d("Failed SetAddReserve: Invalid data format")
                 return
             }
 
@@ -772,7 +771,7 @@ class ScreenInfoManager private constructor() {
                 compareToList()
             }
         } catch (e: Exception) {
-            LogFile.write("Failed SetAddReserve")
+            Log.e("Failed SetAddReserve")
         }
     }
 
@@ -806,7 +805,7 @@ class ScreenInfoManager private constructor() {
             )
             compareToList()
         } catch (e: Exception) {
-            LogFile.write("Failed SetUpdateReserve")
+            Log.e("Failed SetUpdateReserve")
         }
     }
 
@@ -836,7 +835,7 @@ class ScreenInfoManager private constructor() {
             val reserveToCancel = reserveList.find { it.reserveNum == reserveNum }
             reserveToCancel?.cancelReserve()
         } catch (e: Exception) {
-            LogFile.write("Failed SetCancle Reserve")
+            Log.e("Failed SetCancle Reserve")
         }
     }
 
@@ -849,7 +848,7 @@ class ScreenInfoManager private constructor() {
 
             // 데이터 유효성 검사
             if (dataList1.size < 11) {
-                LogFile.write("Failed SetCallReserve: Invalid data format")
+                Log.w("Failed SetCallReserve: Invalid data format")
                 return 100
             }
 
@@ -878,7 +877,7 @@ class ScreenInfoManager private constructor() {
             this.reservBackWay  = backWay
             this.flagVIP = vipFlag // 230619, by HAHU VIP 여부
 
-            // null-safe 처리 및 람다 표현식, find 함수 활용
+            // null-safe 처리 및 람다 표현식 find 함수 활용
             val nowTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
             Log.d("현재 시간 : $nowTime")
 
@@ -887,7 +886,7 @@ class ScreenInfoManager private constructor() {
 
             reservWinNum.toIntOrNull() ?: 100
         } catch (e: Exception) {
-            LogFile.write("Failed SetCall Reserv")
+            Log.e("Failed SetCall Reserve")
             100
         }
     }
@@ -900,7 +899,7 @@ class ScreenInfoManager private constructor() {
 
             // 데이터 유효성 검사
             if (dataList.size < 17) {
-                LogFile.write("Failed setReserveArrive: Invalid data format")
+                Log.w("Failed setReserveArrive: Invalid data format")
                 return
             }
 
@@ -927,7 +926,7 @@ class ScreenInfoManager private constructor() {
             val reserveToUpdate = reserveList.find { it.reserveNum == reserveNum }
             reserveToUpdate?.setArriveTime(arriveTime, isArrive)
         } catch (e: Exception) {
-            LogFile.write("SetReserveArrive")
+            Log.e("SetReserveArrive")
         }
     }
 

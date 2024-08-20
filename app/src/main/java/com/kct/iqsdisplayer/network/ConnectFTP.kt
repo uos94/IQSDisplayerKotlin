@@ -1,7 +1,6 @@
 package com.kct.iqsdisplayer.network
 
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.LogFile
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -77,8 +76,7 @@ class ConnectFTP {
         return try {
             ftpClient.makeDirectory(directory)
         } catch (e: Exception) {
-            Log.d("Failed make the directory")
-            LogFile.write("Failed make the directory ($directory)")
+            Log.e("Failed make the directory ($directory)")
             false
         }
     }
@@ -87,7 +85,7 @@ class ConnectFTP {
         return try {
             ftpClient.removeDirectory(directory)
         } catch (e: Exception) {
-            Log.d("Failed ftpDeleteDirectory")
+            Log.e("Failed ftpDeleteDirectory ($directory)")
             false
         }
     }
@@ -105,7 +103,7 @@ class ConnectFTP {
         return try {
             ftpClient.rename(from, to)
         } catch (e: Exception) {
-            Log.d("Failed RenameFile")
+            Log.e("Failed RenameFile from:$from to:$to")
             false
         }
     }
@@ -133,8 +131,7 @@ class ConnectFTP {
             }
             return true
         } catch (e: Exception) {
-            Log.d("Failed DownloadFile")
-            LogFile.write("Failed DownloadFile : $fileName")
+            Log.e("Failed DownloadFile : $fileName")
             return false
         }
     }
@@ -150,7 +147,7 @@ class ConnectFTP {
                 }
             }
         } catch (e: Exception) {
-            Log.d("Failed UploadFile")
+            Log.e("Failed UploadFile")
             false
         }
     }

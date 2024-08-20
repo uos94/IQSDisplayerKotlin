@@ -1,6 +1,6 @@
-import android.app.ActivityManager
+package com.kct.iqsdisplayer.ui
+
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,11 +17,7 @@ import com.kct.iqsdisplayer.common.Const.CommunicationInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.databinding.FragmentInitBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
-import com.kct.iqsdisplayer.ui.FragmentFactory
-import com.kct.iqsdisplayer.ui.FragmentResultListener
-import com.kct.iqsdisplayer.ui.MainActivity
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.getLocalIpAddress
 import com.kct.iqsdisplayer.util.getMacAddress
@@ -182,6 +178,11 @@ class FragmentInit : Fragment() {
 
     private var bFTPSuccess = false
     private var strResult = ""
+
+    /**
+     * 추후 삭제 예정
+     * MainActivity 에서 하면 될 것으로 보인다.
+     */
     // 서비스 결과 수신 리스너
     private val receiver = CommResultReceiver.Receiver { resultCode, resultData ->
         val code = resultCode.toShort()
@@ -219,7 +220,6 @@ class FragmentInit : Fragment() {
                         backupSharedPreferencesFiles()
 
                         Log.d("Start Patch File install")
-                        LogFile.write("Start Patch File install")
 
                         installSilent(strPatchFileName)
 
@@ -319,8 +319,7 @@ class FragmentInit : Fragment() {
 
     // 업체 패치 파일 업데이트 함수
     private fun installSilent(fileName: String): Int {
-        LogFile.write("Start Patch File install")
-        Log.d("File Name : $fileName")
+        Log.d("Start Patch File install..File Name : $fileName")
         
         val filePath = Const.Path.DIR_PATCH + fileName
         val file = File(filePath)
@@ -383,7 +382,6 @@ class FragmentInit : Fragment() {
             when (msg.what) {
                 Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE -> {
                     Log.i("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
-                    LogFile.write("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
                     checkService.setRunning(false)
                     if(msg.obj != null && msg.obj is Const.FragmentResult) {
                         listener?.onResult(msg.obj as Const.FragmentResult)
@@ -402,6 +400,9 @@ class FragmentInit : Fragment() {
     }
 
 
+    /**
+     * 추후 삭제 예정
+     */
     // 서비스 감시
     private inner class CheckService(val mainActivity: MainActivity?) : Thread() {
         var isRunning = true
@@ -413,7 +414,7 @@ class FragmentInit : Fragment() {
         override fun run() {
             while (isRunning) {
                 if (mainActivity?.isMyServiceRunning(IQSComClass::class.java) == false) {
-                    LogFile.write("InitializeFragment : ServiceRestart")
+                    Log.i("InitializeFragment : ServiceRestart")
                     // timerHandler.sendEmptyMessageDelayed(Define.RETRY_SERVICE_MESSAGE, Define.RETRY_SERVICE_TIME) //서비스 retry 타이머 시작
 
                     Handler(Looper.getMainLooper()).post {

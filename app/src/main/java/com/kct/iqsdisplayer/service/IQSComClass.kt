@@ -26,7 +26,6 @@ import com.kct.iqsdisplayer.network.ConnectFTP
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.copyFile
 import java.io.File
 import java.io.FileInputStream
@@ -66,7 +65,6 @@ class IQSComClass : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.i("IQSComClass onCreate")
-        LogFile.write("IQSComClass onCreate")
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -120,7 +118,6 @@ class IQSComClass : Service() {
             } finally {
                 exceptionMessage?.let {
                     Log.e(it)
-                    LogFile.write(it)
                     stopSelf()
                 }
             }
@@ -206,7 +203,6 @@ class IQSComClass : Service() {
                 } finally {
                     exceptionMessage?.let {
                         Log.e(it)
-                        LogFile.write(it)
                         isRun = false // 쓰레드 종료
                         stopSelf()
                     }
@@ -292,7 +288,7 @@ class IQSComClass : Service() {
         private var appVer: Int = 0
 
         init {
-            LogFile.write("FTP IP : ${Const.CommunicationInfo.IQS_IP} FTP PORT : ${Const.CommunicationInfo.FTP_PORT}")
+            Log.i("FTP IP : ${Const.CommunicationInfo.IQS_IP} FTP PORT : ${Const.CommunicationInfo.FTP_PORT}")
             connectFTP = ConnectFTP()
             status = connectFTP?.ftpConnect(
                 Const.CommunicationInfo.IQS_IP,
@@ -348,7 +344,7 @@ class IQSComClass : Service() {
                 for (category in downList) {
                     if (!isInterrupted) {
                         setCategory(category)
-                        LogFile.write("FTP DownLoad Start Category : $category")
+                        Log.d("FTP DownLoad Start Category : $category")
 
                         commResultReceiver?.send(startProtocol.toInt(), bundle)
                         if (basic) {
@@ -384,7 +380,7 @@ class IQSComClass : Service() {
 
                         commResultReceiver?.send(endProtocol.toInt(), bundle)
                         connectFTP?.reConnect = result
-                        LogFile.write("FTP DownLoad Result : $result mReConnect : ${connectFTP?.reConnect}")
+                        Log.d("FTP DownLoad Result : $result mReConnect : ${connectFTP?.reConnect}")
 
                         try {
                             sleep(1)
@@ -401,7 +397,6 @@ class IQSComClass : Service() {
                 }
             } else {
                 Log.d("FTP Connect Failed")
-                LogFile.write("FTP Connect Failed")
                 bundle = Bundle().apply {
                     putBoolean("result", false)
                 }
@@ -467,7 +462,7 @@ class IQSComClass : Service() {
     private inner class UploadFTP : Thread() {
         override fun run() {
             val serverLogFolderPath = "${Const.Path.SUB_PATH_LOG}Display${ScreenInfoManager.instance.winNum}/"
-            LogFile.write("Try Send Log File ($serverLogFolderPath)")
+            Log.i("Try Send Log File ($serverLogFolderPath)")
 
             try {
                 // DisplayLog 디렉토리 및 하위 디렉토리 생성 시도 (null-safe 체크 및 apply 사용)
@@ -485,30 +480,29 @@ class IQSComClass : Service() {
                     // 현재 날짜 파일은 제외
                     if (index == 1 || fileName != SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date()) + ".txt") {
                         Log.d("uploadLogFileToServerSub() : 업로드 파일 = $fileName")
-                        LogFile.write("uploadLogFileToServerSub() : 업로드 파일 = $fileName")
                         uploadLogFileToServerSub(fileName)
                     }
                 }
             } catch (e: Exception) {
                 onDestroy()
-                LogFile.write("Failed Send Log Files (${e.message})")
+                Log.e("Failed Send Log Files (${e.message})")
             }
         }
         /*
         override fun run() {
             val serverLogFolderPath = "${Const.Path.SUB_PATH_LOG}Display${ScreenInfoManager.instance.winNum}/"
-            LogFile.write("Try Send Log File (${serverLogFolderPath})")
+            Log.d("Try Send Log File (${serverLogFolderPath})")
 
             try {
                 // DisplayLog 디렉토리 생성
                 if (connectFTP?.ftpCreateDirectory(Const.Path.SUB_PATH_LOG) == true) {
-                    LogFile.write("Create dir ${Const.Path.SUB_PATH_LOG})")
+                    Log.d("Create dir ${Const.Path.SUB_PATH_LOG})")
                 }
 
                 // 내 표시기 번호 하위 디렉토리 생성
                 if (connectFTP?.ftpCreateDirectory(serverLogFolderPath) == true) {
                     Log.d("Create dir")
-                    LogFile.write("Create dir (${serverLogFolderPath})")
+                    Log.d("Create dir (${serverLogFolderPath})")
                 } else {
                     Log.d("Failed create dir")
                 }
@@ -536,7 +530,7 @@ class IQSComClass : Service() {
                 }
             } catch (e: Exception) {
                 onDestroy()
-                LogFile.write("Failed Send Log Files (${e.message})")
+                Log.d("Failed Send Log Files (${e.message})")
             }
         }*/
     }
@@ -547,8 +541,7 @@ class IQSComClass : Service() {
      */
     private fun requestIQS(code: Short) {
         val protocolName = ProtocolDefine.entries.find { it.value == code }?.name ?: "Unknown"
-        Log.d(protocolName) // 실제 protocolName 출력
-        LogFile.write("IQS Request $protocolName")
+        Log.i("IQS Request $protocolName")  // 실제 protocolName 출력
 
         val sendByteBuffer: ByteBuffer? = when (code) {
             ProtocolDefine.WAIT_REQUEST.value       -> SendBufferClass().waitRequest()      // 대기인수 정보 요청 패킷
@@ -591,8 +584,7 @@ class IQSComClass : Service() {
         val bundleData = Bundle()
 
         val protocolName = ProtocolDefine.entries.find { it.value == protocolID }?.name ?: "Unknown"
-        Log.d(protocolName) // 실제 protocolName 출력
-        LogFile.write("IQS Response $protocolName")
+        Log.d("IQS Response $protocolName") // 실제 protocolName 출력
 
         when (protocolID) {
             ProtocolDefine.ACCEPT_REQUEST.value -> {
@@ -604,21 +596,21 @@ class IQSComClass : Service() {
             ProtocolDefine.ACCEPT_REJECT.value -> {}
             // 접속 승인 응답
             ProtocolDefine.ACCEPT_AUTH_REQUEST.value -> {
-                LogFile.write("IQS Response AcceptAuthRequest data : ${recvPacket.string}")
+                Log.d("IQS Response AcceptAuthRequest data : ${recvPacket.string}")
             }
 
             ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> {
                 val data = recvPacket.toAcceptAuthResponseData()
 
                 ScreenInfoManager.instance.setTellerInfo(data.tellerInfo)
-                LogFile.write("SetTellerInfo")
+                Log.d("SetTellerInfo")
 
                 ScreenInfoManager.instance.setWinList(data.winIdList, data.winNameList, data.waitList)
-                LogFile.write("SetWinList")
+                Log.d("SetWinList")
 
                 ScreenInfoManager.instance.setScreenInfo(data)
 
-                LogFile.write("IQS Response $data")
+                Log.d("IQS Response $data")
 
                 commResultReceiver?.send(ProtocolDefine.ACCEPT_AUTH_RESPONSE.value.toInt(), bundleData)
 
@@ -633,7 +625,7 @@ class IQSComClass : Service() {
                 if (data.winID == ScreenInfoManager.instance.winID) {
                     // 같은 창구일 때
                     ScreenInfoManager.instance.setWaitResponse(data.ticketNum, data.waitNum)
-                    LogFile.write("IQS Response $data")
+                    Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.WAIT_RESPONSE.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -652,7 +644,7 @@ class IQSComClass : Service() {
                 val data = recvPacket.toCallRequestData()
 
                 var result = false
-                LogFile.write("IQS Response $data")
+                Log.d("IQS Response $data")
 
                 if (Const.CommunicationInfo.CALLVIEW_MODE == "2" || Const.CommunicationInfo.CALLVIEW_MODE == "3") { // 보조 순번
                     result = ScreenInfoManager.instance.setCallNum(data)
@@ -686,7 +678,7 @@ class IQSComClass : Service() {
                         }
                     } else {
                         // 공석 상태
-                        LogFile.write("$resultCode but Display is PJT")
+                        Log.d("$resultCode but Display is PJT")
                     }
                 }
             }
@@ -704,8 +696,7 @@ class IQSComClass : Service() {
 
                 if (data.winNum == ScreenInfoManager.instance.winNum) {
                     ScreenInfoManager.instance.setEmpty(data.emptyFlag, data.emptyMsg)
-                    LogFile.write("IQS Response $data")
-                    Log.d("$data")
+                    Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.EMPTY_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -718,7 +709,6 @@ class IQSComClass : Service() {
 
                 if (data.infoMessageWinNum == ScreenInfoManager.instance.winNum) {
                     Log.d("infoMessage : $data")
-                    LogFile.write("IQS Response $data")
                     ScreenInfoManager.instance.ment = data.infoMessage
                     commResultReceiver?.send(ProtocolDefine.INFO_MESSAGE_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -729,8 +719,7 @@ class IQSComClass : Service() {
             ProtocolDefine.TELLER.value -> {
                 // 직원 정보
                 val tellerList = recvPacket.string          // 직원 설정 정보 리스트
-                Log.d("tellerList : $tellerList")
-                LogFile.write("IQS Response Teller Data : $tellerList")
+                Log.d("IQS Response Teller Data  : $tellerList")
                 ScreenInfoManager.instance.setTellerList(tellerList)
                 commResultReceiver?.send(ProtocolDefine.TELLER.value.toInt(), bundleData)
             }
@@ -744,7 +733,7 @@ class IQSComClass : Service() {
             ProtocolDefine.VIDEO_SET.value -> {
                 val videoInfo = recvPacket.string
                 ScreenInfoManager.instance.setVideoInfo(videoInfo) 
-                LogFile.write("IQS Response VideoSet Data : $videoInfo")
+                Log.d("IQS Response VideoSet Data : $videoInfo")
                 try {
                     commResultReceiver?.send(ProtocolDefine.VIDEO_SET.value.toInt(), bundleData)
                     val list = arrayOf("Video")
@@ -752,7 +741,7 @@ class IQSComClass : Service() {
                     downLoadFTPFile.setFileList(ScreenInfoManager.instance.adFileList) 
                     Thread(downLoadFTPFile).start()
                 } catch (e: Exception) {
-                    LogFile.write("Failed VideoSet")
+                    Log.e("Failed VideoSet")
                 }
             }
 
@@ -768,8 +757,7 @@ class IQSComClass : Service() {
                     val playNum = volume[3].toIntOrNull() ?: 0
                     val infoSound = volume[4].toIntOrNull() ?: 0
 
-                    Log.d("VolumeWin : $volumeWin VolumeSize : $volumeSize VolumeName : $volumeName PlayNum : $playNum InfoSound : $infoSound")
-                    LogFile.write("IQS Response VolumTest Data : $volumeInfo")
+                    Log.d("IQS Response VolumTest Data VolumeWin : $volumeWin VolumeSize : $volumeSize VolumeName : $volumeName PlayNum : $playNum InfoSound : $infoSound")
 
                     if (ScreenInfoManager.instance.winNum == volumeWin) {
                         // 액티비티로 전달
@@ -783,7 +771,7 @@ class IQSComClass : Service() {
                         // 다른 창구일 때 처리 (필요한 경우)
                     }
                 } catch (e: Exception) {
-                    LogFile.write("Failed Volum Test")
+                    Log.e("Failed Volum Test")
                 }
             }
 
@@ -791,7 +779,7 @@ class IQSComClass : Service() {
             ProtocolDefine.SOUND_SET.value -> {
                 val soundSetData = recvPacket.string
                 ScreenInfoManager.instance.soundSet(soundSetData)
-                LogFile.write("IQS Response SoundSetData Data : $soundSetData")
+                Log.d("IQS Response SoundSetData Data : $soundSetData")
                 commResultReceiver?.send(ProtocolDefine.SOUND_SET.value.toInt(), bundleData)
             }
 
@@ -801,7 +789,7 @@ class IQSComClass : Service() {
 
                 if (data.restartWinNum == ScreenInfoManager.instance.winNum) {
                     Const.CommunicationInfo.MODE = data.mode
-                    LogFile.write("IQS Response $data")
+                    Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.RESTART_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -814,7 +802,7 @@ class IQSComClass : Service() {
 
                 if (data.crowdedWinID == ScreenInfoManager.instance.winID) {
                     ScreenInfoManager.instance.setCrowed(data.isCrowded, data.crowdedMsg)
-                    LogFile.write("IQS Response $data")
+                    Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.CROWDED_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -827,7 +815,6 @@ class IQSComClass : Service() {
 
                 ScreenInfoManager.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
                 Log.d("IQS Response $data")
-                LogFile.write("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.WIN_RESPONSE.value.toInt(), bundleData)
             }
 
@@ -837,20 +824,19 @@ class IQSComClass : Service() {
             // 보조 표시 정보 응답
             ProtocolDefine.SUB_SCREEN_RESPONSE.value -> {
                 val waitListInfo = recvPacket.string                   // 대기 인수 정보
-                LogFile.write("IQS Response SubScreenResponse Data : $waitListInfo")
+                Log.d("IQS Response SubScreenResponse Data : $waitListInfo")
             }
 
             // 배경 음악 정보 패킷
             ProtocolDefine.BGM_INFO.value -> {
                 val bgmInfo = recvPacket.string                        // 배경음악 정보
-                LogFile.write("IQS Response BGMInfo Data : $bgmInfo")
+                Log.d("IQS Response BGMInfo Data : $bgmInfo")
             }
 
             // 동영상 리스트 응답
             ProtocolDefine.VIDEO_LIST_RESPONSE.value -> {
                 val videoList = recvPacket.string                      // 동영상 리스트
-                Log.d("VideoList : $videoList")
-                LogFile.write("IQS Response VideoListResponse Data : $videoList")
+                Log.d("IQS Response VideoListResponse Data : $videoList")
 
                 // 231130, by HAHU  동영상 다운로드 후 앱 업데이트
                 requestIQS(ProtocolDefine.RESERVE_UPDATE_INFO_REQUEST.value)
@@ -863,7 +849,7 @@ class IQSComClass : Service() {
             ProtocolDefine.CALL_CANCEL.value -> {
                 val data = recvPacket.toCallCancelData()
 
-                LogFile.write("IQS Response $data")
+                Log.d("IQS Response $data")
 
                 if (data.cancelError == 1) {
                     // 장애 상태가 아닐 경우
@@ -888,7 +874,7 @@ class IQSComClass : Service() {
 
                 if (data.collectWinNum == ScreenInfoManager.instance.winNum) {
                     ScreenInfoManager.instance.collectNum = data.collectNum
-                    LogFile.write("IQS Response $data")
+                    Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.CALL_COLLECT_SET.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -899,14 +885,14 @@ class IQSComClass : Service() {
             ProtocolDefine.ERROR_SET.value -> {
                 val errorInfo = recvPacket.string                      // 전산 장애 설정 정보
                 ScreenInfoManager.instance.setError(errorInfo)
-                LogFile.write("IQS Response ErrorSet Data : $errorInfo")
+                Log.d("IQS Response ErrorSet Data : $errorInfo")
                 commResultReceiver?.send(ProtocolDefine.ERROR_SET.value.toInt(), bundleData)
             }
 
             // 공석 설정
             ProtocolDefine.PJT_SET.value -> {
                 val data = recvPacket.toPJTSetData()
-                LogFile.write("IQS Response $data")
+                Log.d("IQS Response $data")
                 if (data.pjtWinNum == ScreenInfoManager.instance.winNum) {
                     ScreenInfoManager.instance.pjt = data.pjt
                     commResultReceiver?.send(ProtocolDefine.PJT_SET.value.toInt(), bundleData)
@@ -921,7 +907,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_LIST_RESPONSE.value -> {
                 val data = recvPacket.toReserveListResponseData()
                 ScreenInfoManager.instance.setReserveList(data.mul, data.reserveListStr)
-                LogFile.write("IQS Response $data")
+                Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_LIST_RESPONSE.value.toInt(), bundleData)
 
                 // 2022.08.23 written by kshong
@@ -945,7 +931,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_ADD_REQUEST.value -> {
                 val reserveAdd = recvPacket.string
                 ScreenInfoManager.instance.setAddReserve(reserveAdd)
-                LogFile.write("IQS Response ReserveAddRequest Data : $reserveAdd")
+                Log.d("IQS Response ReserveAddRequest Data : $reserveAdd")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ADD_REQUEST.value.toInt(), bundleData)
             }
 
@@ -953,7 +939,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_UPDATE_REQUEST.value -> {
                 val reserveUpdate = recvPacket.string
                 ScreenInfoManager.instance.setUpdateReserve(reserveUpdate)
-                LogFile.write("IQS Response ReserveUpdateRequest Data : $reserveUpdate")
+                Log.d("IQS Response ReserveUpdateRequest Data : $reserveUpdate")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_UPDATE_REQUEST.value.toInt(), bundleData)
             }
 
@@ -961,7 +947,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_CANCEL_REQUEST.value -> {
                 val reserveCancel = recvPacket.string
                 ScreenInfoManager.instance.setCancelReserve(reserveCancel)
-                LogFile.write("IQS Response ReserveCancleRequest Data : $reserveCancel")
+                Log.d("IQS Response ReserveCancleRequest Data : $reserveCancel")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_CANCEL_REQUEST.value.toInt(), bundleData)
             }
 
@@ -969,7 +955,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_ARRIVE_REQUEST.value -> {
                 val arriveData = recvPacket.string
                 ScreenInfoManager.instance.setReserveArrive(arriveData)
-                LogFile.write("IQS Response ReservArriveReqeust Data : $arriveData")
+                Log.d("IQS Response ReservArriveReqeust Data : $arriveData")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ARRIVE_REQUEST.value.toInt(), bundleData)
             }
 
@@ -980,7 +966,7 @@ class IQSComClass : Service() {
                 nReserveCall = ScreenInfoManager.instance.setCallReserve(reserveCall)
 
                 if (nReserveCall == ScreenInfoManager.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
-                    LogFile.write("IQS Response ReservCallRequest Data : $reserveCall")
+                    Log.d("IQS Response ReservCallRequest Data : $reserveCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -995,7 +981,7 @@ class IQSComClass : Service() {
                 nReserveReCall = ScreenInfoManager.instance.setCallReserve(reserveReCall)
 
                 if (nReserveReCall == ScreenInfoManager.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
-                    LogFile.write("IQS Response ReservReCallRequest Data : $reserveReCall")
+                    Log.d("IQS Response ReservReCallRequest Data : $reserveReCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_RE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -1007,7 +993,7 @@ class IQSComClass : Service() {
                 val data = recvPacket.toTellerRenewRequestData()
 
                 if (data.renewWinNum == ScreenInfoManager.instance.winNum) {
-                    LogFile.write("IQS Response $data")
+                    Log.d("IQS Response $data")
                     ScreenInfoManager.instance.setRenewTeller(data.renewWinNum, data.tellerNum, data.tellerName)
                     commResultReceiver?.send(ProtocolDefine.TELLER_RENEW_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -1044,7 +1030,7 @@ class IQSComClass : Service() {
                 when (update) {
                     0 -> {
                         // 다운로드할 파일이 없는 경우 MainActivity로 전환
-                        LogFile.write("ReserveUpdateInfoResponse : update = $update. 다운로드할 파일이 없는 경우로 MainActivity 로 전환해야 한다.")
+                        Log.d("ReserveUpdateInfoResponse : update = $update. 다운로드할 파일이 없는 경우로 MainActivity 로 전환해야 한다.")
                         installAPKFile(InstallAction.FINISH, downloadFileName)
                         Log.d("update value is [0]")
                     }
@@ -1053,7 +1039,7 @@ class IQSComClass : Service() {
                         downloadFileSize = recvPacket.integer
                         downloadFileName = recvPacket.string
 
-                        LogFile.write("[파일다운로드 시작] ReserveUpdateInfoResponse : default ID = $protocolID, update = $update, fileSize = $downloadFileSize, fileName = $downloadFileName")
+                        Log.d("[파일다운로드 시작] ReserveUpdateInfoResponse : default ID = $protocolID, update = $update, fileSize = $downloadFileSize, fileName = $downloadFileName")
 
                         val fileExtension = downloadFileName.substringAfterLast(".", "").lowercase()
                         val downloadDir = when (fileExtension) {
@@ -1069,7 +1055,7 @@ class IQSComClass : Service() {
                         val deleteFilePath = downloadDir + downloadFileName
                         File(deleteFilePath).delete() // 파일 삭제
 
-                        LogFile.write("ReserveUpdateInfoResponse : Delete fileName = $downloadFileName. 다운로드 처음 시작하는 것으로 해당 파일을 지운다.")
+                        Log.d("ReserveUpdateInfoResponse : Delete fileName = $downloadFileName. 다운로드 처음 시작하는 것으로 해당 파일을 지운다.")
 
                         installAPKFile(InstallAction.SHOW_FILENAME, downloadFileName)
                         Log.d("update value is [1]")
@@ -1106,20 +1092,20 @@ class IQSComClass : Service() {
                     }
                     3 -> {
                         // 업데이트를 해야 하지만, 실제 업데이트 파일이 존재하지 않는 경우
-                        LogFile.write("ReserveUpdateInfoResponse : update = $update. 실제 다운로드 파일의 크기를 가져올 수 없는 경우.")
+                        Log.d("ReserveUpdateInfoResponse : update = $update. 실제 다운로드 파일의 크기를 가져올 수 없는 경우.")
                         installAPKFile(InstallAction.FINISH, downloadFileName)
                         Log.d("update value is [3]")
                     }
                     else -> {
                         // 그 밖의 경우 처리
-                        LogFile.write("ReserveUpdateInfoResponse : update = $update. 그밖의 경우로 현재 정의된 값이 없어서, else 인 경우는 발생되지 않음.")
+                        Log.d("ReserveUpdateInfoResponse : update = $update. 그밖의 경우로 현재 정의된 값이 없어서, else 인 경우는 발생되지 않음.")
                         Log.d("update value is [other value]")
                     }
                 }
             }
             else -> {
                 Log.d("default ID  :  $protocolID")
-                LogFile.write("IQS Response default ID  :  $protocolID")
+                Log.d("IQS Response default ID  :  $protocolID")
             }
         }
     }
@@ -1169,7 +1155,6 @@ class IQSComClass : Service() {
         val currentDateFileName = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
 
         Log.d("uploadLogFileToServer() 시작하기")
-        LogFile.write("uploadLogFileToServer() 시작하기")
 
         val logDir = File(logFilePath)
         val fileList = logDir.listFiles()?.filter { it.isFile } // 파일만 필터링
@@ -1180,7 +1165,6 @@ class IQSComClass : Service() {
             // 현재 날짜 파일은 제외
             if (fileName != "$currentDateFileName.txt") {
                 Log.d("uploadLogFileToServerSub() : 현재날짜 = $currentDateFileName, 업로드 파일 = $fileName")
-                LogFile.write("uploadLogFileToServerSub() : 현재날짜 = $currentDateFileName, 업로드 파일 = $fileName")
                 uploadLogFileToServerSub(fileName)
             }
         }
@@ -1191,14 +1175,12 @@ class IQSComClass : Service() {
         val code = ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER.value
 
         Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName")
-        LogFile.write("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName")
 
         try {
             val uploadFile = File(Const.Path.DIR_LOG + fileName)
 
             if (!uploadFile.exists()) {
                 Log.d("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
-                LogFile.write("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
                 return
             }
 
