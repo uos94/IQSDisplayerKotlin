@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/called_list_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/FF0471E8">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:text="@string/title_recent_call"
+        android:textColor="@color/FFFFFFFF"
+        android:textSize="140sp"
+        app:layout_constraintBottom_toTopOf="@id/glTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/title_recent_call" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.2" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glCenter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <include
+        android:id="@+id/clCallItem1"
+        layout="@layout/item_call"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/glCenter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/glTitle">
+        <TextView
+            android:id="@id/tvWinNum"
+            style="@style/CallItemWinNumStyle.Large" />
+        <TextView
+            android:id="@id/tvCallNum"
+            style="@style/CallItemCallNumStyle.Large" />
+    </include>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/outline_left"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/glCenter"
+        app:layout_constraintTop_toBottomOf="@id/glTitle">
+
+        <include
+            android:id="@+id/clCallItem2"
+            layout="@layout/item_call">
+            <TextView
+                android:id="@id/tvWinNum"
+                style="@style/CallItemWinNumStyle.Small" />
+            <TextView
+                android:id="@id/tvCallNum"
+                style="@style/CallItemCallNumStyle.Small" />
+        </include>
+
+        <include
+            android:id="@+id/clCallItem3"
+            layout="@layout/item_call">
+            <TextView
+                android:id="@id/tvWinNum"
+                style="@style/CallItemWinNumStyle.Small" />
+            <TextView
+                android:id="@id/tvCallNum"
+                style="@style/CallItemCallNumStyle.Small" />
+        </include>
+
+        <include
+            android:id="@+id/clCallItem4"
+            layout="@layout/item_call">
+            <TextView
+                android:id="@id/tvWinNum"
+                style="@style/CallItemWinNumStyle.Small" />
+            <TextView
+                android:id="@id/tvCallNum"
+                style="@style/CallItemCallNumStyle.Small" />
+        </include>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,12 +14,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
-import android.widget.TextView
-import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.kct.iqsdisplayer.R
@@ -28,7 +25,6 @@ import com.kct.iqsdisplayer.common.ScreenInfoManager
 import com.kct.iqsdisplayer.databinding.FragmentMainBinding
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.savePreference
-import java.util.Locale
 
 class FragmentMain : Fragment() {
 
@@ -84,22 +80,22 @@ class FragmentMain : Fragment() {
         binding.tvInfo.text         = screenInfo.tellerMent
         infoMessage.observe(viewLifecycleOwner) { newInfoMessage ->
             binding.tvInfo.text = newInfoMessage
-            val isErrorMessage = newInfoMessage == getString(R.string.network_error_msg) ||
-                                 newInfoMessage == getString(R.string.system_error_msg)
+            val isErrorMessage = newInfoMessage == getString(R.string.msg_network_error) ||
+                                 newInfoMessage == getString(R.string.msg_system_error)
             setMarqueeAnimation(isErrorMessage)
         }
 
-        val emptyMsg = screenInfo.emptyMsg.ifEmpty { getString(R.string.default_absence_msg) }
+        val emptyMsg = screenInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
         val callNumText = when {
-            screenInfo.systemError == 1 -> getString(R.string.system_error_msg)
-            screenInfo.pjt == 1 -> getString(R.string.vacancy_msg)
-            screenInfo.flagEmpty == 1 -> emptyMsg
+            screenInfo.systemError == 1 -> getString(R.string.msg_system_error)
+            screenInfo.pjt == 1         -> getString(R.string.msg_vacancy)
+            screenInfo.flagEmpty == 1   -> emptyMsg
             else -> ""
         }
         setCallNumberText(callNumText)
     }
 
-    fun setInfoText(infoMessage : String) {
+    fun setInfoText(infoMessage: String) {
         _infoMessage.value = infoMessage
     }
 

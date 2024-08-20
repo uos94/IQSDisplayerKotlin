@@ -749,29 +749,18 @@ class IQSComClass : Service() {
                 // 볼륨 테스트 패킷
                 val volumeInfo = recvPacket.string
                 try {
-                    val volume = ScreenInfoManager.instance.setVolumTest(volumeInfo) 
+                    val testVolume = ScreenInfoManager.instance.setVolumeTest(volumeInfo)
 
-                    val volumeWin = volume[0].toIntOrNull() ?: 0
-                    val volumeSize = volume[1].toIntOrNull() ?: 0
-                    val volumeName = volume[2]
-                    val playNum = volume[3].toIntOrNull() ?: 0
-                    val infoSound = volume[4].toIntOrNull() ?: 0
+                    Log.d("IQS Response VolumTest Data VolumeWin : $testVolume")
 
-                    Log.d("IQS Response VolumTest Data VolumeWin : $volumeWin VolumeSize : $volumeSize VolumeName : $volumeName PlayNum : $playNum InfoSound : $infoSound")
-
-                    if (ScreenInfoManager.instance.winNum == volumeWin) {
+                    if (ScreenInfoManager.instance.winNum == testVolume.volumeWin) {
                         // 액티비티로 전달
-                        bundleData.putInt("VolumeWin", volumeWin)
-                        bundleData.putInt("VolumeSize", volumeSize)
-                        bundleData.putString("VolumeName", volumeName)
-                        bundleData.putInt("PlayNum", playNum)
-                        bundleData.putInt("InfoSound", infoSound)
                         commResultReceiver?.send(ProtocolDefine.VOLUME_TEST.value.toInt(), bundleData)
                     } else {
                         // 다른 창구일 때 처리 (필요한 경우)
                     }
                 } catch (e: Exception) {
-                    Log.e("Failed Volum Test")
+                    Log.e("Failed Volume Test")
                 }
             }
 
@@ -893,13 +882,17 @@ class IQSComClass : Service() {
             ProtocolDefine.PJT_SET.value -> {
                 val data = recvPacket.toPJTSetData()
                 Log.d("IQS Response $data")
-                if (data.pjtWinNum == ScreenInfoManager.instance.winNum) {
-                    ScreenInfoManager.instance.pjt = data.pjt
-                    commResultReceiver?.send(ProtocolDefine.PJT_SET.value.toInt(), bundleData)
-                } else if (data.pjtWinNum == ScreenInfoManager.instance.mainWinNum) {
-                    ScreenInfoManager.instance.mainPJT = data.pjt
-                } else {
-                    // 다른 창구일 때 처리 (필요한 경우)
+                when (data.pjtWinNum) {
+                    ScreenInfoManager.instance.winNum -> {
+                        ScreenInfoManager.instance.pjt = data.pjt
+                        commResultReceiver?.send(ProtocolDefine.PJT_SET.value.toInt(), bundleData)
+                    }
+                    ScreenInfoManager.instance.mainWinNum -> {
+                        ScreenInfoManager.instance.mainPJT = data.pjt
+                    }
+                    else -> {
+                        Log.w("패킷 ProtocolDefine.PJT_SET의 data.pjtWinNum[${data.pjtWinNum}], ScreenInfoManager.instance.winNum[${ScreenInfoManager.instance.winNum}], ScreenInfoManager.instance.mainWinNum[${ScreenInfoManager.instance.mainWinNum}]")
+                    }
                 }
             }
 

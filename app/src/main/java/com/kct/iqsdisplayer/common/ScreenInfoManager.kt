@@ -1,9 +1,12 @@
 package com.kct.iqsdisplayer.common
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.kct.iqsdisplayer.data.LastCall
 import com.kct.iqsdisplayer.data.Reserve
 import com.kct.iqsdisplayer.data.Sound
 import com.kct.iqsdisplayer.data.Teller
+import com.kct.iqsdisplayer.data.TestVolume
 import com.kct.iqsdisplayer.data.WinWait
 import com.kct.iqsdisplayer.data.packet.AcceptAuthResponseData
 import com.kct.iqsdisplayer.data.packet.CallCancelData
@@ -94,7 +97,12 @@ class ScreenInfoManager private constructor() {
     var callWinNum: Int = 0 // 호출 창구 번호
     var bkNum: Int = 0 // 백업 표시기 번호
 
-    var lastCallList: ArrayList<LastCall> = ArrayList() // 지난 호출 번호 리스트;
+    private val _lastCallList = MutableLiveData<List<LastCall>>(emptyList()) // 지난 호출 번호 리스트;
+    val lastCallList: LiveData<List<LastCall>> get() = _lastCallList // 외부 접근을 위한 getter
+
+    fun updateLastCallList(newList: List<LastCall>) {
+        _lastCallList.value = newList
+    }
 
     // 지난 호출 번호 리스트
     var soundList: ArrayList<Sound> = ArrayList() // 음성 설정
@@ -143,6 +151,8 @@ class ScreenInfoManager private constructor() {
 
     var subList: ArrayList<LastCall> = ArrayList() // 지난 호출 번호 리스트
 
+    var testVolume = TestVolume()
+
     // 화면표시 정보
     fun setDisplayInfo(packetData: String) {
         // data ex) DATA#설치#표시기색상테마, 대기인수표시여부 $
@@ -156,12 +166,20 @@ class ScreenInfoManager private constructor() {
     }
 
     // 볼륨 테스트
-    fun setVolumTest(packetData: String): Array<String> {
+    fun setVolumeTest(packetData: String): TestVolume {
         // data ex) DATA#호출볼륨#창구번호;테스트볼륨;벨소리파일명;재생횟수;안내음성종류;$
         val cleanedData = packetData.removeChar("$").removeChar("DATA#호출볼륨#")
-        val volume = cleanedData.splitData(";") // ;로 나눔
+        val splitData = cleanedData.splitData(";") // ;로 나눔
 
-        return volume
+        val volumeWin   = splitData[0].toIntOrNull() ?: 0
+        val volumeSize  = splitData[1].toIntOrNull() ?: 0
+        val volumeName  = splitData[2]
+        val playNum     = splitData[3].toIntOrNull() ?: 0
+        val infoSound   = splitData[4].toIntOrNull() ?: 0
+
+        testVolume = TestVolume(volumeWin, volumeSize, volumeName, playNum, infoSound)
+
+        return testVolume
     }
 
     // 동영상 정보
@@ -261,7 +279,7 @@ class ScreenInfoManager private constructor() {
         this.callWinNum     = param.callWinNum
         this.bkNum          = param.bkNum
 
-        lastCallList = param.lastCallNumList.splitData("#")
+        val newLastCallList = param.lastCallNumList.splitData("#")
             .mapNotNull { item ->
                 val data1 = item.splitData(";")
                 if (data1.size == 5) {
@@ -277,6 +295,8 @@ class ScreenInfoManager private constructor() {
                     null
                 }
             }.toCollection(ArrayList())
+
+        updateLastCallList(newLastCallList)
     }
 
     // 호출 및 재호출
@@ -297,7 +317,7 @@ class ScreenInfoManager private constructor() {
             this.reserve        = param.reserve
             this.flagVIP        = param.vipFlag // [2023.05.17][add kimhj]
 
-            lastCallList = ArrayList()
+            val newLastCallList = ArrayList<LastCall>()
 
             val data = param.lastCallNum.splitData("#")
             for (i in data.indices) {
@@ -307,16 +327,18 @@ class ScreenInfoManager private constructor() {
                         data1[0].toInt(), data1[1].toInt(), data1[2].toInt(), data1[3].toInt(), data1[4]
                             .toInt()
                     )
-                    lastCallList.add(lastCall)
+                    newLastCallList.add(lastCall)
                 } else {
                     Log.w("Last Call Num Length is not 5")
                 }
             }
+            updateLastCallList(newLastCallList)
 
             val subCall = LastCall(ticketWinID, callWinID, callWinNum, callNum, waitNum)
             subList.add(subCall)
             if (subList.size > 4) subList.removeAt(0)
         } catch (e: Exception) {
+            e.printStackTrace()
             Log.e("callNum Exception")
             return false
         }

@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -16,14 +18,18 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.LogFile
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
 
 
 class MainActivity : AppCompatActivity(), FragmentResultListener {
+
+    private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper())).apply { setReceiver(receiver) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,6 +55,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             requestAllFilesAccessPermission()
             return false
         }
+
         //isExternalStorageManager()를 통과하면 Root디렉토리를 사용 할 수 있으나 확인차 체크함.
         if(Environment.getExternalStorageDirectory()?.absolutePath == null){
             finishApp("외부 저장소 경로(Root)를 가져오는 데 실패했습니다.")
@@ -107,7 +114,17 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         finishAffinity()
     }
 
+    private fun showFragment(@FragmentFactory.Index index: Int) {
+        val tagName = FragmentFactory.getTagName(index)
+        val fragment = FragmentFactory.getFragment(index)
+        val transaction = supportFragmentManager.beginTransaction()
 
+        transaction.replace(R.id.fragment_container, fragment, tagName)
+
+        transaction.commit()
+        Log.i("화면 변경 : $tagName")
+    }
+    /* 기존 hide/show 에서 replace 로 변경함
     fun showFragment(@FragmentFactory.Index index: Int) {
         val tagName = FragmentFactory.getTagName(index)
         val fragment = FragmentFactory.getFragment(index)
@@ -115,7 +132,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
 
         //Index가 NONE인 경우는 앱실행 시 최초일 때, 이때는 hide할 fragment가 없다.
         if(FragmentFactory.getCurrentIndex() != FragmentFactory.Index.NONE) {
-            transaction.hide(FragmentFactory.getCurrentFragment())    
+            transaction.hide(FragmentFactory.getCurrentFragment())
         }
 
         if (fragment.isAdded) {
@@ -125,14 +142,15 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         }
 
         transaction.commit()
-        LogFile.write("화면 변경 : $tagName")
-    }
+        Log.i("화면 변경 : $tagName")
+    }*/
 
     override fun onResult(result: Const.FragmentResult) {
         when(result) {
             Const.FragmentResult.INIT_NONE_PATCH -> { //상태정상이면 화면 초기화진행
-                //TODO : 여기서부터 작업해야함.
-                startIQSService()
+                Log.i("onActivityResult : 초기화 정상 반환... (RESULT_OK)")
+                //onAcceptAuthResponse() //startService후 ACCEPT_AUTH_RESPONSE에서 진행되므로 삭제함.
+                startIQSService(commResultReceiver)
             }
             Const.FragmentResult.INIT_PATCH -> {  //상태 비정상이면 프로그램 종료
                 finishApp("앱 설치로 인한 앱 종료")
@@ -142,7 +160,6 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             }
         }
     }
-
 
     /**
      * 서비스를 MainActivity에서 돌리고 각각의 fragment에서는 bind만해서 동작하도록 하는것이 좋을 것 같으나
@@ -172,6 +189,78 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             }
         }
         return false
+    }
+
+
+    //===========================================================================================
+    //Receiver 에 수신된 데이터 처리 및 관련 함수들
+    //===========================================================================================
+    private var bTimer = false
+    private val receiver = CommResultReceiver.Receiver { resultCode, resultData ->
+        val code = resultCode.toShort()
+        val protocolName = ProtocolDefine.entries.find { it.value == code }?.name ?: "Unknown"
+        Log.d(protocolName)
+
+        when (code) {
+            ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> onAcceptAuthResponse()
+            ProtocolDefine.WAIT_RESPONSE.value -> onWaitCount()
+            ProtocolDefine.CALL_REQUEST.value ->
+                if (resultData.getString("Display") == "Main") onCall(true) else onCall(false)
+
+            ProtocolDefine.RE_CALL_REQUEST.value ->
+                if (resultData.getString("Display") == "Main") onRecall(true) else onRecall(false)
+
+            ProtocolDefine.EMPTY_REQUEST.value -> onAbsent()
+            ProtocolDefine.INFO_MESSAGE_REQUEST.value -> onInfoText()
+            ProtocolDefine.SYSTEM_OFF.value -> onSystemOFF()
+            ProtocolDefine.RESTART_REQUEST.value -> onRestartRequest()
+            ProtocolDefine.CROWDED_REQUEST.value -> onCrowedRequest()
+            ProtocolDefine.WIN_RESPONSE.value -> onWinResponse()
+            ProtocolDefine.SUB_SCREEN_RESPONSE.value -> onSubScreenResponse()
+            ProtocolDefine.BGM_INFO.value -> onBGMInfo()
+            ProtocolDefine.VIDEO_SET.value -> IQSDisplayerRestart() // 230905, by HAHU 서버에서 onVideoSet 보낸 의도가 표시기 재시작을 위함인 것임
+            ProtocolDefine.CALL_CANCEL.value -> onCallCancel()
+            ProtocolDefine.CALL_COLLECT_SET.value -> onCallCollectSet()
+            ProtocolDefine.ERROR_SET.value -> onErrorSet()
+            ProtocolDefine.PJT_SET.value -> onPJTSet()
+            ProtocolDefine.DISPLAY_INFO.value -> onDisplayInfo()
+            ProtocolDefine.TELLER.value -> {
+                // 230905, by HAHU 직원 정보 수정 내려오면 재접속 시키기
+                context?.stopService(intentService)
+                initService()
+            }
+
+            ProtocolDefine.VOLUME_TEST.value -> {
+                val volumeSize = ScreenInfoManager.instance.testVolume.volumeSize
+                val infoSound = ScreenInfoManager.instance.testVolume.infoSound
+                onVolumnTest(volumeSize, infoSound)
+            }
+
+            ProtocolDefine.SOUND_SET.value -> onSoundSet()
+            ProtocolDefine.SERVICE_RETRY.value -> {
+                Log.d("ServiceRetry timer start... (${Define.RETRY_SERVICE_TIME}msec)")
+                timerHandler.sendEmptyMessageDelayed(Define.RETRY_SERVICE_MESSAGE, Define.RETRY_SERVICE_TIME)
+            }
+
+            ProtocolDefine.RESERVE_CALL_REQUEST.value -> { // Reserv -> Reserve
+                Log.i("ReservCalRequest : 상담예약호출 수신... ${screenInfoManager.reserveList?.size}")
+                onReserveCallRequest()
+            }
+
+            ProtocolDefine.RESERVE_RE_CALL_REQUEST.value -> { // Reserv -> Reserve
+                Log.i("ReservReCallRequest : 상담예약재호출 수신...")
+                onReservReCallRequest()
+            }
+
+            ProtocolDefine.TELLER_RENEW_REQUEST.value -> onTellerRenewRequest()
+            else -> Log.i("setupServiceReceiver : default 수신... $resultCode")
+        }
+    }
+
+    private fun onAcceptAuthResponse() {
+        Log.i( "onAcceptAuthResponse : 정상접속 완료...")
+
+
     }
 
 }

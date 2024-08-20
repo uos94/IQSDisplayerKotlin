@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.glide)
+    implementation(libs.androidx.constraintlayout)
     ksp(libs.glide.compiler)
     implementation(files("libs/commons-net-3.6.jar"))
     testImplementation(libs.junit)

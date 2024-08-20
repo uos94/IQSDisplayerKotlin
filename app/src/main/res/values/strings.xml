@@ -13,11 +13,14 @@
 
     <string name="waiting_count_label">대기인원</string>
 
+    <!-- FragmentMain -->
     <string name="format_two_digit">%02d</string>
     <string name="format_four_digit">%04d</string>
-    <string name="default_absence_msg">부재중</string>
-    <string name="system_error_msg">전산장애중</string>
-    <string name="network_error_msg">통신복구중</string>
-    <string name="vacancy_msg">공 석</string>
+    <string name="msg_default_absence">부재중</string>
+    <string name="msg_system_error">전산장애중</string>
+    <string name="msg_network_error">통신복구중</string>
+    <string name="msg_vacancy">공 석</string>
 
+    <!-- FragmentRecentCall -->
+    <string name="title_recent_call">최근 응대고객님</string>
 </resources>
