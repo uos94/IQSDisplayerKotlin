@@ -90,7 +90,7 @@
             android:layout_width="400dp"
             android:layout_height="545dp"
             android:layout_marginStart="1450dp"
-            android:background="@drawable/radius25_e4f0fc">
+            android:background="@drawable/radius25_ffe4f0fc">
             <TextView
                 android:id="@+id/tvTellerName"
                 android:layout_width="wrap_content"

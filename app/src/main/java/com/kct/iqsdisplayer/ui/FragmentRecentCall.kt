@@ -1,6 +1,5 @@
 package com.kct.iqsdisplayer.ui
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,22 +9,11 @@ import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.ScreenInfoManager
 import com.kct.iqsdisplayer.databinding.FragmentRecentCallBinding
 import com.kct.iqsdisplayer.databinding.ItemCallBinding
-import java.util.Locale
 
 class FragmentRecentCall : Fragment() {
 
-
     private var _binding: FragmentRecentCallBinding? = null
     private val binding get() = _binding!!
-
-    //private lateinit var callItemBindings: Array<ItemCallBinding>
-
-    private var mainActivity: MainActivity? = null
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mainActivity = activity as MainActivity
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,7 +52,7 @@ class FragmentRecentCall : Fragment() {
                 if (index < recentCalls.size) {
                     val lastCall = recentCalls[index]
                     itemBinding.tvWinNum.text = if(lastCall.callWinNum <= 0) "" else lastCall.callWinNum.toString()
-                    itemBinding.tvCallNum.text = if(lastCall.callNum <= 0) "" else digitFormat.format(Locale.getDefault(), lastCall.callNum)
+                    itemBinding.tvCallNum.text = if(lastCall.callNum <= 0) "" else digitFormat.format(lastCall.callNum)
                     itemBinding.root.visibility = View.VISIBLE
                 } else {
                     itemBinding.root.visibility = View.INVISIBLE

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/ivBackupArrow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        />
+
+    <TextView
+        android:id="@+id/tvBackupWinNum"
+        android:layout_marginStart="680dp"
+        android:layout_marginTop="280dp"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:gravity="center"
+        android:background="@drawable/radius20_ff0471e8"
+        android:textColor="@color/FFFFFFFF"
+        android:textSize="68sp" />
+
+    <TextView
+        android:id="@+id/tvBackupWinName"
+        android:layout_marginStart="800dp"
+        android:layout_marginTop="290dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/FF0471E8"
+        android:gravity="left"
+        android:textSize="86sp" />
+
+    <TextView
+        android:id="@+id/tvBackupCallNum"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColor="@color/FF000000"
+        android:gravity="center"
+        android:textSize="240dp" />
+
+
+</FrameLayout>
