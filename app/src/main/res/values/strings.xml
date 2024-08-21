@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">IQSDisplayerKotlin</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
 
     <!--초기화면-->
     <string name="setting">설정</string>
@@ -25,4 +27,7 @@
     <string name="title_recent_call">최근 응대고객님</string>
     <!-- FragmentSub -->
     <string name="format_wait_num">%d 명</string>
+
+    <!-- FragmentSetting -->
+    <string name="msg_alert_setting">"내용을 입력한 후 확인 버튼을 눌러주세요"</string>
 </resources>

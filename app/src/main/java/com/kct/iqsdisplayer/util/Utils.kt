@@ -139,7 +139,7 @@ fun String.getFileExtension(): String {
     }
 }
 
-inline fun <reified T> Context.savePreference(prefName: String, key: String, value: T) {
+inline fun <reified T> Context.setPreference(prefName: String, key: String, value: T) {
     val sp: SharedPreferences = getSharedPreferences(prefName, Activity.MODE_PRIVATE)
     val editor = sp.edit()
 

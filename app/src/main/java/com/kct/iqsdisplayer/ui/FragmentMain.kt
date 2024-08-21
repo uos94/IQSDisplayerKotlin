@@ -24,7 +24,7 @@ import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfoManager
 import com.kct.iqsdisplayer.databinding.FragmentMainBinding
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.savePreference
+import com.kct.iqsdisplayer.util.setPreference
 
 class FragmentMain : Fragment() {
 
@@ -62,7 +62,7 @@ class FragmentMain : Fragment() {
         setUIData()
 
         // SharedPreferences에 tellerMent 저장
-        context?.savePreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfoManager.instance.tellerMent)
+        context?.setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfoManager.instance.tellerMent)
     }
 
 

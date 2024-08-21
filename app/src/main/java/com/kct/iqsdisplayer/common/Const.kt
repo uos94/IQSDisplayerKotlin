@@ -27,11 +27,11 @@ object Const {
 
         // 이미지, 비디오, 사운드, 패치파일을 저장하는 디렉토리 경로(디바이스)
         /** 예상경로 : /storage/emulated/0/IQS/Image/ */
-        val DIR_IMAGE = "${DIR_IQS}Image/"
+        var DIR_IMAGE = "${DIR_IQS}Image/"
         /** 예상경로 : /storage/emulated/0/IQS/Video/ */
-        val DIR_VIDEO = "${DIR_IQS}Video/"
+        var DIR_VIDEO = "${DIR_IQS}Video/"
         /** 예상경로 : /storage/emulated/0/IQS/Sound/ */
-        val DIR_SOUND = "${DIR_IQS}Sound/"
+        var DIR_SOUND = "${DIR_IQS}Sound/"
         /** 예상경로 : /storage/emulated/0/IQS/Patch/ */
         val DIR_PATCH = "${DIR_IQS}Patch/"
         /** 경로 : dicontrol/agent/resource/image/ */
@@ -63,7 +63,7 @@ object Const {
             return "$today.txt"
         }
 
-        val DEFAULT_TELLER_IMAGE = "no_image.png"
+        const val DEFAULT_TELLER_IMAGE = "no_image.png"
         /**
          *     //  내용                       KEY
          *       표시기IP                DisplayerIP
@@ -72,11 +72,6 @@ object Const {
          *       이미지 파일 위치          PathImgFile
          *       발행기 IP               Iqs_IP
          *       발행기 PORT             Iqs_PORT
-         *       FTP 서버 IP             FTPServerIP
-         *       FTP 서버 PORT           FTPServerPORT
-         *       FTP 설정 파일 위치        FTPServerSettingPath
-         *       FTP 사용자명             FTPUserID
-         *       FTP 비밀번호             FTPUserPW
          *       백업 서버 IP             BkServerIP
          *       백업 서버 PORT           BkServerPORT
          *       보조 순번 표시            SubDisplayer
@@ -165,7 +160,7 @@ object Const {
 
         /** SharedPreferences값을 CommunicationInfo로 복사한다.
          * SharedPreferences에 없으면 기본값을 유지한다.*/
-        fun  SharedPreferences.loadCommunicationInfo() {
+        fun SharedPreferences.loadCommunicationInfo() {
             IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
             IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
             IQS_PORT = getInt(Key.DisplayerSetting.IQS_PORT, IQS_PORT)
@@ -180,13 +175,13 @@ object Const {
     }
 
     object Handle {
-        const val TIMEOUT_CAHNGE_FRAGMENT_TIME = 5000L //화면 전환 타임
-        const val TIMEOUT_CAHNGE_FRAGMENT_MESSAGE = 0 //화면 전환 메시지 define
+        const val TIMEOUT_CHANGE_FRAGMENT_TIME = 5000L //화면 전환 타임
+        const val TIMEOUT_CHANGE_FRAGMENT_MESSAGE = 0 //화면 전환 메시지 define
         const val RETRY_SERVICE_TIME = 5000L // 서비스 retry 타임
         const val RETRY_SERVICE_MESSAGE = 1001 //서비스 retry 메시지
     }
 
-    enum class FragmentResult() {
+    enum class FragmentResult {
         INIT_NONE_PATCH,
         INIT_PATCH
     }

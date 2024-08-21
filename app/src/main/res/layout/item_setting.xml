@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:background="@android:color/white"
+    android:paddingHorizontal="100dp"
+    android:paddingVertical="10dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        >
+
+        <TextView
+            android:id="@+id/tvMain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textSize="25sp"
+            android:paddingStart="100dp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            tools:text = "TEST MAIN"/>
+
+        <TextView
+            android:id="@+id/tvSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textSize="20sp"
+            android:paddingStart="100dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@android:color/darker_gray"
+            tools:text = "TEST SUB"/>
+
+        <View
+            android:id="@+id/line"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:paddingHorizontal="100dp"
+            android:background="@color/FFF0F0F0"/>
+
+    </LinearLayout>
+
+</LinearLayout>

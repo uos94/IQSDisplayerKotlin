@@ -97,7 +97,7 @@ class FragmentInit : Fragment() {
             R.id.btSetting -> {
                 Log.i("설정버튼 선택")
                 mainActivity?.stopIQSService()
-                timerHandler.removeMessages(Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE)
+                timerHandler.removeMessages(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE)
                 mainActivity?.showFragment(FragmentFactory.Index.FRAGMENT_SETTING)
             }
             R.id.btReboot -> {
@@ -223,16 +223,16 @@ class FragmentInit : Fragment() {
 
                         installSilent(strPatchFileName)
 
-                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_PATCH)
-                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
+                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_PATCH)
+                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                     }
                 } else {
                     strResult += "\r\n패치파일 설치안함(서버 버전 <= 패치 파일 버전)"
                     binding.tvInfo.text = strResult
                     bFTPSuccess = false
 
-                    val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
-                    timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
+                    val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
+                    timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                 }
             }
 
@@ -279,8 +279,8 @@ class FragmentInit : Fragment() {
                     binding.tvInfo.text = "$strResult\n사운드파일 다운로드 완료"
 
                     if (bFTPSuccess) {
-                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
-                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
+                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
+                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                     } else {
                         binding.pbLoading.visibility = View.INVISIBLE
                         timerHandler.sendEmptyMessageDelayed(
@@ -380,7 +380,7 @@ class FragmentInit : Fragment() {
     private val timerHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                Const.Handle.TIMEOUT_CAHNGE_FRAGMENT_MESSAGE -> {
+                Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE -> {
                     Log.i("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
                     checkService.setRunning(false)
                     if(msg.obj != null && msg.obj is Const.FragmentResult) {
