@@ -47,16 +47,6 @@
         <item name="android:textColor">@color/FF000040</item>
     </style>
 
-    <style name="CallItemWinNumStyle.Large">
-        <item name="android:layout_width">220dp</item>
-        <item name="android:textSize">160sp</item>
-    </style>
-
-    <style name="CallItemWinNumStyle.Small">
-        <item name="android:layout_width">190dp</item>
-        <item name="android:textSize">140sp</item>
-    </style>
-
     <style name="CallItemCallNumStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -66,9 +56,30 @@
         <item name="android:textSize">200sp</item>
     </style>
 
+
+    <style name="CallItemWinNumStyle.Large">
+        <item name="android:layout_width">270dp</item>
+        <item name="android:textSize">240sp</item>
+    </style>
+
     <style name="CallItemCallNumStyle.Large">
+        <item name="android:textSize">260sp</item>
+        <item name="android:paddingStart">100dp</item>
+    </style>
+
+    <style name="CallItemWinNumStyle.Middle">
+        <item name="android:layout_width">220dp</item>
+        <item name="android:textSize">160sp</item>
+    </style>
+
+    <style name="CallItemCallNumStyle.Middle">
         <item name="android:textSize">200sp</item>
         <item name="android:paddingStart">50dp</item>
+    </style>
+
+    <style name="CallItemWinNumStyle.Small">
+        <item name="android:layout_width">190dp</item>
+        <item name="android:textSize">140sp</item>
     </style>
 
     <style name="CallItemCallNumStyle.Small">

@@ -23,4 +23,6 @@
 
     <!-- FragmentRecentCall -->
     <string name="title_recent_call">최근 응대고객님</string>
+    <!-- FragmentSub -->
+    <string name="format_wait_num">%d 명</string>
 </resources>

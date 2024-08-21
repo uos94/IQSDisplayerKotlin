@@ -51,9 +51,12 @@ class ScreenInfoManager private constructor() {
     //var winDesc: String = "" // 창구 설명, HISON del : 안쓰고 있음
     var emptyMsg: String = ""      // 부재 메세지
     var flagEmpty: Int = 0 // 부재 여부
-    var availableWaitInfo: Int = 0 // 대기인수 표시 유무 T/F
-    var theme: Int = 0 // 화면테마 0 검정 1 파랑
-    var ment: String = "" // 안내멘트
+    /** 대기인수 표시 유무 T/F, 기본값 0 */
+    var availableWaitInfo: Int = 0 //
+    /** 화면테마 0 검정 1 파랑, 기본값 0 */
+    var theme: Int = 0 //
+    /** 안내멘트 기본값 "" */
+    var ment: String = "" //
 
     var bellInfo: String = "" // 호출 시 벨소리 파일명
     var callInfo: String = "" // 호출 시 반복 출력 횟수
@@ -62,7 +65,8 @@ class ScreenInfoManager private constructor() {
 
     // public static String MediaMode;      // 미디어 정보에서 얻은 모드 상태
 
-    var systemError: Int = 0 // 전산 장애 설정
+    /** 전산 장애 설정, 0 정상운영 1: 전산장애 */
+    var systemError: Int = 0
 
     var winList: ArrayList<WinWait> = ArrayList() // 창구별 ID 창구명 대기인원 리스트
     var tellerList: ArrayList<Teller> = ArrayList() // 직원 정보 리스트
@@ -98,10 +102,20 @@ class ScreenInfoManager private constructor() {
     var bkNum: Int = 0 // 백업 표시기 번호
 
     private val _lastCallList = MutableLiveData<List<LastCall>>(emptyList()) // 지난 호출 번호 리스트;
-    val lastCallList: LiveData<List<LastCall>> get() = _lastCallList // 외부 접근을 위한 getter
+    val lastCallList: LiveData<List<LastCall>> get() = _lastCallList
 
     fun updateLastCallList(newList: List<LastCall>) {
         _lastCallList.value = newList
+    }
+
+    private val _subList = MutableLiveData<List<LastCall>>(emptyList()) // 지난 호출 번호 리스트
+    val subList: LiveData<List<LastCall>> get() = _subList
+
+    fun addSubList(newLastCall: LastCall) {
+        val currentList = _subList.value?.toMutableList() ?: mutableListOf()
+        currentList.add(newLastCall)
+        if (currentList.size > 4) currentList.removeAt(0) // 4개 이상인 경우 첫 번째 요소 제거
+        _subList.value = currentList.toList()
     }
 
     // 지난 호출 번호 리스트
@@ -148,8 +162,6 @@ class ScreenInfoManager private constructor() {
     // 메인 표시기 상태
     var mainWinNum: Int = 0 // 메인 표시기 창구 번호
     var mainPJT: Int = 0 // 메인 표시기 공석
-
-    var subList: ArrayList<LastCall> = ArrayList() // 지난 호출 번호 리스트
 
     var testVolume = TestVolume()
 
@@ -335,8 +347,8 @@ class ScreenInfoManager private constructor() {
             updateLastCallList(newLastCallList)
 
             val subCall = LastCall(ticketWinID, callWinID, callWinNum, callNum, waitNum)
-            subList.add(subCall)
-            if (subList.size > 4) subList.removeAt(0)
+            addSubList(subCall)
+
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e("callNum Exception")

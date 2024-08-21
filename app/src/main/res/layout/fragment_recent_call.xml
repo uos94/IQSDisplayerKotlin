@@ -47,10 +47,10 @@
         app:layout_constraintTop_toBottomOf="@id/glTitle">
         <TextView
             android:id="@id/tvWinNum"
-            style="@style/CallItemWinNumStyle.Large" />
+            style="@style/CallItemWinNumStyle.Middle" />
         <TextView
             android:id="@id/tvCallNum"
-            style="@style/CallItemCallNumStyle.Large" />
+            style="@style/CallItemCallNumStyle.Middle" />
     </include>
 
     <LinearLayout
