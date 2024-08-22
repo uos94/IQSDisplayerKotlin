@@ -19,6 +19,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.common.ScreenInfoManager
 import com.kct.iqsdisplayer.databinding.FragmentMovieBinding
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.getFileExtension
@@ -36,7 +37,7 @@ class FragmentMovie : Fragment() {
 
     //이미지 표출 변수 및 객체
     private var msMaxPlayTime = 0 //이미지,영상 최대 표출시간
-    private var timerCountSec = 0 //이미지,영상 표출한 시간
+    private var playTimerSec = 0 //이미지,영상 표출한 시간
     private var playedPosition = 0 //영상이 재생된 위치, 중간에 끊겼을 때 이어 재생하기용
 
     private val handler: Handler = Handler(Looper.getMainLooper())
@@ -51,23 +52,26 @@ class FragmentMovie : Fragment() {
         return binding.root
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
+    override fun onDestroyView() {
+        handler.removeCallbacks(runShowMedia) // 핸들러 콜백 제거
+        mp.stop()
+        mp.release()
+        super.onDestroyView()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val surfaceHolder: SurfaceHolder = binding.sfVideo.holder
         surfaceHolder.addCallback(sfCallback)
+
+        makeList()
 
         initVideo()
 
         initHandler()
     }
 
-    override fun onDestroy() {
-        handler.removeCallbacks(runShowMedia) // 핸들러 콜백 제거
-        mp.stop()
-        mp.release()
-        super.onDestroy()
-    }
 
     private val sfCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
@@ -82,26 +86,49 @@ class FragmentMovie : Fragment() {
     //================================================================================================================================================================
     // 컨텐츠 재생 관련 코드
     //================================================================================================================================================================
+    private fun makeList() {
+        list.clear()
+
+        val fileNames = ScreenInfoManager.instance.adFileList
+        for (fileName in fileNames) {
+            if (fileName.isEmpty()) continue
+
+            val path = Const.Path.DIR_VIDEO + fileName
+            list.add(path)
+        }
+    }
 
     private fun initHandler() {
         runShowMedia = Runnable {
-            timerCountSec++ //postDelayed로 호출 했으므로 1초 증가
+            playTimerSec++ //postDelayed로 호출 했으므로 1초 증가
             val isImage = isImage(list[currentIndex])
             val logMsg = if (isImage) "이미지 재생 중 - " else "영상 재생 중 - "
-            Log.v("$logMsg$timerCountSec 초 경과")
+            Log.v("$logMsg$playTimerSec 초 경과")
 
             val maxPlayTimeSec = msMaxPlayTime / 1000
-            if (timerCountSec >= maxPlayTimeSec) { //타임아웃
-                timerCountSec = 0
+            if (playTimerSec >= maxPlayTimeSec) { //타임아웃
                 if (isImage) {
                     //이미지는 10초 보여줬으면 다음 컨텐츠로 변경, 영상은 Complete 될 때까지 Index 변경 없음.
-                    currentIndex = nextIndex()
+                    changeNextIndex()
                 }
+                resetPlayTimer()
                 //(activity as MainActivity?).restart(0)
             } else {
-                handler.postDelayed(runShowMedia, 1000)
+                runPlayTimer()
             }
         }
+    }
+
+    private fun runPlayTimer() {
+        handler.postDelayed(runShowMedia, 1000)
+    }
+
+    private fun stopPlayTimer() {
+        handler.removeCallbacks(runShowMedia)
+    }
+
+    private fun resetPlayTimer() {
+        playTimerSec = 0
     }
 
     fun playMedia() {
@@ -133,11 +160,16 @@ class FragmentMovie : Fragment() {
             Log.d("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
         }
 
-        // isImage 변수를 if 문 밖으로 이동하여 불필요한 호출 방지
         val isImage = isImage(list[currentIndex])
-        if (!isImage) timerCountSec = 0
+        if (!isImage) playTimerSec = 0
 
         handler.removeCallbacks(runShowMedia)
+    }
+
+    private fun skipOnErrorAndContinuePlay() {
+        stopMedia()
+
+        playNext()
     }
 
     /**
@@ -147,11 +179,11 @@ class FragmentMovie : Fragment() {
     private fun playNext() {
         Log.w("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
         playedPosition = 0
-        currentIndex = nextIndex()
+        currentIndex = changeNextIndex()
         playMedia()
     }
 
-    private fun nextIndex(): Int {
+    private fun changeNextIndex(): Int {
         currentIndex++
         if (currentIndex >= list.size) {
             currentIndex = 0
@@ -186,6 +218,13 @@ class FragmentMovie : Fragment() {
         mp.setVolume(0f, 0f) //볼륨 제거
         mp.setOnPreparedListener(preparedListener)
         mp.setOnCompletionListener(completeListener)
+        mp.setOnErrorListener(errorListener)
+    }
+
+    private fun resetVideo() {
+        playedPosition = 0
+        mp.stop()
+        mp.reset()
     }
 
     private fun startVideo(path: String) {
@@ -200,7 +239,8 @@ class FragmentMovie : Fragment() {
                 Log.d("영상 처음부터 시작 Index($currentIndex) : ${list[currentIndex]}")
             } catch (e: Exception) {
                 Log.i("video play error__${path}__(${e.message}) $currentIndex/${list.size}")
-                playNext()
+                //동영상 에러 시 다음 컨텐츠로..
+                skipOnErrorAndContinuePlay()
             }
         }
     }
@@ -209,14 +249,23 @@ class FragmentMovie : Fragment() {
 
     private val completeListener = MediaPlayer.OnCompletionListener {
         Log.i("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
-        playedPosition = 0
-        timerCountSec = 0
-        currentIndex = nextIndex()
-        handler.removeCallbacks(runShowMedia)
+        changeNextIndex()
+
+        stopPlayTimer()
+        resetPlayTimer()
+        resetVideo()
         // TODO: (activity as MainActivity?)?.restart(0) 필요한 경우 처리
-        it.stop()
-        it.reset()
     }
+
+    private val errorListener = MediaPlayer.OnErrorListener { _: MediaPlayer?, what: Int, extra: Int ->
+        val contentsPath: String = list[currentIndex]
+        Log.e("재생 실패 된 Index($currentIndex) : $contentsPath what:$what extra:$extra")
+
+        skipOnErrorAndContinuePlay()
+        true
+    }
+
+
 
     //================================================================================================================================================================
     // 이미지 관련 코드
@@ -236,7 +285,7 @@ class FragmentMovie : Fragment() {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap?>?, isFirstResource: Boolean): Boolean {
                     Log.i("Glide load failed: ")
                     e?.message
-                    playNext()
+                    skipOnErrorAndContinuePlay()
                     return false
                 }
 

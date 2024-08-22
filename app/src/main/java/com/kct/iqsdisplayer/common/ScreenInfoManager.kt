@@ -59,8 +59,8 @@ class ScreenInfoManager private constructor() {
     var ment: String = "" //
 
     var bellInfo: String = "" // 호출 시 벨소리 파일명
-    var callInfo: String = "" // 호출 시 반복 출력 횟수
-    var volumeInfo: String = "" // 1~10까지의 볼륨값
+    var callInfo: String = "1" // 호출 시 반복 출력 횟수
+    var volumeInfo: String = "1" // 1~10까지의 볼륨값
 
 
     // public static String MediaMode;      // 미디어 정보에서 얻은 모드 상태
