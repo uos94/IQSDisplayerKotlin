@@ -16,12 +16,13 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentMainBinding
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.setPreference
@@ -32,10 +33,6 @@ class FragmentMain : Fragment() {
     private val binding get() = _binding!!
 
     private var mainActivity: MainActivity? = null
-
-    // infoMessage를 저장하는 MutableLiveData
-    private val _infoMessage = MutableLiveData<String>()
-    private val infoMessage: LiveData<String> get() = _infoMessage
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -60,14 +57,11 @@ class FragmentMain : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setUIData()
-
-        // SharedPreferences에 tellerMent 저장
-        context?.setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfoManager.instance.tellerMent)
     }
 
 
     private fun setUIData() {
-        val screenInfo = ScreenInfoManager.instance
+        val screenInfo = ScreenInfo.instance
 
         binding.tvWinNum.text       = screenInfo.winNum.toString()
         binding.tvWinName.text      = screenInfo.winName
@@ -75,28 +69,46 @@ class FragmentMain : Fragment() {
         binding.ivTellerImage.setTellerImage()
         binding.tvTellerName.text   = screenInfo.tellerName
 
-        binding.tvWaitNum.text      = screenInfo.waitNum.toString()
-
-        binding.tvInfo.text         = screenInfo.tellerMent
-        infoMessage.observe(viewLifecycleOwner) { newInfoMessage ->
-            binding.tvInfo.text = newInfoMessage
-            val isErrorMessage = newInfoMessage == getString(R.string.msg_network_error) ||
-                                 newInfoMessage == getString(R.string.msg_system_error)
-            setMarqueeAnimation(isErrorMessage)
+        screenInfo.waitNum.observe(viewLifecycleOwner) {
+            binding.tvWaitNum.text  = it.toString()
         }
 
-        val emptyMsg = screenInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
-        val callNumText = when {
-            screenInfo.systemError == 1 -> getString(R.string.msg_system_error)
-            screenInfo.pjt == 1         -> getString(R.string.msg_vacancy)
-            screenInfo.flagEmpty == 1   -> emptyMsg
-            else -> ""
-        }
-        setCallNumberText(callNumText)
+        //기존코드에서는 서비스가 돌고 있지 않으면 통신복구중을 표시하였는데 아직 구현하지 못했음.
+        val liveInfoData = MediatorLiveData<String>()
+        liveInfoData.addSource(screenInfo.isCrowded) { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(screenInfo.systemError) { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(screenInfo.tellerMent) { updateInfoText(liveInfoData) }
+        liveInfoData.observe(viewLifecycleOwner) { newInfoMessage -> setInfoText(newInfoMessage)}
+
+        val liveCallNumData = MediatorLiveData<String>()
+        liveCallNumData.addSource(screenInfo.callNum) { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(screenInfo.systemError) { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(screenInfo.pjt) { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(screenInfo.flagEmpty) { updateCallNumText(liveCallNumData) }
+        liveCallNumData.observe(viewLifecycleOwner) { callNumText -> setCallNumberText(callNumText) }
     }
 
-    fun setInfoText(infoMessage: String) {
-        _infoMessage.value = infoMessage
+    private fun updateInfoText(liveInfoData: MediatorLiveData<String>) {
+        val screenInfo = ScreenInfo.instance
+        val newInfoMessage = when {
+            screenInfo.systemError.value == 1 -> getString(R.string.msg_system_error)
+            screenInfo.isCrowded.value == true-> screenInfo.crowdedMsg
+            else -> screenInfo.tellerMent.value
+        }
+        liveInfoData.value = newInfoMessage
+    }
+
+    // liveData 값 업데이트 함수
+    private fun updateCallNumText(liveCallNumData: MediatorLiveData<String>) {
+        val screenInfo = ScreenInfo.instance
+        val emptyMsg = screenInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
+        val callNumText = when {
+            screenInfo.systemError.value == 1 -> getString(R.string.msg_system_error)
+            screenInfo.pjt.value == 1         -> getString(R.string.msg_vacancy)
+            screenInfo.flagEmpty.value == 1   -> emptyMsg
+            else -> "%02d".format(screenInfo.callNum.value)
+        }
+        liveCallNumData.value = callNumText
     }
 
     private fun setMarqueeAnimation(isErrorMessage: Boolean) {
@@ -110,17 +122,23 @@ class FragmentMain : Fragment() {
         }
     }
 
+    private fun setInfoText(text: String) {
+        binding.tvInfo.text = text
+        val isErrorMessage = text == getString(R.string.msg_network_error) ||
+                text == getString(R.string.msg_system_error)
+        setMarqueeAnimation(isErrorMessage)
+    }
     /**
      * 호출 번호 또는 부재 메시지 설정
      * 1001, 부재중, 공  석 ..등
      */
-    fun setCallNumberText(callNumberText: String) {
-        val isAbsence = !callNumberText.all { it.isDigit() }
+    private fun setCallNumberText(callNumText: String) {
+        val isAbsence = !callNumText.all { it.isDigit() }
         binding.tvCallNum.textSize = if (isAbsence) 330f else 420f
-        binding.tvCallNum.text = callNumberText
+        binding.tvCallNum.text = callNumText
 
         if (isAbsence) {
-            Log.d("부재문구 : $callNumberText")
+            Log.d("부재문구 : $callNumText")
         } else {
             // 숫자일 때 색상 변경 애니메이션 시작
             val colorAnim = ObjectAnimator.ofInt(
@@ -146,7 +164,7 @@ class FragmentMain : Fragment() {
 
     //this.text = getString(R.string.format_four_digit).format(Locale.getDefault(), callNumber)
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfoManager.instance.imgName
+        val tellerImageFileName = ScreenInfo.instance.imgName
         val serverIp = Const.CommunicationInfo.IQS_IP
 
         Glide.with(requireContext())

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.R
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentBackupCallBinding
 
 /**
@@ -38,20 +38,22 @@ class FragmentBackupCall : Fragment() {
 
     private fun setUIData() {
         binding.ivBackupArrow.setImageResource(
-            if (ScreenInfoManager.instance.callBkWay == 1) {
+            if (ScreenInfo.instance.callBkWay == 1) {
                 R.drawable.background_backup_left
             } else {
                 R.drawable.background_backup_right
             }
         )
 
-        binding.tvBackupWinNum.text = ScreenInfoManager.instance.callWinNum.toString()
+        binding.tvBackupWinNum.text = ScreenInfo.instance.callWinNum.toString()
 
         val digitFormat = getString(R.string.format_four_digit)
-        binding.tvBackupCallNum.text = digitFormat.format(ScreenInfoManager.instance.callNum)
+        ScreenInfo.instance.callNum.observe(viewLifecycleOwner) {
+            binding.tvBackupCallNum.text  = digitFormat.format(it)
+        }
 
         //창구ID 같으면 해당ID의 창구명 설정
-        ScreenInfoManager.instance.winList.find { it.winID == ScreenInfoManager.instance.ticketWinID }?.let {
+        ScreenInfo.instance.winList.find { it.winID == ScreenInfo.instance.ticketWinID }?.let {
             binding.tvBackupWinName.text = it.winName
         }
     }

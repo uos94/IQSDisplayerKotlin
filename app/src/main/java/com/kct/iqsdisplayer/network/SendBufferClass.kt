@@ -1,6 +1,6 @@
 import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
 import java.io.File
@@ -49,7 +49,7 @@ class SendBufferClass() { // ScreenInfoManager 주입
     fun waitRequest(): ByteBuffer {
         Log.d("WaitRequest")
         val code = ProtocolDefine.WAIT_REQUEST.value
-        val winID = ScreenInfoManager.instance.winID // ScreenInfoManager에서 winID 가져오기
+        val winID = ScreenInfo.instance.winID // ScreenInfoManager에서 winID 가져오기
         val dataSize = 4
 
         return ByteBuffer.allocate(dataSize + 4).apply {

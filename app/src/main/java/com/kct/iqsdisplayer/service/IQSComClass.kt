@@ -8,7 +8,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.ResultReceiver
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.data.packet.toAcceptAuthResponseData
 import com.kct.iqsdisplayer.data.packet.toCallCancelData
 import com.kct.iqsdisplayer.data.packet.toCallCollectSetData
@@ -461,7 +461,7 @@ class IQSComClass : Service() {
     // IQS로 로그 파일 전송하는 스레드
     private inner class UploadFTP : Thread() {
         override fun run() {
-            val serverLogFolderPath = "${Const.Path.SUB_PATH_LOG}Display${ScreenInfoManager.instance.winNum}/"
+            val serverLogFolderPath = "${Const.Path.SUB_PATH_LOG}Display${ScreenInfo.instance.winNum}/"
             Log.i("Try Send Log File ($serverLogFolderPath)")
 
             try {
@@ -602,13 +602,13 @@ class IQSComClass : Service() {
             ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> {
                 val data = recvPacket.toAcceptAuthResponseData()
 
-                ScreenInfoManager.instance.setTellerInfo(data.tellerInfo)
+                ScreenInfo.instance.setTellerInfo(data.tellerInfo)
                 Log.d("SetTellerInfo")
 
-                ScreenInfoManager.instance.setWinList(data.winIdList, data.winNameList, data.waitList)
+                ScreenInfo.instance.setWinList(data.winIdList, data.winNameList, data.waitList)
                 Log.d("SetWinList")
 
-                ScreenInfoManager.instance.setScreenInfo(data)
+                ScreenInfo.instance.setScreenInfo(data)
 
                 Log.d("IQS Response $data")
 
@@ -622,9 +622,9 @@ class IQSComClass : Service() {
                 val data = recvPacket.toWaitResponse()
                 Log.d("$data")
 
-                if (data.winID == ScreenInfoManager.instance.winID) {
+                if (data.winID == ScreenInfo.instance.winID) {
                     // 같은 창구일 때
-                    ScreenInfoManager.instance.setWaitResponse(data.ticketNum, data.waitNum)
+                    ScreenInfo.instance.setWaitResponse(data.ticketNum, data.waitNum)
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.WAIT_RESPONSE.value.toInt(), bundleData)
                 } else {
@@ -647,29 +647,29 @@ class IQSComClass : Service() {
                 Log.d("IQS Response $data")
 
                 if (Const.CommunicationInfo.CALLVIEW_MODE == "2" || Const.CommunicationInfo.CALLVIEW_MODE == "3") { // 보조 순번
-                    result = ScreenInfoManager.instance.setCallNum(data)
+                    result = ScreenInfo.instance.setCallNum(data)
                     if (result) {
                         bundleData.putString("Display", "Main")
                         commResultReceiver?.send(resultCode.toInt(), bundleData)
                     }
                 } else {
-                    if (ScreenInfoManager.instance.pjt == 0) { // 사용 중
+                    if (ScreenInfo.instance.pjt.value == 0) { // 사용 중
                         if (data.errorStatus == 0) {
                             // 정상일 때
-                            if (data.callWinNum == ScreenInfoManager.instance.winNum) {
-                                result = ScreenInfoManager.instance.setCallNum(data)
+                            if (data.callWinNum == ScreenInfo.instance.winNum) {
+                                result = ScreenInfo.instance.setCallNum(data)
                                 if (result) {
                                     bundleData.putString("Display", "Main")
                                     commResultReceiver?.send(resultCode.toInt(), bundleData)
                                 }
                             } else {
-                                Log.d("CallWinNum != screenInfo.getWinNum()   --->   ${data.callWinNum}, ${ScreenInfoManager.instance.winNum}")
+                                Log.d("CallWinNum != screenInfo.getWinNum()   --->   ${data.callWinNum}, ${ScreenInfo.instance.winNum}")
                             }
 
                         } else {
                             // 장애 상황
-                            if (data.bkDisplay == ScreenInfoManager.instance.winNum) {
-                                result = ScreenInfoManager.instance.setCallNum(data)
+                            if (data.bkDisplay == ScreenInfo.instance.winNum) {
+                                result = ScreenInfo.instance.setCallNum(data)
                                 if (result) {
                                     bundleData.putString("Display", "Bk")
                                     commResultReceiver?.send(resultCode.toInt(), bundleData)
@@ -686,7 +686,7 @@ class IQSComClass : Service() {
             ProtocolDefine.DISPLAY_INFO.value -> {
                 // 화면 표시기 정보 패킷
                 val data = recvPacket.string
-                ScreenInfoManager.instance.setDisplayInfo(data) 
+                ScreenInfo.instance.setDisplayInfo(data)
                 commResultReceiver?.send(ProtocolDefine.DISPLAY_INFO.value.toInt(), bundleData)
             }
 
@@ -694,8 +694,8 @@ class IQSComClass : Service() {
                 // 부재 정보 요청
                 val data = recvPacket.toEmptyRequestData()
 
-                if (data.winNum == ScreenInfoManager.instance.winNum) {
-                    ScreenInfoManager.instance.setEmpty(data.emptyFlag, data.emptyMsg)
+                if (data.winNum == ScreenInfo.instance.winNum) {
+                    ScreenInfo.instance.setEmpty(data.emptyFlag, data.emptyMsg)
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.EMPTY_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -707,9 +707,9 @@ class IQSComClass : Service() {
                 // 안내 메시지 설정 요청
                 val data = recvPacket.toInfoMessageRequestData()
 
-                if (data.infoMessageWinNum == ScreenInfoManager.instance.winNum) {
+                if (data.infoMessageWinNum == ScreenInfo.instance.winNum) {
                     Log.d("infoMessage : $data")
-                    ScreenInfoManager.instance.ment = data.infoMessage
+                    ScreenInfo.instance.ment = data.infoMessage
                     commResultReceiver?.send(ProtocolDefine.INFO_MESSAGE_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
@@ -720,7 +720,7 @@ class IQSComClass : Service() {
                 // 직원 정보
                 val tellerList = recvPacket.string          // 직원 설정 정보 리스트
                 Log.d("IQS Response Teller Data  : $tellerList")
-                ScreenInfoManager.instance.setTellerList(tellerList)
+                ScreenInfo.instance.setTellerList(tellerList)
                 commResultReceiver?.send(ProtocolDefine.TELLER.value.toInt(), bundleData)
             }
 
@@ -732,13 +732,13 @@ class IQSComClass : Service() {
             // 동영상 설정 패킷
             ProtocolDefine.VIDEO_SET.value -> {
                 val videoInfo = recvPacket.string
-                ScreenInfoManager.instance.setVideoInfo(videoInfo) 
+                ScreenInfo.instance.setVideoInfo(videoInfo)
                 Log.d("IQS Response VideoSet Data : $videoInfo")
                 try {
                     commResultReceiver?.send(ProtocolDefine.VIDEO_SET.value.toInt(), bundleData)
                     val list = arrayOf("Video")
                     val downLoadFTPFile = DownLoadFTPFile(list, false)
-                    downLoadFTPFile.setFileList(ScreenInfoManager.instance.adFileList) 
+                    downLoadFTPFile.setFileList(ScreenInfo.instance.adFileList)
                     Thread(downLoadFTPFile).start()
                 } catch (e: Exception) {
                     Log.e("Failed VideoSet")
@@ -749,11 +749,11 @@ class IQSComClass : Service() {
                 // 볼륨 테스트 패킷
                 val volumeInfo = recvPacket.string
                 try {
-                    val testVolume = ScreenInfoManager.instance.setVolumeTest(volumeInfo)
+                    val testVolume = ScreenInfo.instance.setVolumeTest(volumeInfo)
 
                     Log.d("IQS Response VolumTest Data VolumeWin : $testVolume")
 
-                    if (ScreenInfoManager.instance.winNum == testVolume.volumeWin) {
+                    if (ScreenInfo.instance.winNum == testVolume.volumeWin) {
                         // 액티비티로 전달
                         commResultReceiver?.send(ProtocolDefine.VOLUME_TEST.value.toInt(), bundleData)
                     } else {
@@ -767,7 +767,7 @@ class IQSComClass : Service() {
             // 음성 설정 패킷
             ProtocolDefine.SOUND_SET.value -> {
                 val soundSetData = recvPacket.string
-                ScreenInfoManager.instance.soundSet(soundSetData)
+                ScreenInfo.instance.soundSet(soundSetData)
                 Log.d("IQS Response SoundSetData Data : $soundSetData")
                 commResultReceiver?.send(ProtocolDefine.SOUND_SET.value.toInt(), bundleData)
             }
@@ -776,7 +776,7 @@ class IQSComClass : Service() {
             ProtocolDefine.RESTART_REQUEST.value -> {
                 val data = recvPacket.toRestartRequestData()
 
-                if (data.restartWinNum == ScreenInfoManager.instance.winNum) {
+                if (data.restartWinNum == ScreenInfo.instance.winNum) {
                     Const.CommunicationInfo.MODE = data.mode
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.RESTART_REQUEST.value.toInt(), bundleData)
@@ -789,8 +789,8 @@ class IQSComClass : Service() {
                 // 혼잡 요청
                 val data = recvPacket.toCrowdedRequestData()
 
-                if (data.crowdedWinID == ScreenInfoManager.instance.winID) {
-                    ScreenInfoManager.instance.setCrowed(data.isCrowded, data.crowdedMsg)
+                if (data.crowdedWinID == ScreenInfo.instance.winID) {
+                    ScreenInfo.instance.setCrowed(data.isCrowded, data.crowdedMsg)
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.CROWDED_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -802,7 +802,7 @@ class IQSComClass : Service() {
                 // 창구 응답
                 val data = recvPacket.toWinResponseData()
 
-                ScreenInfoManager.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
+                ScreenInfo.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
                 Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.WIN_RESPONSE.value.toInt(), bundleData)
             }
@@ -842,14 +842,14 @@ class IQSComClass : Service() {
 
                 if (data.cancelError == 1) {
                     // 장애 상태가 아닐 경우
-                    if (data.callWinNum == ScreenInfoManager.instance.winNum) {
-                        ScreenInfoManager.instance.setCallCancel(data)
+                    if (data.callWinNum == ScreenInfo.instance.winNum) {
+                        ScreenInfo.instance.setCallCancel(data)
                     } else {
                         // 다른 창구일 때 처리 (필요한 경우)
                     }
                 } else {
                     // 장애 상태 처리
-                    if (data.bkNum == ScreenInfoManager.instance.bkDisplay) {
+                    if (data.bkNum == ScreenInfo.instance.bkDisplay) {
                         // TODO: 장애 상태 처리 로직 추가
                     } else {
                         // 다른 백업 표시기일 때 처리 (필요한 경우)
@@ -861,8 +861,8 @@ class IQSComClass : Service() {
             ProtocolDefine.CALL_COLLECT_SET.value -> {
                 val data = recvPacket.toCallCollectSetData()
 
-                if (data.collectWinNum == ScreenInfoManager.instance.winNum) {
-                    ScreenInfoManager.instance.collectNum = data.collectNum
+                if (data.collectWinNum == ScreenInfo.instance.winNum) {
+                    ScreenInfo.instance.collectNum = data.collectNum
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.CALL_COLLECT_SET.value.toInt(), bundleData)
                 } else {
@@ -873,7 +873,7 @@ class IQSComClass : Service() {
             // 전산 장애 설정
             ProtocolDefine.ERROR_SET.value -> {
                 val errorInfo = recvPacket.string                      // 전산 장애 설정 정보
-                ScreenInfoManager.instance.setError(errorInfo)
+                ScreenInfo.instance.setError(errorInfo)
                 Log.d("IQS Response ErrorSet Data : $errorInfo")
                 commResultReceiver?.send(ProtocolDefine.ERROR_SET.value.toInt(), bundleData)
             }
@@ -883,15 +883,16 @@ class IQSComClass : Service() {
                 val data = recvPacket.toPJTSetData()
                 Log.d("IQS Response $data")
                 when (data.pjtWinNum) {
-                    ScreenInfoManager.instance.winNum -> {
-                        ScreenInfoManager.instance.pjt = data.pjt
+                    ScreenInfo.instance.winNum -> {
+                        ScreenInfo.instance.updatePjt(data.pjt)
                         commResultReceiver?.send(ProtocolDefine.PJT_SET.value.toInt(), bundleData)
                     }
-                    ScreenInfoManager.instance.mainWinNum -> {
-                        ScreenInfoManager.instance.mainPJT = data.pjt
-                    }
+                    //쓰는곳이 없음
+//                    ScreenInfo.instance.mainWinNum -> {
+//                        ScreenInfo.instance.mainPJT = data.pjt
+//                    }
                     else -> {
-                        Log.w("패킷 ProtocolDefine.PJT_SET의 data.pjtWinNum[${data.pjtWinNum}], ScreenInfoManager.instance.winNum[${ScreenInfoManager.instance.winNum}], ScreenInfoManager.instance.mainWinNum[${ScreenInfoManager.instance.mainWinNum}]")
+                        Log.w("패킷 ProtocolDefine.PJT_SET의 data.pjtWinNum[${data.pjtWinNum}], ScreenInfoManager.instance.winNum[${ScreenInfo.instance.winNum}], ScreenInfoManager.instance.mainWinNum[${ScreenInfo.instance.mainWinNum}]")
                     }
                 }
             }
@@ -899,7 +900,7 @@ class IQSComClass : Service() {
             // 예약 리스트 응답
             ProtocolDefine.RESERVE_LIST_RESPONSE.value -> {
                 val data = recvPacket.toReserveListResponseData()
-                ScreenInfoManager.instance.setReserveList(data.mul, data.reserveListStr)
+                ScreenInfo.instance.setReserveList(data.mul, data.reserveListStr)
                 Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_LIST_RESPONSE.value.toInt(), bundleData)
 
@@ -923,7 +924,7 @@ class IQSComClass : Service() {
             // 예약 추가 요청 패킷
             ProtocolDefine.RESERVE_ADD_REQUEST.value -> {
                 val reserveAdd = recvPacket.string
-                ScreenInfoManager.instance.setAddReserve(reserveAdd)
+                ScreenInfo.instance.setAddReserve(reserveAdd)
                 Log.d("IQS Response ReserveAddRequest Data : $reserveAdd")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ADD_REQUEST.value.toInt(), bundleData)
             }
@@ -931,7 +932,7 @@ class IQSComClass : Service() {
             // 예약 수정 요청 패킷
             ProtocolDefine.RESERVE_UPDATE_REQUEST.value -> {
                 val reserveUpdate = recvPacket.string
-                ScreenInfoManager.instance.setUpdateReserve(reserveUpdate)
+                ScreenInfo.instance.setUpdateReserve(reserveUpdate)
                 Log.d("IQS Response ReserveUpdateRequest Data : $reserveUpdate")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_UPDATE_REQUEST.value.toInt(), bundleData)
             }
@@ -939,7 +940,7 @@ class IQSComClass : Service() {
             // 예약 취소 요청 패킷
             ProtocolDefine.RESERVE_CANCEL_REQUEST.value -> {
                 val reserveCancel = recvPacket.string
-                ScreenInfoManager.instance.setCancelReserve(reserveCancel)
+                ScreenInfo.instance.setCancelReserve(reserveCancel)
                 Log.d("IQS Response ReserveCancleRequest Data : $reserveCancel")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_CANCEL_REQUEST.value.toInt(), bundleData)
             }
@@ -947,7 +948,7 @@ class IQSComClass : Service() {
             // 예약 도착 등록 요청 패킷
             ProtocolDefine.RESERVE_ARRIVE_REQUEST.value -> {
                 val arriveData = recvPacket.string
-                ScreenInfoManager.instance.setReserveArrive(arriveData)
+                ScreenInfo.instance.setReserveArrive(arriveData)
                 Log.d("IQS Response ReservArriveReqeust Data : $arriveData")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ARRIVE_REQUEST.value.toInt(), bundleData)
             }
@@ -956,9 +957,9 @@ class IQSComClass : Service() {
             ProtocolDefine.RESERVE_CALL_REQUEST.value -> {
                 var nReserveCall = 0
                 val reserveCall = recvPacket.string
-                nReserveCall = ScreenInfoManager.instance.setCallReserve(reserveCall)
+                nReserveCall = ScreenInfo.instance.setCallReserve(reserveCall)
 
-                if (nReserveCall == ScreenInfoManager.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
+                if (nReserveCall == ScreenInfo.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
                     Log.d("IQS Response ReservCallRequest Data : $reserveCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -971,9 +972,9 @@ class IQSComClass : Service() {
                 val reserveReCall = recvPacket.string
 
                 var nReserveReCall = 0
-                nReserveReCall = ScreenInfoManager.instance.setCallReserve(reserveReCall)
+                nReserveReCall = ScreenInfo.instance.setCallReserve(reserveReCall)
 
-                if (nReserveReCall == ScreenInfoManager.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
+                if (nReserveReCall == ScreenInfo.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
                     Log.d("IQS Response ReservReCallRequest Data : $reserveReCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_RE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -985,9 +986,9 @@ class IQSComClass : Service() {
             ProtocolDefine.TELLER_RENEW_REQUEST.value -> {
                 val data = recvPacket.toTellerRenewRequestData()
 
-                if (data.renewWinNum == ScreenInfoManager.instance.winNum) {
+                if (data.renewWinNum == ScreenInfo.instance.winNum) {
                     Log.d("IQS Response $data")
-                    ScreenInfoManager.instance.setRenewTeller(data.renewWinNum, data.tellerNum, data.tellerName)
+                    ScreenInfo.instance.setRenewTeller(data.renewWinNum, data.tellerNum, data.tellerName)
                     commResultReceiver?.send(ProtocolDefine.TELLER_RENEW_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)

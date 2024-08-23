@@ -18,10 +18,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ScreenInfoManager private constructor() {
+class ScreenInfo private constructor() {
     companion object {
         @JvmField
-        val instance: ScreenInfoManager = ScreenInfoManager()
+        val instance: ScreenInfo = ScreenInfo()
     }
 
     //기본변수들 모두 teller에 포함되어 있음.
@@ -37,7 +37,12 @@ class ScreenInfoManager private constructor() {
     var tellerNum: Int = 0 // 직원 행번
     var displayIP: String = "" // 직원 표시기 IP
     var tellerName: String = "" // 직원명
-    var pjt: Int = 1 // 공석 설정    (True 일 경우 공석 화면 표시)
+
+    private val _pjt = MutableLiveData(1) // 공석 설정    (True 일 경우 공석 화면 표시)
+    val pjt: LiveData<Int> get() = _pjt
+    fun updatePjt(pjt: Int) {
+        _pjt.value = pjt
+    }
 
     //var teller:Teller? = null
     /** 창구명 */
@@ -50,7 +55,13 @@ class ScreenInfoManager private constructor() {
     //var displayColor: String = "" // 표시기 색상, HISON del : 안쓰고 있음
     //var winDesc: String = "" // 창구 설명, HISON del : 안쓰고 있음
     var emptyMsg: String = ""      // 부재 메세지
-    var flagEmpty: Int = 0 // 부재 여부
+
+    private val _flagEmpty = MutableLiveData(0) // 부재 여부
+    val flagEmpty: LiveData<Int> get() = _flagEmpty
+    fun updateFlagEmpty(flagEmpty: Int) {
+        _flagEmpty.value = flagEmpty
+    }
+
     /** 대기인수 표시 유무 T/F, 기본값 0 */
     var availableWaitInfo: Int = 0 //
     /** 화면테마 0 검정 1 파랑, 기본값 0 */
@@ -66,19 +77,34 @@ class ScreenInfoManager private constructor() {
     // public static String MediaMode;      // 미디어 정보에서 얻은 모드 상태
 
     /** 전산 장애 설정, 0 정상운영 1: 전산장애 */
-    var systemError: Int = 0
+    private val _systemError = MutableLiveData(0) // 창구 대기 인원
+    val systemError: LiveData<Int> get() = _systemError
+    fun updateSystemError(systemError: Int) {
+        _systemError.value = systemError
+    }
 
     var winList: ArrayList<WinWait> = ArrayList() // 창구별 ID 창구명 대기인원 리스트
     var tellerList: ArrayList<Teller> = ArrayList() // 직원 정보 리스트
 
     var ticketNum: Int = 0 // 발권 번호
-    var waitNum: Int = 0 // 창구 대기 인원
 
+    private val _waitNum = MutableLiveData(0) // 창구 대기 인원
+    val waitNum: LiveData<Int> get() = _waitNum
+    fun updateWaitNum(newWaitNum: Int) {
+        _waitNum.value = newWaitNum
+    }
 
     var display: Int = 0 // 직원 정보 리스트에서 받아오는 표시
 
     var errorStatus: Int = 0 // 장애 여부
-    var callNum: Int = 0 // 호출 번호
+
+    private val _callNum = MutableLiveData(0) // 창구 대기 인원
+    val callNum: LiveData<Int> get() = _callNum
+
+    fun updateCallNum(newCallNum: Int) {
+        _callNum.value = newCallNum
+    }
+
     var ticketWinID: Int = 0 // 발권 창구 ID
     var callWinID: Int = 0 // 호출 창구 ID
 
@@ -86,10 +112,8 @@ class ScreenInfoManager private constructor() {
     var callBkDisplay: Int = 0 // 백업 표시기 번호
     var callBkWay: Int = 0 // 화살표 방향
     var reserve: Int = 0 // 예약 구분 0:일반고객, 1:예약발권 예약 고객, 2:즉시발권 예약고객
+    /** 일반인[0], VIP[1] */
     var flagVIP: Int = 0 // VIP실 구분 -  [2023.05.17][add kimhj]
-
-    var isCrowded: Int = 0 // 혼잡여부 BOOL
-    var crowdedMsg: String = "" // 혼잡 메세지
 
     /** 호출 횟수 설정 */
     var collectNum: Int = 0 // 호출 횟수
@@ -123,7 +147,19 @@ class ScreenInfoManager private constructor() {
 
     var playVideo: Int = 0 // 동영상 재생 여부
     var playSub: Int = 0 // 보조화면 사용 여부
-    var tellerMent: String = "" // 하단 안내 문구
+
+    private val _tellerMent = MutableLiveData("") // 하단 안내 문구
+    val tellerMent: LiveData<String> get() = _tellerMent
+    fun updateTellerMent(tellerMent: String) {
+        _tellerMent.value = tellerMent
+    }
+
+    private val _isCrowded = MutableLiveData(false) // 혼잡여부 BOOL
+    val isCrowded: LiveData<Boolean> get() = _isCrowded
+    fun updateCrowded(isCrowded: Boolean) {
+        _isCrowded.value = isCrowded
+    }
+    var crowdedMsg: String = "" // 혼잡 메세지
 
     // 볼륨 테스트 데이터
     var volumeWin: Int = 0 // 볼륨테스트 창구 번호
@@ -140,7 +176,7 @@ class ScreenInfoManager private constructor() {
     var mainDisplayTime: Int = 0 // 메인화면 표시 시간
     var subDisplayTime: Int = 0 // 보조화면 표시 시간
     var adDisplayTime: Int = 0 // 홍보화면 표시 시간
-    var winDisplayTime: Int = 0 // 창구별 표시 시간
+    var winDisplayTime: Int = 0 // 창구별 표시 시간, 안쓰는것으로 보인다.
     var adFileList: Array<String> = emptyArray() // 홍보물 리스트
     var iSVideo: Int = 0 // 기본 동영상 유무 1: 기본 동영상, 2: 지점 설정 동영상
 
@@ -152,16 +188,15 @@ class ScreenInfoManager private constructor() {
     var reserveTime: Int = 0 // 예약 시간
     var customerNum: String = "" // 고객 번호
     var customerName: String = "" // 고객 이름
-    var reservError: String = "" // 장애 여부
+    var reserveError: String = "" // 장애 여부
     var reserveCallNum: String = "" // 호출 번호
-    var reservWinID: String = "" // 호출 창구 ID
-    var reservWinNum: String = "" // 호출 창구 번호
-    var reservBackNum: String = "" // 호출 보조 창구 번호
-    var reservBackWay: String = "" // 호출 백업 표시 방향
+    var reserveWinID: String = "" // 호출 창구 ID
+    var reserveWinNum: String = "" // 호출 창구 번호
+    var reserveBackNum: String = "" // 호출 보조 창구 번호
+    var reserveBackWay: String = "" // 호출 백업 표시 방향
 
     // 메인 표시기 상태
     var mainWinNum: Int = 0 // 메인 표시기 창구 번호
-    var mainPJT: Int = 0 // 메인 표시기 공석
 
     var testVolume = TestVolume()
 
@@ -287,9 +322,9 @@ class ScreenInfoManager private constructor() {
         this.cancelcallNum  = param.cancelCallNum
         this.ticketWinID    = param.ticketWinID
         this.callWinID      = param.callWinID
-        this.waitNum        = param.wait
         this.callWinNum     = param.callWinNum
         this.bkNum          = param.bkNum
+        updateWaitNum(param.wait)
 
         val newLastCallList = param.lastCallNumList.splitData("#")
             .mapNotNull { item ->
@@ -319,15 +354,15 @@ class ScreenInfoManager private constructor() {
     ): Boolean {
         try {
             this.errorStatus    = param.errorStatus
-            this.callNum        = param.callNum
             this.ticketWinID    = param.ticketWinID
             this.callWinID      = param.callWinID
-            this.waitNum        = param.winWaitNum
             this.callWinNum     = param.callWinNum
             this.callBkDisplay  = param.bkDisplay
             this.callBkWay      = param.bkWay
             this.reserve        = param.reserve
             this.flagVIP        = param.vipFlag // [2023.05.17][add kimhj]
+            updateWaitNum(param.winWaitNum)
+            updateCallNum(param.callNum)
 
             val newLastCallList = ArrayList<LastCall>()
 
@@ -346,7 +381,7 @@ class ScreenInfoManager private constructor() {
             }
             updateLastCallList(newLastCallList)
 
-            val subCall = LastCall(ticketWinID, callWinID, callWinNum, callNum, waitNum)
+            val subCall = LastCall(param.ticketWinID, param.callWinID, param.callWinNum, param.callNum, param.winWaitNum)
             addSubList(subCall)
 
         } catch (e: Exception) {
@@ -359,13 +394,13 @@ class ScreenInfoManager private constructor() {
 
     // 혼잡 설정
     fun setCrowed(isCrowded: Int, crowdedMsg: String) {
-        this.isCrowded = isCrowded
+        updateCrowded(isCrowded == 1)
         this.crowdedMsg = crowdedMsg
     }
 
     // 부재 정보 표시
-    fun setEmpty(isEmpty: Int, emptyMsg: String) {
-        this.flagEmpty = isEmpty
+    fun setEmpty(flagEmpty: Int, emptyMsg: String) {
+        updateFlagEmpty(flagEmpty)
         this.emptyMsg = emptyMsg
     }
 
@@ -516,16 +551,16 @@ class ScreenInfoManager private constructor() {
                 tellerNum   = teller.tellerNum
                 displayIP   = teller.displayIP
                 tellerName  = teller.tellerName
-                pjt         = teller.pjt
                 winName     = teller.winName
                 winNum      = teller.winNum
+                updatePjt(teller.pjt)
             }
 
             // 메인 표시기 공석 여부 체크 (try-catch 블록 제거, tellerData의 유효성을 먼저 검사)
             val backupDisplayNumber = tellerData[5].toIntOrNull()
             if (backupDisplayNumber != null && winNum == backupDisplayNumber) {
                 mainWinNum = tellerData[14].toIntOrNull() ?: 0
-                mainPJT = putPJT(tellerData[12])
+                //mainPJT = putPJT(tellerData[12]) //쓰는곳이 없음
             }
         }
 
@@ -564,7 +599,7 @@ class ScreenInfoManager private constructor() {
                     val winWait = WinWait(winId.toInt(), winNameList[i], winWaitList[i].toInt())
                     winList.add(winWait)
                     if (winId.toInt() == winID) {
-                        waitNum = winWaitList[i].toInt()
+                        updateWaitNum(winWaitList[i].toInt())
                     }
                 } catch (e: Exception) {
                     Log.e("Failed SetWinList")
@@ -588,7 +623,8 @@ class ScreenInfoManager private constructor() {
             bkDisplay   = splitData[5].toIntOrNull() ?: 0 // try-catch 블록 제거, null 처리 추가
             bkWay       = splitData[6].toIntOrNull() ?: 1 // try-catch 블록 제거, null 처리 추가
 
-            pjt         = splitData[12].toIntOrNull()?.minus(1) ?: 0
+            val pjt     = splitData[12].toIntOrNull()?.minus(1) ?: 0
+            updatePjt(pjt)
 
             displayIP   = splitData[10] // 표시기 IP
             tellerName  = splitData[11] // 직원명
@@ -629,12 +665,14 @@ class ScreenInfoManager private constructor() {
             availableWaitInfo = if (splitWaitData[0] == "T" || splitWaitData[0] == "1") 1 else 0
         }
         if (splitWaitData.size > 1) {
-            tellerMent = splitWaitData[1]
+            updateTellerMent(splitWaitData[1])
         }
 
         val splitAbsenceData = isAbsence.splitData(";")
+        var flagEmpty = 0
         if (splitAbsenceData.isNotEmpty()) {
             flagEmpty = if (splitAbsenceData[0].isEmpty() || splitAbsenceData[0] == "1") 1 else 0
+            updateFlagEmpty(flagEmpty)
         }
         emptyMsg = ""
         if (splitAbsenceData.size > 1) {
@@ -694,13 +732,14 @@ class ScreenInfoManager private constructor() {
 
         if (dataList[1] == "설치") {
             val dataError = dataList[2].removeChar("$")
-            systemError = dataError.toIntOrNull() ?: 1 // 0: 정상 운영, 1: 전산 장애, 변환 실패 시 기본값 1 설정
+            val systemError = dataError.toIntOrNull() ?: 1 // 0: 정상 운영, 1: 전산 장애, 변환 실패 시 기본값 1 설정
+            updateSystemError(systemError)
         }
     }
 
     fun setWaitResponse(ticketNum: Int, waitNum: Int) {
         this.ticketNum = ticketNum
-        this.waitNum = waitNum
+        updateWaitNum(waitNum)
     }
 
     // 예약 리스트 응답
@@ -903,12 +942,12 @@ class ScreenInfoManager private constructor() {
             this.reserveTime    = reserveTime
             this.customerNum    = customerNum
             this.customerName   = customerName
-            this.reservError    = error
+            this.reserveError    = error
             this.reserveCallNum = callNum
-            this.reservWinID    = winID
-            this.reservWinNum   = winNum
-            this.reservBackNum  = backNum
-            this.reservBackWay  = backWay
+            this.reserveWinID    = winID
+            this.reserveWinNum   = winNum
+            this.reserveBackNum  = backNum
+            this.reserveBackWay  = backWay
             this.flagVIP = vipFlag // 230619, by HAHU VIP 여부
 
             // null-safe 처리 및 람다 표현식 find 함수 활용
@@ -918,7 +957,7 @@ class ScreenInfoManager private constructor() {
             val reserveToUpdate = reserveList.find { it.reserveNum == reserveNum }
             reserveToUpdate?.callTime = nowTime
 
-            reservWinNum.toIntOrNull() ?: 100
+            reserveWinNum.toIntOrNull() ?: 100
         } catch (e: Exception) {
             Log.e("Failed SetCall Reserve")
             100

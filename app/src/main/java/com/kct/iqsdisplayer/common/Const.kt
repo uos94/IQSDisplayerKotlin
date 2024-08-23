@@ -155,7 +155,7 @@ object Const {
         var FLASH_VERSION: String = "10,1,102,64"
 
         // 20191216 symoon 호출 확대화면 추가
-        /** 기본값 0   2 = 보조순번 , 3 = 음성호출기 */
+        /** 기본값[0], 보조순번[2], 음성호출기[3] */
         var CALLVIEW_MODE: String = "0"     // 표시기 화면 타입, ScreenInfo에 DisplayType과 혼용되고 있어 ScreenInfo에서는 삭제하였음.
 
         /** SharedPreferences값을 CommunicationInfo로 복사한다.

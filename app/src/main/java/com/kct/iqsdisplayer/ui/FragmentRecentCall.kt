@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.R
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentRecentCallBinding
 import com.kct.iqsdisplayer.databinding.ItemCallBinding
 
@@ -42,7 +42,7 @@ class FragmentRecentCall : Fragment() {
             ItemCallBinding.bind(binding.clCallItem3.root),
             ItemCallBinding.bind(binding.clCallItem4.root))
 
-        ScreenInfoManager.instance.lastCallList.observe(viewLifecycleOwner) { lastCallList ->
+        ScreenInfo.instance.lastCallList.observe(viewLifecycleOwner) { lastCallList ->
             // lastCallList 의 마지막 4개를 가져옴
             val recentCalls = lastCallList.takeLast(4)
 

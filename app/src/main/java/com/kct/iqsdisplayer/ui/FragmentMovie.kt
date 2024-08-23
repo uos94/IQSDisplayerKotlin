@@ -1,6 +1,5 @@
 package com.kct.iqsdisplayer.ui
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -19,7 +18,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.common.ScreenInfoManager
+import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentMovieBinding
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.getFileExtension
@@ -89,7 +88,7 @@ class FragmentMovie : Fragment() {
     private fun makeList() {
         list.clear()
 
-        val fileNames = ScreenInfoManager.instance.adFileList
+        val fileNames = ScreenInfo.instance.adFileList
         for (fileName in fileNames) {
             if (fileName.isEmpty()) continue
 
