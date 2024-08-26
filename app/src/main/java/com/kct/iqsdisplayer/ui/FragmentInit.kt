@@ -214,7 +214,7 @@ class FragmentInit : Fragment() {
                         Log.d("start install $strPatchFileName file...")
 
                         // 패치 프로그램 설치 부분 임시 주석 처리 *나중에 풀어야 함
-                        checkService.setRunning(false)
+                        checkService.isRunning = false
                         mainActivity?.stopIQSService()
 
                         backupSharedPreferencesFiles()
@@ -382,7 +382,7 @@ class FragmentInit : Fragment() {
             when (msg.what) {
                 Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE -> {
                     Log.i("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
-                    checkService.setRunning(false)
+                    checkService.isRunning = false
                     if(msg.obj != null && msg.obj is Const.FragmentResult) {
                         listener?.onResult(msg.obj as Const.FragmentResult)
                     }
@@ -406,10 +406,6 @@ class FragmentInit : Fragment() {
     // 서비스 감시
     private inner class CheckService(val mainActivity: MainActivity?) : Thread() {
         var isRunning = true
-
-        fun setRunning(isRunning: Boolean) {
-            this.isRunning = isRunning
-        }
 
         override fun run() {
             while (isRunning) {

@@ -53,60 +53,16 @@
 
         <include
             android:id="@+id/clCallItem1"
-            layout="@layout/item_call">
-
-            <TextView
-                android:id="@id/tvWinNum"
-                style="@style/CallItemWinNumStyle.Large" />
-
-            <TextView
-                android:id="@id/tvCallNum"
-                style="@style/CallItemCallNumStyle.Large" />
-
-        </include>
-
+            layout="@layout/item_call_large"/>
         <include
             android:id="@+id/clCallItem2"
-            layout="@layout/item_call">
-
-            <TextView
-                android:id="@id/tvWinNum"
-                style="@style/CallItemWinNumStyle.Large" />
-
-            <TextView
-                android:id="@id/tvCallNum"
-                style="@style/CallItemCallNumStyle.Large" />
-
-        </include>
-
+            layout="@layout/item_call_large"/>
         <include
             android:id="@+id/clCallItem3"
-            layout="@layout/item_call">
-
-            <TextView
-                android:id="@id/tvWinNum"
-                style="@style/CallItemWinNumStyle.Large" />
-
-            <TextView
-                android:id="@id/tvCallNum"
-                style="@style/CallItemCallNumStyle.Large" />
-
-        </include>
-
+            layout="@layout/item_call_large"/>
         <include
             android:id="@+id/clCallItem4"
-            layout="@layout/item_call">
-
-            <TextView
-                android:id="@id/tvWinNum"
-                style="@style/CallItemWinNumStyle.Large" />
-
-            <TextView
-                android:id="@id/tvCallNum"
-                style="@style/CallItemCallNumStyle.Large" />
-
-        </include>
-
+            layout="@layout/item_call_large"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

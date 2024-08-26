@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.orgJetbrainsKotlinKapt)
 }
 
 android {
@@ -36,11 +36,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
 
@@ -53,8 +53,9 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.glide)
+    kapt(libs.glide.compiler)
     implementation(libs.androidx.constraintlayout)
-    ksp(libs.glide.compiler)
+    //ksp(libs.glide.compiler)
     implementation(files("libs/commons-net-3.6.jar"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

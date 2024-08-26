@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<font-family xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- FontWeight에 따른 용도
 100    Extra Light or Ultra Light

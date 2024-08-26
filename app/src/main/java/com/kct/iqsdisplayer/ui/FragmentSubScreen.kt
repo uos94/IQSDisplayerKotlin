@@ -11,7 +11,7 @@ import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentSubBinding
-import com.kct.iqsdisplayer.databinding.ItemCallBinding
+import com.kct.iqsdisplayer.databinding.ItemCallLargeBinding
 
 class FragmentSubScreen : Fragment() {
     private var _binding: FragmentSubBinding? = null
@@ -54,10 +54,10 @@ class FragmentSubScreen : Fragment() {
         }
 
         val callItemBindings = arrayOf(
-            ItemCallBinding.bind(binding.clCallItem1.root),
-            ItemCallBinding.bind(binding.clCallItem2.root),
-            ItemCallBinding.bind(binding.clCallItem3.root),
-            ItemCallBinding.bind(binding.clCallItem4.root))
+            ItemCallLargeBinding.bind(binding.clCallItem1.root),
+            ItemCallLargeBinding.bind(binding.clCallItem2.root),
+            ItemCallLargeBinding.bind(binding.clCallItem3.root),
+            ItemCallLargeBinding.bind(binding.clCallItem4.root))
 
         ScreenInfo.instance.subList.observe(viewLifecycleOwner) { subList ->
             // subList 의 마지막 4개를 가져옴
