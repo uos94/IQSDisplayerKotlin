@@ -93,7 +93,7 @@ class IQSComClass : Service() {
     /**
      * 순번발행기와 TCP 연결
      * TimeOut 20초, IP와 Port 번호는 CommunicationInfo 에서 받아옴,
-     * 연결 성공후 TCP Recive 하는 Thread를 생성
+     * 연결 성공후 TCP Receive 하는 Thread를 생성
      * Timeout,SocketException, IOException 발생 시 서비스 클래스를 실행 한 액티비티에 전달
      */
     inner class ConnectTcp : Thread() {
@@ -107,6 +107,7 @@ class IQSComClass : Service() {
             try {
                 tcpSocket = Socket(Const.CommunicationInfo.IQS_IP, Const.CommunicationInfo.IQS_PORT).apply { setSoTimeout(20000) }
                 tcpReceiver = TcpReceiver().apply { start() }
+                Log.d("ConnectTcp STARTED...TcpReceiver START")
             } catch (e: SocketException) {
                 exceptionMessage = "ConnectTcp : SocketException (${e.message})"
             } catch (e: SocketTimeoutException) {
@@ -131,23 +132,22 @@ class IQSComClass : Service() {
      * SocketException, Timeout, 일 경우 ComResultReceiver을 통해 실행한 액티비티에 전달
      */
     inner class TcpReceiver : Thread() {
-        private var readDataArr: ByteArray = ByteArray(4)
-        private var isRun = true
 
-        fun setRun(isRun: Boolean) {
-            this.isRun = isRun
-        }
+        private var isRun = true
 
         override fun run() {
             var exceptionMessage: String? = null
-
+            Log.d("TcpReceiver STARTED...isRun : $isRun")
             while (isRun) {
+
+                val readDataArr = ByteArray(4)
+
                 try {
                     var nHeadRead = 0
                     var nToHeadRead = 4
                     var nOffset = 0
 
-                    while (true) {
+                    while (nToHeadRead > 0) {
                         nHeadRead = tcpSocket.getInputStream().read(readDataArr, nOffset, nToHeadRead)
                         if (nHeadRead == -1) {
                             Log.d("Head Read End Of Stream")
@@ -174,7 +174,7 @@ class IQSComClass : Service() {
                     var nToBodyRead = nBodySize
                     var nBodyOffset = 0
 
-                    while (true) {
+                    while (nToBodyRead > 0) {
                         nBodyRead = tcpSocket.getInputStream().read(bodyData, nBodyOffset, nToBodyRead)
                         if (nBodyRead == -1) {
                             Log.d("Body Read End")
@@ -195,16 +195,17 @@ class IQSComClass : Service() {
 
                     timerKeepAlive = 0
                 } catch (e: SocketException) {
-                    exceptionMessage = "TcpReceiver : SocketException (${e.message}"
+                    exceptionMessage = "TcpReceiver : SocketException (${e.message})"
                 } catch (e: SocketTimeoutException) {
-                    exceptionMessage = "TcpReceiver : SocketTimeoutException (${e.message}"
+                    exceptionMessage = "TcpReceiver : SocketTimeoutException (${e.message})"
                 } catch (e: IOException) {
-                    exceptionMessage = "TcpReceiver : IOException (${e.message}"
+                    exceptionMessage = "TcpReceiver : IOException (${e.message})"
                 } finally {
                     exceptionMessage?.let {
                         Log.e(it)
                         isRun = false // 쓰레드 종료
                         stopSelf()
+                        exceptionMessage = null
                     }
                 }
             }
@@ -220,7 +221,7 @@ class IQSComClass : Service() {
 
         override fun run() {
             try {
-                tcpSocket.getOutputStream().use { outStream ->
+                tcpSocket.getOutputStream().let { outStream ->
                     outStream.write(sendByteBuffer.array())
                     outStream.flush()
                 }
@@ -244,7 +245,7 @@ class IQSComClass : Service() {
                         val sendBuffer = SendBufferClass()
                         val sendByteBuffer = sendBuffer.keepAlive()
 
-                        tcpSocket.getOutputStream().use { outStream ->
+                        tcpSocket.getOutputStream().let { outStream ->
                             outStream.write(sendByteBuffer.array())
                             outStream.flush()
                         }
@@ -551,9 +552,9 @@ class IQSComClass : Service() {
             ProtocolDefine.VIDEO_LIST_REQUEST.value -> SendBufferClass().videoListRequest() // 동영상 리스트 요청
             ProtocolDefine.VIDEO_DOWNLOAD_REQUEST.value -> SendBufferClass().videoDownLoadRequest() // 231211, by HAHU  광고파일 요청
             ProtocolDefine.ACCEPT_REQUEST.value -> {
-                val sendByteBuffer = SendBufferClass().acceptAuthRequest()
-                if (sendByteBuffer != null) {
-                    sendByteBuffer
+                val acceptAuthRequest = SendBufferClass().acceptAuthRequest()
+                if (acceptAuthRequest != null) {
+                    acceptAuthRequest
                 } else {
                     Log.d("IP or Mac is null")
                     commResultReceiver?.let { stopSelf() }

@@ -25,7 +25,7 @@ object Log {
 
     private fun log(level: Int, strMsg: String, tr: Throwable? = null) {
         if (isEnabled) {
-            val callerElement = Exception().stackTrace[1]
+            val callerElement = Exception().stackTrace[3]
             val logMsg = "[${callerElement.fileName} ${callerElement.lineNumber}] $strMsg"
             when (level) {
                 Log.ERROR -> Log.e(TAG, logMsg, tr)

@@ -3,6 +3,7 @@ package com.kct.iqsdisplayer.network
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.saveFile
+import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 /**
@@ -52,18 +53,19 @@ class Packet(buffer: ByteArray) {
 
     val string: String
         get() {
-            val sb = StringBuilder()
+            val byteArrayOutputStream = ByteArrayOutputStream()
             var temp: Byte
+
             while (data.hasRemaining()) {
                 temp = data.get()
-                if (temp.toInt() == 0x00) break
-                sb.append(temp.toInt().toChar())
+                if (temp.toInt() == 0x00) break // 0x00을 만나면 종료
+                byteArrayOutputStream.write(temp.toInt())
             }
-            val result = String(sb.toString().toByteArray(charset("euc-kr"))).trim()
+
+            val result = String(byteArrayOutputStream.toByteArray(), charset("euc-kr")).trim()
             Log.d("getString : $result")
             return result
         }
-
     val integer: Int
         get() {
             if (data.remaining() >= 4) {

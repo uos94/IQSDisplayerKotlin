@@ -2,9 +2,25 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.orgJetbrainsKotlinKapt)
+    //alias(libs.plugins.ksp)
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("C:\\Users\\uos94\\AndroidStudioProjects\\IQSDisplayerKotlin\\Signed\\platform.jks")
+        }
+        create("release") {
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("C:\\Users\\uos94\\AndroidStudioProjects\\IQSDisplayerKotlin\\Signed\\platform.jks")
+        }
+    }
+
     namespace = "com.kct.iqsdisplayer"
     compileSdk = 34
 
@@ -17,15 +33,17 @@ android {
         applicationId = "com.kct.iqsdisplayer"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 111
+        versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig = signingConfigs.getByName("debug")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -33,6 +51,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

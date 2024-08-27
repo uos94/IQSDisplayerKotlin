@@ -1,7 +1,12 @@
 package com.kct.iqsdisplayer.ui
 
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.IntDef
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import com.kct.iqsdisplayer.R
+import com.kct.iqsdisplayer.util.Log
 
 object FragmentFactory {
 
@@ -21,8 +26,6 @@ object FragmentFactory {
     fun getCurrentFragment() = getFragment(getCurrentIndex())
 
     fun getFragment(@Index index: Int): Fragment {
-
-        currentIndex = index
 
         return when (index) {
             Index.FRAGMENT_INIT         -> fragmentInit
@@ -46,6 +49,27 @@ object FragmentFactory {
         Index.FRAGMENT_SUB_SCREEN   -> "FragmentSubScreen"
         Index.FRAGMENT_RECENTCALL   -> "FragmentRecentCall"
         else                        -> "UNKNOWN"
+    }
+
+    fun replaceFragment(supportFragmentManager: FragmentManager, @Index index: Int) {
+        currentIndex = index
+
+        val tagName = getTagName(index)
+        val fragment = getFragment(index)
+
+        if (supportFragmentManager.isStateSaved) {
+            //Log.w("Cannot replace fragment immediately after onSaveInstanceState. Posting to main thread...")
+            Handler(Looper.getMainLooper()).post {
+                replaceFragment(supportFragmentManager, index)
+            }
+            return
+        }
+
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.fragment_container, fragment, tagName)
+        transaction.commit()
+
+        Log.i("화면 변경 : $tagName")
     }
 
     @IntDef(

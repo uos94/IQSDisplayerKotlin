@@ -41,7 +41,7 @@ class ScreenInfo private constructor() {
     private val _pjt = MutableLiveData(1) // 공석 설정    (True 일 경우 공석 화면 표시)
     val pjt: LiveData<Int> get() = _pjt
     fun updatePjt(pjt: Int) {
-        _pjt.value = pjt
+        _pjt.postValue(pjt)
     }
 
     //var teller:Teller? = null
@@ -59,7 +59,7 @@ class ScreenInfo private constructor() {
     private val _flagEmpty = MutableLiveData(0) // 부재 여부
     val flagEmpty: LiveData<Int> get() = _flagEmpty
     fun updateFlagEmpty(flagEmpty: Int) {
-        _flagEmpty.value = flagEmpty
+        _flagEmpty.postValue(flagEmpty)
     }
 
     /** 대기인수 표시 유무 T/F, 기본값 0 */
@@ -80,7 +80,7 @@ class ScreenInfo private constructor() {
     private val _systemError = MutableLiveData(0) // 창구 대기 인원
     val systemError: LiveData<Int> get() = _systemError
     fun updateSystemError(systemError: Int) {
-        _systemError.value = systemError
+        _systemError.postValue(systemError)
     }
 
     var winList: ArrayList<WinWait> = ArrayList() // 창구별 ID 창구명 대기인원 리스트
@@ -91,7 +91,7 @@ class ScreenInfo private constructor() {
     private val _waitNum = MutableLiveData(0) // 창구 대기 인원
     val waitNum: LiveData<Int> get() = _waitNum
     fun updateWaitNum(newWaitNum: Int) {
-        _waitNum.value = newWaitNum
+        _waitNum.postValue(newWaitNum)
     }
 
     var display: Int = 0 // 직원 정보 리스트에서 받아오는 표시
@@ -102,7 +102,7 @@ class ScreenInfo private constructor() {
     val callNum: LiveData<Int> get() = _callNum
 
     fun updateCallNum(newCallNum: Int) {
-        _callNum.value = newCallNum
+        _callNum.postValue(newCallNum)
     }
 
     var ticketWinID: Int = 0 // 발권 창구 ID
@@ -129,7 +129,7 @@ class ScreenInfo private constructor() {
     val lastCallList: LiveData<List<LastCall>> get() = _lastCallList
 
     fun updateLastCallList(newList: List<LastCall>) {
-        _lastCallList.value = newList
+        _lastCallList.postValue(newList)
     }
 
     private val _subList = MutableLiveData<List<LastCall>>(emptyList()) // 지난 호출 번호 리스트
@@ -139,7 +139,7 @@ class ScreenInfo private constructor() {
         val currentList = _subList.value?.toMutableList() ?: mutableListOf()
         currentList.add(newLastCall)
         if (currentList.size > 4) currentList.removeAt(0) // 4개 이상인 경우 첫 번째 요소 제거
-        _subList.value = currentList.toList()
+        _subList.postValue(currentList.toList())
     }
 
     // 지난 호출 번호 리스트
@@ -151,13 +151,13 @@ class ScreenInfo private constructor() {
     private val _tellerMent = MutableLiveData("") // 하단 안내 문구
     val tellerMent: LiveData<String> get() = _tellerMent
     fun updateTellerMent(tellerMent: String) {
-        _tellerMent.value = tellerMent
+        _tellerMent.postValue(tellerMent)
     }
 
     private val _isCrowded = MutableLiveData(false) // 혼잡여부 BOOL
     val isCrowded: LiveData<Boolean> get() = _isCrowded
     fun updateCrowded(isCrowded: Boolean) {
-        _isCrowded.value = isCrowded
+        _isCrowded.postValue(isCrowded)
     }
     var crowdedMsg: String = "" // 혼잡 메세지
 
@@ -594,6 +594,7 @@ class ScreenInfo private constructor() {
         val winIdList = winIdListStr.splitData(";")
         val winNameList = winNameListStr.splitData(";")
         val winWaitList = winWaitListStr.splitData(";")
+
         winList.clear()
 
         if (winIdList.size == winNameList.size && winIdList.size == winWaitList.size) {
@@ -606,6 +607,7 @@ class ScreenInfo private constructor() {
                         updateWaitNum(winWaitList[i].toInt())
                     }
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     Log.e("Failed SetWinList")
                 }
             }
@@ -624,17 +626,17 @@ class ScreenInfo private constructor() {
             winID       = splitData[1].toIntOrNull() ?: 0
             imgName     = splitData[3]
             //빠진 데이터는 뭐지..
-            bkDisplay   = splitData[5].toIntOrNull() ?: 0 // try-catch 블록 제거, null 처리 추가
-            bkWay       = splitData[6].toIntOrNull() ?: 1 // try-catch 블록 제거, null 처리 추가
+            bkDisplay   = splitData[5].toIntOrNull() ?: 0 
+            bkWay       = splitData[6].toIntOrNull() ?: 1 
 
-            val pjt     = splitData[12].toIntOrNull()?.minus(1) ?: 0
+            val pjt     = splitData[12].toIntOrNull()?.minus(1) ?: 1
             updatePjt(pjt)
 
             displayIP   = splitData[10] // 표시기 IP
             tellerName  = splitData[11] // 직원명
             winName     = splitData[13] // 소속 창구명
-            winNum      = splitData[14].toIntOrNull() ?: 0 // try-catch 블록 제거, null 처리 추가
-            flagVIP     = splitData[16].toIntOrNull() ?: 0 // try-catch 블록 제거, null 처리 추가
+            winNum      = splitData[14].toIntOrNull() ?: 0 
+            flagVIP     = splitData[16].toIntOrNull() ?: 0 
         } else {
             // 텔러 정보 길이 오류 처리 (필요에 따라 추가적인 로직 구현)
             Log.e("Teller info length error: ${splitData.size}")
@@ -696,12 +698,13 @@ class ScreenInfo private constructor() {
             val slideMediaInfo = param.mediaInfo.splitData("#") // 모드, 메인화면, 보조화면, 홍보화면 시간, 파일명으로 분할
             Log.d("Media Info : ${param.mediaInfo} length : ${slideMediaInfo.size}")
 
+
             mainDisplayTime = slideMediaInfo.getOrNull(0)?.toIntOrNull() ?: 30 // 기본값 30 설정
             playSub = slideMediaInfo.getOrNull(1)?.toIntOrNull() ?: 0 // 보조 사용 여부
-            subDisplayTime = (slideMediaInfo.getOrNull(2)?.toIntOrNull() ?: 0) * 1000
+            subDisplayTime = (slideMediaInfo.getOrNull(2)?.toIntOrNull() ?: 0)
             if (playSub == 0) subDisplayTime = 0
             playVideo = slideMediaInfo.getOrNull(3)?.toIntOrNull() ?: 0 // 동영상 사용 여부
-            adDisplayTime = (slideMediaInfo.getOrNull(4)?.toIntOrNull() ?: 0) * 1000
+            adDisplayTime = (slideMediaInfo.getOrNull(4)?.toIntOrNull() ?: 0)
             if (playVideo == 0) adDisplayTime = 0
 
             // 240115, by HAHU  초기화 시키고 수행. 앱 재시작 안 하고 패킷이 올 수도 있어서
