@@ -12,7 +12,7 @@ class BootReceiver : BroadcastReceiver() {
             Log.d("BOOT_COMPLETED")
             val intentMainActivity = Intent(context, MainActivity::class.java)
             intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intentMainActivity)
+            //context.startActivity(intentMainActivity)
         }
     }
 }

@@ -17,7 +17,7 @@ object Const {
          * 예상경로 : /storage/emulated/0
          * @see android.os.Environment.getExternalStorageDirectory()
          * **/
-        lateinit var DIR_ROOT: String
+        var DIR_ROOT: String = "/storage/emulated/0"
 
         /** 예상경로 : /storage/emulated/0/IQS/ */
         val DIR_IQS = "${DIR_ROOT}/IQS/"

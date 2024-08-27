@@ -17,10 +17,12 @@ import com.kct.iqsdisplayer.common.Const.CommunicationInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.databinding.FragmentInitBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
+import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.getLocalIpAddress
 import com.kct.iqsdisplayer.util.getMacAddress
+import com.kct.iqsdisplayer.util.setPreference
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -37,7 +39,6 @@ class FragmentInit : Fragment() {
     private var mainActivity: MainActivity? = null
     // 서비스 결과 수신 Receiver
     private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
-        .apply { setReceiver(receiver) }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,6 +83,7 @@ class FragmentInit : Fragment() {
         binding.pbLoading.visibility = View.VISIBLE
         binding.tvVersionInfo.text = BuildConfig.VERSION_NAME
 
+        commResultReceiver.setReceiver(receiver)
         mainActivity?.startIQSService(commResultReceiver)
 
         checkService = CheckService(mainActivity)
@@ -89,6 +91,7 @@ class FragmentInit : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Log.e("onDestroyView")
         _binding = null
     }
 
@@ -98,7 +101,7 @@ class FragmentInit : Fragment() {
                 Log.i("설정버튼 선택")
                 mainActivity?.stopIQSService()
                 timerHandler.removeMessages(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE)
-                mainActivity?.showFragment(FragmentFactory.Index.FRAGMENT_SETTING)
+                replaceFragment(FragmentFactory.Index.FRAGMENT_SETTING)
             }
             R.id.btReboot -> {
                 Log.i("재부팅버튼 선택")
@@ -174,6 +177,10 @@ class FragmentInit : Fragment() {
 
         Const.CommunicationInfo.MY_IP = getLocalIpAddress()
         Const.CommunicationInfo.MY_MAC = getMacAddress()
+        Log.d("MY_IP : ${Const.CommunicationInfo.MY_IP} MY_MAC : ${Const.CommunicationInfo.MY_MAC}")
+
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.CommunicationInfo.IQS_IP)
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.CommunicationInfo.IQS_PORT)
     }
 
     private var bFTPSuccess = false

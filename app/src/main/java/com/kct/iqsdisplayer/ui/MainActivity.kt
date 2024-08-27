@@ -22,18 +22,17 @@ import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
+import com.kct.iqsdisplayer.ui.FragmentFactory.Index
+import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
 import com.kct.iqsdisplayer.util.setPreference
 import kotlin.system.exitProcess
 
-
 class MainActivity : AppCompatActivity(), FragmentResultListener {
 
     private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
-
-    private val handlerAutoChange = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,15 +43,17 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
 
         setFullScreen()
 
+        FragmentFactory.setActivity(this)
+
         commResultReceiver.setReceiver(receiver)
-        Log.e("onCreate startSystem START FRAGMENT_INIT")
+
         startSystem()
     }
 
     private fun startSystem() {
         if(checkStorage()) {
             //Storage 를 사용 할 준비가 되었다면 FRAGMENT_INIT부터 시작한다.
-            FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_INIT)
+            replaceFragment(Index.FRAGMENT_INIT)
         }
     }
 
@@ -123,96 +124,12 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
     }
 
 
-    private fun getDelayTime(hardSetDelayTime: Long = 0) : Long{
-        val screenInfo = ScreenInfo.instance
-        val currentFragmentIndex = FragmentFactory.getCurrentIndex()
-        return if(hardSetDelayTime > 0) hardSetDelayTime else
-            when (currentFragmentIndex) {
-                FragmentFactory.Index.FRAGMENT_MAIN         -> screenInfo.mainDisplayTime
-                FragmentFactory.Index.FRAGMENT_RECENTCALL   -> screenInfo.subDisplayTime
-                FragmentFactory.Index.FRAGMENT_MOVIE        -> screenInfo.adDisplayTime
-                else                                        -> screenInfo.mainDisplayTime
-            }.toLong()
-    }
-
-    private val runAutoChangeFragment = object : Runnable {
-        override fun run() {
-            val screenInfo = ScreenInfo.instance
-            val currentFragmentIndex = FragmentFactory.getCurrentIndex()
-
-            val isAvailableMovie = screenInfo.adDisplayTime > 0 && screenInfo.adFileList.isNotEmpty()
-            val isAvailableCallList = screenInfo.subDisplayTime > 0 && screenInfo.lastCallList.value?.isNotEmpty() == true
-            val isViewModeMain = Const.CommunicationInfo.CALLVIEW_MODE == "0"
-
-            when(currentFragmentIndex) {
-                FragmentFactory.Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
-                    if(isAvailableMovie && isViewModeMain) {
-                        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MOVIE)
-                    } else if(isAvailableCallList) {
-                        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_RECENTCALL)
-                    } else {
-                        Log.d("Not call, No Movie.. always MainFragment")
-                    }
-                }
-                FragmentFactory.Index.FRAGMENT_RECENTCALL   -> { //현재화면 최근응대고객 화면
-                    FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
-                }
-                FragmentFactory.Index.FRAGMENT_MOVIE        -> { //현재화면 동영상화면
-                    if(isAvailableCallList) {
-                        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_RECENTCALL)
-                    }
-                    else {
-                        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
-                    }
-                }
-                else                                        -> { //현재화면 INIT, SETTING, 기타등등
-                    //아무처리 없이 해당 화면에 그대로 있는다.
-                    Log.d("autoChangeFragment - 현재 화면 : ${FragmentFactory.getTagName(currentFragmentIndex)}")
-                }
-            }
-            val delayTime = getDelayTime()
-
-            handlerAutoChange.postDelayed(this, getDelayTime())
-        }
-    }
-
     /**
      * 서버에서 받아온 값으로 돌아감.
      * 일반적으로 Call 이 온 경우만 20초, 나머지는 10초
      * 기존코드에 Call 이 왔을 경우 screenInfo와 상관없이 20초로 셋팅하고 있어 hardSetDelayTime을 따로 두었음.
      */
-    private fun startAutoChangeFragment(hardSetDelayTime: Long = 0) {
-        Log.d("startAutoChangeFragment hardSetDelayTime[${hardSetDelayTime}]")
-        cancelAutoChangeFragment()
 
-        handlerAutoChange.postDelayed(runAutoChangeFragment, getDelayTime(hardSetDelayTime))
-    }
-
-    private fun cancelAutoChangeFragment() {
-        Log.d("cancelAutoChangeFragment")
-        handlerAutoChange.removeCallbacks(runAutoChangeFragment)
-    }
-
-    /* 기존 hide/show 에서 replace 로 변경함
-    fun showFragment(@FragmentFactory.Index index: Int) {
-        val tagName = FragmentFactory.getTagName(index)
-        val fragment = FragmentFactory.getFragment(index)
-        val transaction = supportFragmentManager.beginTransaction()
-
-        //Index가 NONE인 경우는 앱실행 시 최초일 때, 이때는 hide할 fragment가 없다.
-        if(FragmentFactory.getCurrentIndex() != FragmentFactory.Index.NONE) {
-            transaction.hide(FragmentFactory.getCurrentFragment())
-        }
-
-        if (fragment.isAdded) {
-            transaction.show(fragment)
-        } else {
-            transaction.add(R.id.fragment_container, fragment, tagName)
-        }
-
-        transaction.commit()
-        Log.i("화면 변경 : $tagName")
-    }*/
 
     override fun onResult(result: Const.FragmentResult) {
         when(result) {
@@ -327,11 +244,9 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
     private fun onAcceptAuthResponse() {
         Log.e( "onAcceptAuthResponse : 정상접속 완료...")
 
-        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
-
         setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value)
 
-        startAutoChangeFragment()
+        replaceFragment(Index.FRAGMENT_MAIN)
     }
 
     //대기자수 응답
@@ -345,10 +260,9 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         //LiveData observe 로 처리됨. 음성호출만 처리함.
         val screenInfo = ScreenInfo.instance
 
-        startAutoChangeFragment(20000) //Call 이 왔을때 20초 강제 설정
-
-        if(isMain) FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
-        else FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_BACKUP_CALL)
+        //Call 이 왔을때 20초 강제 설정
+        if(isMain) replaceFragment(Index.FRAGMENT_MAIN, 20000)
+        else replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
 
         CallSoundManager().play(callNum = screenInfo.callNum.value!!,
                                 callWinNum = screenInfo.callWinNum,
@@ -360,10 +274,9 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         //LiveData observe 로 처리됨. 음성호출만 처리함.
         val screenInfo = ScreenInfo.instance
 
-        startAutoChangeFragment(20000) //Call 이 왔을때 20초 강제 설정
-
-        if(isMain) FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
-        else FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_BACKUP_CALL)
+        //Call 이 왔을때 20초 강제 설정
+        if(isMain) replaceFragment(Index.FRAGMENT_MAIN, 20000)
+        else replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
 
         CallSoundManager().play(callNum = screenInfo.callNum.value!!,
             callWinNum = screenInfo.callWinNum,
@@ -376,9 +289,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         //화상 창구 일 경우 부재중 정보 무시
         if(ScreenInfo.instance.winID == 91) return
 
-        startAutoChangeFragment()
-
-        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
+        replaceFragment(Index.FRAGMENT_MAIN)
 
         val logMessage = if(ScreenInfo.instance.flagEmpty.value == 0) { //부재해제
             "부재해제 수신 ... EmptyFlag : ${ScreenInfo.instance.flagEmpty.value}, TellerMent : ${ScreenInfo.instance.tellerMent.value}"
@@ -466,9 +377,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         Log.i("onErrorSet : 전산장애설정 수신... ${ScreenInfo.instance.systemError.value}")
 
         if (ScreenInfo.instance.systemError.value != 0) {
-            cancelAutoChangeFragment()
-
-            FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
+            replaceFragment(Index.FRAGMENT_MAIN)
         }
     }
 
@@ -505,9 +414,8 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
     private fun onReserveCallRequest() {
         val screenInfo = ScreenInfo.instance
 
-        startAutoChangeFragment(20000) //Call 이 왔을때 20초 강제 설정
-
-        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
+        //Call 이 왔을때 20초 강제 설정
+        replaceFragment(Index.FRAGMENT_MAIN, 20000)
 
         CallSoundManager().play(callNum = screenInfo.reserveCallNum.toInt(),
             callWinNum = screenInfo.reserveWinNum.toInt(),
@@ -517,9 +425,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
     private fun onReserveReCallRequest() {
         val screenInfo = ScreenInfo.instance
 
-        startAutoChangeFragment(20000) //Call 이 왔을때 20초 강제 설정
-
-        FragmentFactory.replaceFragment(supportFragmentManager, FragmentFactory.Index.FRAGMENT_MAIN)
+        replaceFragment(Index.FRAGMENT_MAIN, 20000)
 
         CallSoundManager().play(callNum = screenInfo.reserveCallNum.toInt(),
             callWinNum = screenInfo.reserveWinNum.toInt(),
