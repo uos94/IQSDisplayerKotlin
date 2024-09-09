@@ -10,7 +10,7 @@ import java.nio.ByteOrder
 /**
  * TCP 통신 시 순번 발행기로 보낼 ByteBuffer를 만드는 클래스
  */
-class SendBufferClass() { // ScreenInfoManager 주입
+class SendBufferClass {
 
     private val nullValue: Byte = 0x00 // 1byte NULL
 
@@ -85,6 +85,7 @@ class SendBufferClass() { // ScreenInfoManager 주입
     }
 
     // 설치 정보 패킷
+    /*
     fun installInfo(): ByteBuffer {
         val code = ProtocolDefine.INSTALL_INFO.value
         val iqsIP: String? = null
@@ -128,7 +129,7 @@ class SendBufferClass() { // ScreenInfoManager 주입
                 .putShort(code)
         }
     }
-
+*/
     // 광고 파일 요청
     fun videoDownLoadRequest(): ByteBuffer {
         val code = ProtocolDefine.VIDEO_DOWNLOAD_REQUEST.value
@@ -172,7 +173,7 @@ class SendBufferClass() { // ScreenInfoManager 주입
 
     // 앱 버전 정보 요청
     fun appVersionRequest(): ByteBuffer {
-        val code = ProtocolDefine.RESERVE_UPDATE_INFO_REQUEST.value
+        val code = ProtocolDefine.UPDATE_INFO_REQUEST.value
         val versionName = BuildConfig.VERSION_NAME
         val dataSize = versionName.length + 1
 

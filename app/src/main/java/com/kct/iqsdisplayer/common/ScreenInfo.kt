@@ -8,9 +8,9 @@ import com.kct.iqsdisplayer.data.Sound
 import com.kct.iqsdisplayer.data.Teller
 import com.kct.iqsdisplayer.data.TestVolume
 import com.kct.iqsdisplayer.data.WinWait
-import com.kct.iqsdisplayer.data.packet.AcceptAuthResponseData
-import com.kct.iqsdisplayer.data.packet.CallCancelData
-import com.kct.iqsdisplayer.data.packet.CallRequestData
+import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponseData
+import com.kct.iqsdisplayer.data.packet.receive.CallCancelData
+import com.kct.iqsdisplayer.data.packet.receive.CallRequestData
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.removeChar
 import com.kct.iqsdisplayer.util.splitData
@@ -490,6 +490,10 @@ class ScreenInfo private constructor() {
      * DATA#직원#38;2;;;10.131.54.65;0;1;|;|;30702819;1.1.1.3;구민가;사용중;일반업무;1;;0;0;&39;3;;;10.131.54.65;1;1;|;|;40732950;1.1.1.2;영은가;사용중;상담업무;2;;0;0;&41;3;;;10.131.54.65;2;1;|;|;41704752;1.1.1.2;이보가;사용중;상담업무;3;;0;0;&40;1;;;10.131.54.85;1;1;|;|;41100248;1.1.1.2;팔윤가;사용중;입출금/제신고;4;;0;0;&37;1;;;10.131.54.85;1;1;|;|;29111781;1.1.1.2;일시가;사용중;입출금/제신고;5;;0;0;&$
      */
     // 직원 정보 리스트 설정
+    fun setTellerList(tellerList: ArrayList<Teller>) {
+        this.tellerList.clear()
+        this.tellerList.addAll(tellerList)
+    }
     fun setTellerList(tellerList: String) {
         this.tellerList.clear()
 
@@ -788,7 +792,7 @@ class ScreenInfo private constructor() {
                         customerGrade, tellerNum, tellerName, tellerJob, resvWinID, winName, arriveTime,
                         isArrive, callTime, isCancel
                     )
-                    reserveList.add(reserve) // reservList가 null일 수 있으므로 null-safe하게 추가
+                    reserveList.add(reserve) 
 
                     Log.d("예약리스트 추가 - 예약번호 : $reserveNum")
                     Log.d(
@@ -831,7 +835,7 @@ class ScreenInfo private constructor() {
             val day         = dataList1[0]
             val branchNum   = dataList1[1]
             val reserveNum  = dataList1[2]
-            val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 // null-safe 처리
+            val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 
             val tellerNum   = dataList1[4]
             val tellerName  = dataList1[5]
             val tellerJob   = dataList1[6]
@@ -839,7 +843,7 @@ class ScreenInfo private constructor() {
             val customerName= dataList1[8]
             val customerTel = dataList1[9]
             val customerGrade = dataList1[10]
-            val resvWinID = dataList1[12].toIntOrNull() ?: 0 // null-safe 처리
+            val resvWinID = dataList1[12].toIntOrNull() ?: 0 
 
             // 소속 창구 예약 정보만 리스트에 추가
             if (winID == resvWinID) {
@@ -847,7 +851,7 @@ class ScreenInfo private constructor() {
                     day, branchNum, reserveNum, reserveTime, customerNum, customerName, customerTel,
                     customerGrade, tellerNum, tellerName, tellerJob, winID, winName, "00:00:00", "N", "00:00:00", "N"
                 )
-                reserveList.add(reserve) // reservList가 null일 수 있으므로 null-safe하게 추가
+                reserveList.add(reserve) 
                 compareToList()
             }
         } catch (e: Exception) {
@@ -896,16 +900,16 @@ class ScreenInfo private constructor() {
         try {
             val dataList1   = data.splitData("#")
             val day         = dataList1[0]              // 예약 일자
-            val branchNum   = dataList1[1].toIntOrNull() ?: 0 // null-safe 처리
+            val branchNum   = dataList1[1].toIntOrNull() ?: 0 
             val reserveNum  = dataList1[2]
-            val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 // null-safe 처리
-            val tellerNum   = dataList1[4].toIntOrNull() ?: 0 // null-safe 처리
+            val reserveTime = dataList1[3].removeChar(":").toIntOrNull() ?: 0 
+            val tellerNum   = dataList1[4].toIntOrNull() ?: 0 
             val tellerName  = dataList1[5]
             val tellerJob   = dataList1[6]
             val customerNum = dataList1[7]
             val customerName= dataList1[8]
             val customerTel = dataList1[9]
-            val customerGrade = isNullString(dataList1[10]).toIntOrNull() ?: 0 // null-safe 처리
+            val customerGrade = isNullString(dataList1[10]).toIntOrNull() ?: 10
 
             Log.d(
                 "예약 일자 : $day 지점 번호 : $branchNum 예약 번호 : $reserveNum 예약 일자 : $reserveTime 직원 번호 : $tellerNum 직원 명 : $tellerName " +
@@ -955,9 +959,7 @@ class ScreenInfo private constructor() {
             this.reserveWinNum   = winNum
             this.reserveBackNum  = backNum
             this.reserveBackWay  = backWay
-            this.flagVIP = vipFlag // 230619, by HAHU VIP 여부
-
-            // null-safe 처리 및 람다 표현식 find 함수 활용
+            this.flagVIP = vipFlag
             val nowTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
             Log.d("현재 시간 : $nowTime")
 
@@ -1002,7 +1004,6 @@ class ScreenInfo private constructor() {
             val callTime = dataList[15]
             val isCancel = dataList[16]
 
-            // null-safe 처리 및 람다 표현식, find 함수 활용
             val reserveToUpdate = reserveList.find { it.reserveNum == reserveNum }
             reserveToUpdate?.setArriveTime(arriveTime, isArrive)
         } catch (e: Exception) {

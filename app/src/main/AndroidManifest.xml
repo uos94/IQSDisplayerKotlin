@@ -46,15 +46,23 @@
 
         <service android:name=".service.IQSComClass" />
         <receiver
-            android:name=".service.BootReceiver"
+            android:name=".receiver.BootReceiver"
             android:enabled="true"
             android:exported="false"
             android:label="Receiver">
-            <!--
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-            -->
+        </receiver>
+        <receiver
+            android:name=".receiver.PackageEventReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:label="Receiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <data android:scheme="package" android:path="${packageName}"/>
+            </intent-filter>
         </receiver>
         <provider
             android:name="androidx.core.content.FileProvider"

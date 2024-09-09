@@ -1,13 +1,46 @@
 package com.kct.iqsdisplayer.data
 
 data class LastCall(
-    val ticketWinID: Int,
-    val callWinID: Int,
-    val callWinNum: Int,
-    val callNum: Int,
-    val waitNum: Int
+    /** 발권창구ID */
+    var ticketWinID: Int = 0,
+    /** 호출창구ID */
+    var callWinID: Int = 0,
+    /** 호출창구번호 */
+    var callWinNum: Int = 0,
+    /** 호출번호 */
+    var callNum: Int = 0,
+    /** 대기인수 */
+    var waitNum: Int = 0
 ) {
     override fun toString(): String {
         return "LastCall(ticketWinID=$ticketWinID, callWinID=$callWinID, callWinNum=$callWinNum, callNum=$callNum, waitNum=$waitNum)"
     }
+}
+
+/** packet에서 전달되는 형식은 다음과 같다.
+ * 발권창구ID, 호출창구ID, 호출창구번호, 호출번호, 대기인수
+ * 예) 9;9;3;2;0;#9;9;1;1;0;#
+ */
+
+fun String?.toLastCallList() : ArrayList<LastCall> {
+    val lastCallList = ArrayList<LastCall>()
+    if(this.isNullOrEmpty()) return lastCallList
+
+    val splitData = this.split("#")
+
+    for(data in splitData) {
+        val split = data.split(";")
+        val size = split.size
+
+        val item = LastCall()
+        if(size > 0) item.ticketWinID   = split[0].toIntOrNull() ?: 0
+        if(size > 1) item.callWinID     = split[1].toIntOrNull() ?: 0
+        if(size > 2) item.callWinNum    = split[2].toIntOrNull() ?: 0
+        if(size > 3) item.callNum       = split[3].toIntOrNull() ?: 0
+        if(size > 4) item.waitNum       = split[4].toIntOrNull() ?: 0
+
+        lastCallList.add(item)
+    }
+
+    return lastCallList
 }

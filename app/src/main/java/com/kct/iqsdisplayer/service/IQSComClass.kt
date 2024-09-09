@@ -9,28 +9,27 @@ import android.os.IBinder
 import android.os.ResultReceiver
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
-import com.kct.iqsdisplayer.data.packet.toAcceptAuthResponseData
-import com.kct.iqsdisplayer.data.packet.toCallCancelData
-import com.kct.iqsdisplayer.data.packet.toCallCollectSetData
-import com.kct.iqsdisplayer.data.packet.toCallRequestData
-import com.kct.iqsdisplayer.data.packet.toCrowdedRequestData
-import com.kct.iqsdisplayer.data.packet.toEmptyRequestData
-import com.kct.iqsdisplayer.data.packet.toInfoMessageRequestData
-import com.kct.iqsdisplayer.data.packet.toPJTSetData
-import com.kct.iqsdisplayer.data.packet.toReserveListResponseData
-import com.kct.iqsdisplayer.data.packet.toRestartRequestData
-import com.kct.iqsdisplayer.data.packet.toTellerRenewRequestData
-import com.kct.iqsdisplayer.data.packet.toWaitResponse
-import com.kct.iqsdisplayer.data.packet.toWinResponseData
+import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponseData
+import com.kct.iqsdisplayer.data.packet.receive.toCallRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toEmptyRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toReserveListResponseData
+import com.kct.iqsdisplayer.data.packet.receive.toRestartRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toWaitResponse
+import com.kct.iqsdisplayer.data.packet.receive.toWinResponseData
+import com.kct.iqsdisplayer.data.toCallRequestData
+import com.kct.iqsdisplayer.data.toTellerData
 import com.kct.iqsdisplayer.network.ConnectFTP
 import com.kct.iqsdisplayer.network.Packet
+import com.kct.iqsdisplayer.network.PacketAnalyzer
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.lang.System.arraycopy
 import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
@@ -140,58 +139,62 @@ class IQSComClass : Service() {
             Log.d("TcpReceiver STARTED...isRun : $isRun")
             while (isRun) {
 
-                val readDataArr = ByteArray(4)
+                //val readDataArr = ByteArray(4)
 
                 try {
-                    var nHeadRead = 0
-                    var nToHeadRead = 4
-                    var nOffset = 0
+                    val packetAnalyzer = PacketAnalyzer(tcpSocket.getInputStream())
+                    val protocolDefine = packetAnalyzer.getProtocolId()
+                    val receivedData   = packetAnalyzer.getData()
 
-                    while (nToHeadRead > 0) {
-                        nHeadRead = tcpSocket.getInputStream().read(readDataArr, nOffset, nToHeadRead)
-                        if (nHeadRead == -1) {
-                            Log.d("Head Read End Of Stream")
-                            break
-                        }
-                        nToHeadRead -= nHeadRead
-                        nOffset += nHeadRead
-                        if (nToHeadRead > 0) {
-                            Log.d("Head Not Read Complete")
-                        }
-                    }
-
-                    val nBodySize = ((readDataArr[1].toInt() and 0xff) shl 8) or (readDataArr[0].toInt() and 0xff)
-                    val nId = ((readDataArr[3].toInt() and 0xff) shl 8) or (readDataArr[2].toInt() and 0xff)
-
-                    if (nId == 0x00) {
-                        Log.d("ID is null")
-                        isRun = false
-                        break // while 루프 종료
-                    }
-
-                    val bodyData = ByteArray(nBodySize)
-                    var nBodyRead = 0
-                    var nToBodyRead = nBodySize
-                    var nBodyOffset = 0
-
-                    while (nToBodyRead > 0) {
-                        nBodyRead = tcpSocket.getInputStream().read(bodyData, nBodyOffset, nToBodyRead)
-                        if (nBodyRead == -1) {
-                            Log.d("Body Read End")
-                            break
-                        }
-                        nToBodyRead -= nBodyRead
-                        nBodyOffset += nBodyRead
-                        if (nToBodyRead > 0) {
-                            Log.d("Body Not Read Complete")
-                        }
-                    }
-
-                    val realRecv = ByteArray(4 + nBodySize)
-                    arraycopy(readDataArr, 0, realRecv, 0, 4)
-                    arraycopy(bodyData, 0, realRecv, 4, nBodySize)
-
-                    analysisID(realRecv)
+//                    var nHeadRead = 0
+//                    var nToHeadRead = 4
+//                    var nOffset = 0
+//
+//                    while (nToHeadRead > 0) {
+//                        nHeadRead = tcpSocket.getInputStream().read(readDataArr, nOffset, nToHeadRead)
+//                        if (nHeadRead == -1) {
+//                            Log.d("Head Read End Of Stream")
+//                            break
+//                        }
+//                        nToHeadRead -= nHeadRead
+//                        nOffset += nHeadRead
+//                        if (nToHeadRead > 0) {
+//                            Log.d("Head Not Read Complete")
+//                        }
+//                    }
+//
+//                    val nBodySize = ((readDataArr[1].toInt() and 0xff) shl 8) or (readDataArr[0].toInt() and 0xff)
+//                    val nId = ((readDataArr[3].toInt() and 0xff) shl 8) or (readDataArr[2].toInt() and 0xff)
+//
+//                    if (nId == 0x00) {
+//                        Log.d("ID is null")
+//                        isRun = false
+//                        break // while 루프 종료
+//                    }
+//
+//                    val bodyData = ByteArray(nBodySize)
+//                    var nBodyRead = 0
+//                    var nToBodyRead = nBodySize
+//                    var nBodyOffset = 0
+//
+//                    while (nToBodyRead > 0) {
+//                        nBodyRead = tcpSocket.getInputStream().read(bodyData, nBodyOffset, nToBodyRead)
+//                        if (nBodyRead == -1) {
+//                            Log.d("Body Read End")
+//                            break
+//                        }
+//                        nToBodyRead -= nBodyRead
+//                        nBodyOffset += nBodyRead
+//                        if (nToBodyRead > 0) {
+//                            Log.d("Body Not Read Complete")
+//                        }
+//                    }
+//
+//                    val realRecv = ByteArray(4 + nBodySize)
+//                    arraycopy(readDataArr, 0, realRecv, 0, 4)
+//                    arraycopy(bodyData, 0, realRecv, 4, nBodySize)
+//
+//                    analysisID(realRecv)
 
                     timerKeepAlive = 0
                 } catch (e: SocketException) {
@@ -547,8 +550,8 @@ class IQSComClass : Service() {
         val sendByteBuffer: ByteBuffer? = when (code) {
             ProtocolDefine.WAIT_REQUEST.value       -> SendBufferClass().waitRequest()      // 대기인수 정보 요청 패킷
             ProtocolDefine.KEEP_ALIVE_REQUEST.value -> null                                 // KEEPALIVE 요청
-            ProtocolDefine.INSTALL_INFO.value       -> null                                 // 설치 정보 패킷
-            ProtocolDefine.SUB_SCREEN_REQUEST.value -> null                                 // 보조 표시정보 요청
+            //ProtocolDefine.INSTALL_INFO.value       -> null                                 // 설치 정보 패킷
+            //ProtocolDefine.SUB_SCREEN_REQUEST.value -> null                                 // 보조 표시정보 요청
             ProtocolDefine.VIDEO_LIST_REQUEST.value -> SendBufferClass().videoListRequest() // 동영상 리스트 요청
             ProtocolDefine.VIDEO_DOWNLOAD_REQUEST.value -> SendBufferClass().videoDownLoadRequest() // 231211, by HAHU  광고파일 요청
             ProtocolDefine.ACCEPT_REQUEST.value -> {
@@ -563,7 +566,7 @@ class IQSComClass : Service() {
             }
 
             ProtocolDefine.RESERVE_LIST_REQUEST.value -> SendBufferClass().reserveList()      // 상담 예약 관련 추가 ADD sblee 19-12-03
-            ProtocolDefine.RESERVE_UPDATE_INFO_REQUEST.value -> SendBufferClass().appVersionRequest()// 2022.07.21 dyyoon 업데이트 정보 요청 add
+            ProtocolDefine.UPDATE_INFO_REQUEST.value -> SendBufferClass().appVersionRequest()// 2022.07.21 dyyoon 업데이트 정보 요청 add
             else -> {
                 Log.e("Unknown protocol code: $code")
                 null
@@ -578,10 +581,10 @@ class IQSComClass : Service() {
      * 순번발행기에서 TCP 통신 수신한 데이터의 ID와 값을 분석함
      * @param bytes (TCP 통신 데이터)
      */
-    private fun analysisID(bytes: ByteArray) {
-        val recvPacket = Packet(bytes)
-        val protocolID = recvPacket.getId()
-        val size = recvPacket.getLength()
+    private fun analysisID(headerBytes: ByteArray, dataBytes: ByteArray) {
+        val packet = Packet(headerBytes, dataBytes)
+        val protocolID = packet.getId()
+        val size = packet.getLength()
         val bundleData = Bundle()
 
         val protocolName = ProtocolDefine.entries.find { it.value == protocolID }?.name ?: "Unknown"
@@ -597,11 +600,11 @@ class IQSComClass : Service() {
             ProtocolDefine.ACCEPT_REJECT.value -> {}
             // 접속 승인 응답
             ProtocolDefine.ACCEPT_AUTH_REQUEST.value -> {
-                Log.d("IQS Response AcceptAuthRequest data : ${recvPacket.string}")
+                Log.d("IQS Response AcceptAuthRequest data : ${packet.string}")
             }
 
             ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> {
-                val data = recvPacket.toAcceptAuthResponseData()
+                val data = packet.toAcceptAuthResponseData()
 
                 ScreenInfo.instance.setTellerInfo(data.tellerInfo)
                 Log.d("SetTellerInfo")
@@ -620,7 +623,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.WAIT_RESPONSE.value -> {
                 // 대기 인수 정보 응답 패킷
-                val data = recvPacket.toWaitResponse()
+                val data = packet.toWaitResponse()
                 Log.d("$data")
 
                 if (data.winID == ScreenInfo.instance.winID) {
@@ -642,7 +645,7 @@ class IQSComClass : Service() {
                     ProtocolDefine.RE_CALL_REQUEST.value
                 }
 
-                val data = recvPacket.toCallRequestData()
+                val data = packet.toCallRequestData()
 
                 var result = false
                 Log.d("IQS Response $data")
@@ -684,16 +687,16 @@ class IQSComClass : Service() {
                 }
             }
 
-            ProtocolDefine.DISPLAY_INFO.value -> {
-                // 화면 표시기 정보 패킷
-                val data = recvPacket.string
-                ScreenInfo.instance.setDisplayInfo(data)
-                commResultReceiver?.send(ProtocolDefine.DISPLAY_INFO.value.toInt(), bundleData)
-            }
+//            ProtocolDefine.DISPLAY_INFO.value -> {
+//                // 화면 표시기 정보 패킷
+//                val data = packet.string
+//                ScreenInfo.instance.setDisplayInfo(data)
+//                commResultReceiver?.send(ProtocolDefine.DISPLAY_INFO.value.toInt(), bundleData)
+//            }
 
             ProtocolDefine.EMPTY_REQUEST.value -> {
                 // 부재 정보 요청
-                val data = recvPacket.toEmptyRequestData()
+                val data = packet.toEmptyRequestData()
 
                 if (data.winNum == ScreenInfo.instance.winNum) {
                     ScreenInfo.instance.setEmpty(data.emptyFlag, data.emptyMsg)
@@ -706,7 +709,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.INFO_MESSAGE_REQUEST.value -> {
                 // 안내 메시지 설정 요청
-                val data = recvPacket.toInfoMessageRequestData()
+                val data = packet.toInfoMessageRequestData()
 
                 if (data.infoMessageWinNum == ScreenInfo.instance.winNum) {
                     Log.d("infoMessage : $data")
@@ -719,8 +722,10 @@ class IQSComClass : Service() {
 
             ProtocolDefine.TELLER.value -> {
                 // 직원 정보
-                val tellerList = recvPacket.string          // 직원 설정 정보 리스트
-                Log.d("IQS Response Teller Data  : $tellerList")
+
+                val data = packet.string          // 직원 설정 정보 리스트
+                Log.d("IQS Response Teller Data  : $data")
+                val tellerList = packet.toTellerData()
                 ScreenInfo.instance.setTellerList(tellerList)
                 commResultReceiver?.send(ProtocolDefine.TELLER.value.toInt(), bundleData)
             }
@@ -732,7 +737,7 @@ class IQSComClass : Service() {
 
             // 동영상 설정 패킷
             ProtocolDefine.VIDEO_SET.value -> {
-                val videoInfo = recvPacket.string
+                val videoInfo = packet.string
                 ScreenInfo.instance.setVideoInfo(videoInfo)
                 Log.d("IQS Response VideoSet Data : $videoInfo")
                 try {
@@ -746,36 +751,36 @@ class IQSComClass : Service() {
                 }
             }
 
-            ProtocolDefine.VOLUME_TEST.value -> {
-                // 볼륨 테스트 패킷
-                val volumeInfo = recvPacket.string
-                try {
-                    val testVolume = ScreenInfo.instance.setVolumeTest(volumeInfo)
-
-                    Log.d("IQS Response VolumTest Data VolumeWin : $testVolume")
-
-                    if (ScreenInfo.instance.winNum == testVolume.volumeWin) {
-                        // 액티비티로 전달
-                        commResultReceiver?.send(ProtocolDefine.VOLUME_TEST.value.toInt(), bundleData)
-                    } else {
-                        // 다른 창구일 때 처리 (필요한 경우)
-                    }
-                } catch (e: Exception) {
-                    Log.e("Failed Volume Test")
-                }
-            }
-
-            // 음성 설정 패킷
-            ProtocolDefine.SOUND_SET.value -> {
-                val soundSetData = recvPacket.string
-                ScreenInfo.instance.soundSet(soundSetData)
-                Log.d("IQS Response SoundSetData Data : $soundSetData")
-                commResultReceiver?.send(ProtocolDefine.SOUND_SET.value.toInt(), bundleData)
-            }
+//            ProtocolDefine.VOLUME_TEST.value -> {
+//                // 볼륨 테스트 패킷
+//                val volumeInfo = packet.string
+//                try {
+//                    val testVolume = ScreenInfo.instance.setVolumeTest(volumeInfo)
+//
+//                    Log.d("IQS Response VolumTest Data VolumeWin : $testVolume")
+//
+//                    if (ScreenInfo.instance.winNum == testVolume.volumeWin) {
+//                        // 액티비티로 전달
+//                        commResultReceiver?.send(ProtocolDefine.VOLUME_TEST.value.toInt(), bundleData)
+//                    } else {
+//                        // 다른 창구일 때 처리 (필요한 경우)
+//                    }
+//                } catch (e: Exception) {
+//                    Log.e("Failed Volume Test")
+//                }
+//            }
+//
+//            // 음성 설정 패킷
+//            ProtocolDefine.SOUND_SET.value -> {
+//                val soundSetData = packet.string
+//                ScreenInfo.instance.soundSet(soundSetData)
+//                Log.d("IQS Response SoundSetData Data : $soundSetData")
+//                commResultReceiver?.send(ProtocolDefine.SOUND_SET.value.toInt(), bundleData)
+//            }
 
             // 재시작 요청
             ProtocolDefine.RESTART_REQUEST.value -> {
-                val data = recvPacket.toRestartRequestData()
+                val data = packet.toRestartRequestData()
 
                 if (data.restartWinNum == ScreenInfo.instance.winNum) {
                     Const.CommunicationInfo.MODE = data.mode
@@ -788,7 +793,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.CROWDED_REQUEST.value -> {
                 // 혼잡 요청
-                val data = recvPacket.toCrowdedRequestData()
+                val data = packet.toCrowdedRequestData()
 
                 if (data.crowdedWinID == ScreenInfo.instance.winID) {
                     ScreenInfo.instance.setCrowed(data.isCrowded, data.crowdedMsg)
@@ -801,7 +806,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.WIN_RESPONSE.value -> {
                 // 창구 응답
-                val data = recvPacket.toWinResponseData()
+                val data = packet.toWinResponseData()
 
                 ScreenInfo.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
                 Log.d("IQS Response $data")
@@ -812,32 +817,33 @@ class IQSComClass : Service() {
             ProtocolDefine.KEEP_ALIVE_RESPONSE.value -> {}
 
             // 보조 표시 정보 응답
-            ProtocolDefine.SUB_SCREEN_RESPONSE.value -> {
-                val waitListInfo = recvPacket.string                   // 대기 인수 정보
-                Log.d("IQS Response SubScreenResponse Data : $waitListInfo")
-            }
+//            ProtocolDefine.SUB_SCREEN_RESPONSE.value -> {
+//                val waitListInfo = packet.string                   // 대기 인수 정보
+//                Log.d("IQS Response SubScreenResponse Data : $waitListInfo")
+//            }
 
             // 배경 음악 정보 패킷
-            ProtocolDefine.BGM_INFO.value -> {
-                val bgmInfo = recvPacket.string                        // 배경음악 정보
-                Log.d("IQS Response BGMInfo Data : $bgmInfo")
-            }
+//            ProtocolDefine.BGM_INFO.value -> {
+//                val bgmInfo = packet.string                        // 배경음악 정보
+//                Log.d("IQS Response BGMInfo Data : $bgmInfo")
+//            }
 
             // 동영상 리스트 응답
             ProtocolDefine.VIDEO_LIST_RESPONSE.value -> {
-                val videoList = recvPacket.string                      // 동영상 리스트
+                val videoList = packet.string                      // 동영상 리스트
                 Log.d("IQS Response VideoListResponse Data : $videoList")
 
                 // 231130, by HAHU  동영상 다운로드 후 앱 업데이트
-                requestIQS(ProtocolDefine.RESERVE_UPDATE_INFO_REQUEST.value)
+                requestIQS(ProtocolDefine.UPDATE_INFO_REQUEST.value)
+
             }
 
             // 설치 정보 패킷
-            ProtocolDefine.INSTALL_INFO.value -> {}
+            /*ProtocolDefine.INSTALL_INFO.value -> {}
 
             // 호출 취소 요청
             ProtocolDefine.CALL_CANCEL.value -> {
-                val data = recvPacket.toCallCancelData()
+                val data = packet.toCallCancelData()
 
                 Log.d("IQS Response $data")
 
@@ -860,7 +866,7 @@ class IQSComClass : Service() {
 
             // 호출 횟수 설정 패킷
             ProtocolDefine.CALL_COLLECT_SET.value -> {
-                val data = recvPacket.toCallCollectSetData()
+                val data = packet.toCallCollectSetData()
 
                 if (data.collectWinNum == ScreenInfo.instance.winNum) {
                     ScreenInfo.instance.collectNum = data.collectNum
@@ -873,7 +879,7 @@ class IQSComClass : Service() {
 
             // 전산 장애 설정
             ProtocolDefine.ERROR_SET.value -> {
-                val errorInfo = recvPacket.string                      // 전산 장애 설정 정보
+                val errorInfo = packet.string                      // 전산 장애 설정 정보
                 ScreenInfo.instance.setError(errorInfo)
                 Log.d("IQS Response ErrorSet Data : $errorInfo")
                 commResultReceiver?.send(ProtocolDefine.ERROR_SET.value.toInt(), bundleData)
@@ -881,7 +887,7 @@ class IQSComClass : Service() {
 
             // 공석 설정
             ProtocolDefine.PJT_SET.value -> {
-                val data = recvPacket.toPJTSetData()
+                val data = packet.toPJTSetData()
                 Log.d("IQS Response $data")
                 when (data.pjtWinNum) {
                     ScreenInfo.instance.winNum -> {
@@ -896,11 +902,11 @@ class IQSComClass : Service() {
                         Log.w("패킷 ProtocolDefine.PJT_SET의 data.pjtWinNum[${data.pjtWinNum}], ScreenInfoManager.instance.winNum[${ScreenInfo.instance.winNum}], ScreenInfoManager.instance.mainWinNum[${ScreenInfo.instance.mainWinNum}]")
                     }
                 }
-            }
+            }*/
 
             // 예약 리스트 응답
             ProtocolDefine.RESERVE_LIST_RESPONSE.value -> {
-                val data = recvPacket.toReserveListResponseData()
+                val data = packet.toReserveListResponseData()
                 ScreenInfo.instance.setReserveList(data.mul, data.reserveListStr)
                 Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_LIST_RESPONSE.value.toInt(), bundleData)
@@ -918,13 +924,13 @@ class IQSComClass : Service() {
                 if (Const.CommunicationInfo.CALLVIEW_MODE == "0") {
                     requestIQS(ProtocolDefine.VIDEO_LIST_REQUEST.value)
                 } else {
-                    requestIQS(ProtocolDefine.RESERVE_UPDATE_INFO_REQUEST.value)
+                    requestIQS(ProtocolDefine.UPDATE_INFO_REQUEST.value)
                 }
             }
 
             // 예약 추가 요청 패킷
             ProtocolDefine.RESERVE_ADD_REQUEST.value -> {
-                val reserveAdd = recvPacket.string
+                val reserveAdd = packet.string
                 ScreenInfo.instance.setAddReserve(reserveAdd)
                 Log.d("IQS Response ReserveAddRequest Data : $reserveAdd")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ADD_REQUEST.value.toInt(), bundleData)
@@ -932,7 +938,7 @@ class IQSComClass : Service() {
 
             // 예약 수정 요청 패킷
             ProtocolDefine.RESERVE_UPDATE_REQUEST.value -> {
-                val reserveUpdate = recvPacket.string
+                val reserveUpdate = packet.string
                 ScreenInfo.instance.setUpdateReserve(reserveUpdate)
                 Log.d("IQS Response ReserveUpdateRequest Data : $reserveUpdate")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_UPDATE_REQUEST.value.toInt(), bundleData)
@@ -940,7 +946,7 @@ class IQSComClass : Service() {
 
             // 예약 취소 요청 패킷
             ProtocolDefine.RESERVE_CANCEL_REQUEST.value -> {
-                val reserveCancel = recvPacket.string
+                val reserveCancel = packet.string
                 ScreenInfo.instance.setCancelReserve(reserveCancel)
                 Log.d("IQS Response ReserveCancleRequest Data : $reserveCancel")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_CANCEL_REQUEST.value.toInt(), bundleData)
@@ -948,7 +954,7 @@ class IQSComClass : Service() {
 
             // 예약 도착 등록 요청 패킷
             ProtocolDefine.RESERVE_ARRIVE_REQUEST.value -> {
-                val arriveData = recvPacket.string
+                val arriveData = packet.string
                 ScreenInfo.instance.setReserveArrive(arriveData)
                 Log.d("IQS Response ReservArriveReqeust Data : $arriveData")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_ARRIVE_REQUEST.value.toInt(), bundleData)
@@ -957,7 +963,7 @@ class IQSComClass : Service() {
             // 예약 호출 요청 패킷
             ProtocolDefine.RESERVE_CALL_REQUEST.value -> {
                 var nReserveCall = 0
-                val reserveCall = recvPacket.string
+                val reserveCall = packet.string
                 nReserveCall = ScreenInfo.instance.setCallReserve(reserveCall)
 
                 if (nReserveCall == ScreenInfo.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
@@ -970,7 +976,7 @@ class IQSComClass : Service() {
 
             // 예약 재호출 요청 패킷
             ProtocolDefine.RESERVE_RE_CALL_REQUEST.value -> {
-                val reserveReCall = recvPacket.string
+                val reserveReCall = packet.string
 
                 var nReserveReCall = 0
                 nReserveReCall = ScreenInfo.instance.setCallReserve(reserveReCall)
@@ -985,7 +991,7 @@ class IQSComClass : Service() {
 
             // 직원 정보 갱신
             ProtocolDefine.TELLER_RENEW_REQUEST.value -> {
-                val data = recvPacket.toTellerRenewRequestData()
+                val data = packet.toTellerRenewRequestData()
 
                 if (data.renewWinNum == ScreenInfo.instance.winNum) {
                     Log.d("IQS Response $data")
@@ -1018,8 +1024,8 @@ class IQSComClass : Service() {
             //   (4) update 3 인 경우 : 실제 다운로드 파일의 크기를 가져올 수 없는 경우이다.
             //                         따라서, 사운드디스플레이 정상 작동을 위해 MainActivity 로 전환한다.
             // =====================================================================================
-            ProtocolDefine.RESERVE_UPDATE_INFO_RESPONSE.value -> {
-                val update = recvPacket.integer
+            ProtocolDefine.UPDATE_INFO_RESPONSE.value -> {
+                val update = packet.integer
                 var downloadFileSize = 0
                 var downloadFileName = ""
                 when (update) {
@@ -1031,8 +1037,8 @@ class IQSComClass : Service() {
                     }
                     1 -> {
                         // 다운로드할 파일의 첫 번째 처리 부분
-                        downloadFileSize = recvPacket.integer
-                        downloadFileName = recvPacket.string
+                        downloadFileSize = packet.integer
+                        downloadFileName = packet.string
 
                         Log.d("[파일다운로드 시작] ReserveUpdateInfoResponse : default ID = $protocolID, update = $update, fileSize = $downloadFileSize, fileName = $downloadFileName")
 
@@ -1060,7 +1066,7 @@ class IQSComClass : Service() {
                         // 다운로드할 파일을 반복해서 처리하는 부분
                         Log.d("update value is [2]")
 
-                        recvPacket.getFileAndSave(downloadFileName)
+                        packet.getFileAndSave(downloadFileName)
 
                         val fileExtension = downloadFileName.substringAfterLast(".", "").lowercase()
                         val (sourceDir, targetDir) = when (fileExtension) {

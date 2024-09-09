@@ -186,6 +186,21 @@ object Const {
         INIT_PATCH
     }
 
+    enum class PJT(val value: String) {
+        EMPTY("공석"),
+        IN_DESK("사용중")
+    }
+
+    enum class Arrow(val value: Int) {
+        LEFT(1),
+        RIGHT(2),
+        CENTER(3)
+    }
+
+    const val OK        = 1
+    const val CANCEL    = 0
+    const val ERROR     = -1
+
 
     //==============================================================================================
     // 예비로 남겨둠.
