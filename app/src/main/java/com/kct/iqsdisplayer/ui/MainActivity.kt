@@ -1,6 +1,5 @@
 package com.kct.iqsdisplayer.ui
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -13,29 +12,65 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.CallSoundManager
 import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.common.ScreenInfo
+import com.kct.iqsdisplayer.common.SharedViewModel
+import com.kct.iqsdisplayer.common.UpdateManager
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
+import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
+import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
+import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
+import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoResponse
+import com.kct.iqsdisplayer.data.packet.send.AcceptAuthRequest
+import com.kct.iqsdisplayer.data.packet.send.MediaListRequest
+import com.kct.iqsdisplayer.data.packet.send.ReserveListRequest
+import com.kct.iqsdisplayer.data.packet.send.UpdateInfoRequest
+import com.kct.iqsdisplayer.databinding.ActivityMainBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
-import com.kct.iqsdisplayer.service.IQSComClass
+import com.kct.iqsdisplayer.network.TCPClient
 import com.kct.iqsdisplayer.ui.FragmentFactory.Index
 import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
+import com.kct.iqsdisplayer.util.copyFile
+import com.kct.iqsdisplayer.util.getLocalIpAddress
+import com.kct.iqsdisplayer.util.getMacAddress
+import com.kct.iqsdisplayer.util.installSilent
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
 import com.kct.iqsdisplayer.util.setPreference
+import java.io.File
+import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.system.exitProcess
 
-class MainActivity : AppCompatActivity(), FragmentResultListener {
+/**
+ * 모든 로직은 HardDisK의 권한을 획득한 후에 동작하도록 한다.
+ */
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+
+    private lateinit var tcpClient: TCPClient
+
+    private val sharedViewModel: SharedViewModel by viewModels()
 
     private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
 
         enableEdgeToEdge()
 
@@ -45,15 +80,24 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
 
         FragmentFactory.setActivity(this)
 
-        commResultReceiver.setReceiver(receiver)
-
         startSystem()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        tcpClient.onDestroy()
+    }
+
+
     private fun startSystem() {
         if(checkStorage()) {
-            //Storage 를 사용 할 준비가 되었다면 FRAGMENT_INIT부터 시작한다.
-            replaceFragment(Index.FRAGMENT_INIT)
+            //Storage 를 사용 할 준비가 되었다면 접속환경 설정 및 TCP접속부터 시작한다.
+            restoreSharedPreferencesFiles()
+
+            initConstInfo()
+
+            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
+            tcpClient.setOnTcpEventListener(tcpEventListener)
         }
     }
 
@@ -69,10 +113,6 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             finishApp("외부 저장소 경로(Root)를 가져오는 데 실패했습니다.")
             return false
         }
-        else { //권한이 있으므로 초기 경로 Setting
-            Const.Path.DIR_ROOT = Environment.getExternalStorageDirectory()!!.absolutePath
-            Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
-        }
 
         if(makeDir(Const.Path.DIR_IQS) == null) {
             finishApp("PATH[${Const.Path.DIR_IQS}] 폴더 생성 실패")
@@ -80,8 +120,6 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         }
         return true
     }
-
-
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun requestAllFilesAccessPermission() {
@@ -107,88 +145,156 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         }
     }
 
-    fun rebootIQSDisplayer() {
-        val pb = ProcessBuilder(*arrayOf("su", "-c", "/system/bin/reboot"))
-        var process: Process? = null
-        try {
-            process = pb.start()
-            process.waitFor()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
     fun finishApp(message: String = "앱 종료 호출") {
         Log.e(message)
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         finishAffinity()
     }
 
+    private fun initConstInfo() {
+        Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
+        getSharedPreferences(Const.Name.PREF_DISPLAYER_SETTING, Context.MODE_PRIVATE).loadCommunicationInfo()
 
-    /**
-     * 서버에서 받아온 값으로 돌아감.
-     * 일반적으로 Call 이 온 경우만 20초, 나머지는 10초
-     * 기존코드에 Call 이 왔을 경우 screenInfo와 상관없이 20초로 셋팅하고 있어 hardSetDelayTime을 따로 두었음.
-     */
+        Const.ConnectionInfo.DISPLAY_IP = getLocalIpAddress()
+        Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
 
+        setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.ConnectionInfo.IQS_IP)
+        setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.ConnectionInfo.IQS_PORT)
+    }
 
-    override fun onResult(result: Const.FragmentResult) {
-        when(result) {
-            Const.FragmentResult.INIT_NONE_PATCH -> { //상태정상이면 화면 초기화진행
-                Log.i("onActivityResult : 초기화 정상 반환... (RESULT_OK)")
-                //onAcceptAuthResponse() //startService후 ACCEPT_AUTH_RESPONSE에서 진행되므로 삭제함.
-                startIQSService(commResultReceiver)
-            }
-            Const.FragmentResult.INIT_PATCH -> {  //상태 비정상이면 프로그램 종료
-                finishApp("앱 설치로 인한 앱 종료")
-            }
-            else -> {
+    private fun restoreSharedPreferencesFiles() {
+        var prefFileName = Const.Name.getPrefDisplayerSettingName()
+        var sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+        var destPath: String
 
-            }
+        val prefDisplayerSetting = File(sourcePath)
+
+        if (!prefDisplayerSetting.exists()) {
+            sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
+            destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+
+            if(File(sourcePath).exists()) copyFile(this, sourcePath, destPath)
+
+        } else {
+            Log.d("설정정보파일 정상[${Const.Name.PREF_DISPLAYER_SETTING}]")
+        }
+
+        prefFileName = Const.Name.getPrefDisplayInfoName()
+        sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+
+        val prefDisplayInfo = File(sourcePath)
+
+        if (!prefDisplayInfo.exists()) {
+            sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
+            destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+
+            if(File(sourcePath).exists()) copyFile(this, sourcePath, destPath)
+
+        } else {
+            Log.d("화면정보파일 정상[${Const.Name.PREF_DISPLAY_INFO}]")
         }
     }
 
-    /**
-     * 서비스를 MainActivity에서 돌리고 각각의 fragment에서는 bind만해서 동작하도록 하는것이 좋을 것 같으나
-     * 우선 동작하는게 우선이라 그대로 로직을 따라간다.
-     */
-    fun startIQSService(commResultReceiver: CommResultReceiver) {
-        Log.i("startIQSService")
-        if(isMyServiceRunning(IQSComClass::class.java)) {
-            stopIQSService()
+//=====================================================================================================
+// 실제 로직 시작
+//=====================================================================================================
+    private val tcpEventListener = object : TCPClient.OnTcpEventListener {
+        override fun onConnected() {
+            Log.d("onConnected")
         }
-        val intent = Intent(this, IQSComClass::class.java)
-        intent.putExtra("receiver", commResultReceiver)
-        startService(intent)
-    }
 
-    fun stopIQSService() {
-        Log.i("stopIQSService")
-        val intent = Intent(this, IQSComClass::class.java)
-        stopService(intent)
-    }
-    /**
-     * Android 8.0(API 레벨 26)부터 사용 안되는 것으로 보여 확인 요망, 시스템 App이라 될 수도 있음.
-     */
-    fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
-        for (service in manager!!.getRunningServices(Int.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
+        override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
+            Log.d("${protocolDefine}$receivedData")
+            when(protocolDefine) {
+                ProtocolDefine.CONNECT_SUCCESS -> onConnectSuccess()
+                ProtocolDefine.CONNECT_REJECT -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
+                ProtocolDefine.ACCEPT_AUTH_RESPONSE -> {
+                    onAcceptAuthResponse(receivedData)
+                    Log.d("업데이트 정보 요청")
+                    tcpClient.sendProtocol(UpdateInfoRequest().toByteBuffer())
+                }
+                ProtocolDefine.WAIT_RESPONSE -> TODO()
+                ProtocolDefine.CALL_REQUEST -> TODO()
+                ProtocolDefine.RE_CALL_REQUEST -> TODO()
+                ProtocolDefine.EMPTY_REQUEST -> TODO()
+                ProtocolDefine.INFO_MESSAGE_REQUEST -> TODO()
+                ProtocolDefine.TELLER_LIST -> TODO()
+                ProtocolDefine.SYSTEM_OFF -> TODO()
+                ProtocolDefine.RESTART_REQUEST -> TODO()
+                ProtocolDefine.RESTART_RESPONSE -> TODO()
+                ProtocolDefine.CROWDED_REQUEST -> TODO()
+                ProtocolDefine.WIN_REQUEST -> TODO()
+                ProtocolDefine.WIN_RESPONSE -> TODO()
+                ProtocolDefine.MEDIA_LIST_RESPONSE -> onMediaListResponse(receivedData)
+                ProtocolDefine.RESERVE_LIST_RESPONSE -> onReserveListResponse(receivedData)
+                ProtocolDefine.RESERVE_ADD_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_ADD_RESPONSE -> TODO()
+                ProtocolDefine.RESERVE_UPDATE_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_UPDATE_RESPONSE -> TODO()
+                ProtocolDefine.RESERVE_CANCEL_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_CANCEL_RESPONSE -> TODO()
+                ProtocolDefine.RESERVE_ARRIVE_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_ARRIVE_RESPONSE -> TODO()
+                ProtocolDefine.RESERVE_CALL_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_RE_CALL_REQUEST -> TODO()
+                ProtocolDefine.UPDATE_INFO_RESPONSE -> onUpdateInfoResponse(receivedData)
+                ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER -> TODO()
+                ProtocolDefine.VIDEO_DOWNLOAD_REQUEST -> TODO()
+                ProtocolDefine.VIDEO_DOWNLOAD_RESPONSE -> TODO()
+                ProtocolDefine.START_PATCH -> TODO() //없는 패킷같은데
+                ProtocolDefine.END_PATCH -> TODO()//없는 패킷같은데
+                ProtocolDefine.START_IMAGE -> TODO()
+                ProtocolDefine.END_IMAGE -> TODO()
+                ProtocolDefine.START_VIDEO -> TODO()
+                ProtocolDefine.END_VIDEO -> TODO()
+                ProtocolDefine.START_SOUND -> TODO()
+                ProtocolDefine.END_SOUND -> TODO()
+                ProtocolDefine.SERVICE_RETRY -> TODO()
+                ProtocolDefine.NO_IP_RETRY -> TODO()
+                ProtocolDefine.TELLER_RENEW_REQUEST -> TODO()
+                ProtocolDefine.TELLER_RENEW_RESPONSE -> TODO()
+                null -> Log.i("정의되지 않은 Protocol이 존재함. PacketAnalyer 확인 요망.")
+                else -> {
+                    //Define된 Protocol중 Send에 해당하는 부분은 처리할 필요 없다.
+                    //그리고 inputStream에만 listener가 오도록 되어있어 실제로 넘어오지도 않아야 한다.
+                    Log.i("잘못 처리된 Protocol이 존재함. $protocolDefine")
+                }
             }
         }
-        return false
+
+        override fun onDisconnected() {
+            Log.d("onDisconnected")
+        }
+    }
+    /** 업데이트 여부 패킷까지 완료 하면 각 요청을 보내 데이터를 받아온다.*/
+    private fun requestOther() {
+        Log.d("상담예약리스트 요청")
+        tcpClient.sendProtocol(ReserveListRequest().toByteBuffer())
+        Log.d("영상 재생 리스트 요청")
+        tcpClient.sendProtocol(MediaListRequest().toByteBuffer())
+        Log.d("로그파일 업로드")
+        uploadLogFileToServer()
     }
 
-    //===========================================================================================
-    //Receiver 에 수신된 데이터 처리 및 관련 함수들
-    //===========================================================================================
+    private fun onConnectSuccess() {
+        val ip = getLocalIpAddress()
+        val mac = getMacAddress()
+        if(ip.isNullOrEmpty() || mac.isNullOrEmpty()) {
+            Log.e("승인요청 취소 DISPLAY_IP:$ip, DISPLAY_MAC:$mac")
+        }
+        else {
+            val sendData = AcceptAuthRequest(ip, mac)
+            tcpClient.sendProtocol(sendData.toByteBuffer())
+        }
+    }
+
     private val receiver = CommResultReceiver.Receiver { resultCode, resultData ->
         val code = resultCode.toShort()
         val protocolName = ProtocolDefine.entries.find { it.value == code }?.name ?: "Unknown"
         Log.d(protocolName)
 
         when (code) {
-            ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> onAcceptAuthResponse()
+            ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> onAcceptAuthResponse(receivedData)
             ProtocolDefine.WAIT_RESPONSE.value -> onWaitCount()
             ProtocolDefine.CALL_REQUEST.value -> //Display값이 Main, Bk 로 온다.
                 if (resultData.getString("Display") == "Main") onCall(true) else onCall(false)
@@ -210,7 +316,7 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             ProtocolDefine.ERROR_SET.value -> onErrorSet()
             ProtocolDefine.PJT_SET.value -> onPJTSet()
             ProtocolDefine.DISPLAY_INFO.value -> onDisplayInfo()
-            ProtocolDefine.TELLER.value -> {
+            ProtocolDefine.TELLER_LIST.value -> {
                 // 230905, by HAHU 직원 정보 수정 내려오면 재접속 시키기
                 stopIQSService()
                 startIQSService(commResultReceiver)
@@ -241,13 +347,63 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
         }
     }
 
-    private fun onAcceptAuthResponse() {
+    private fun onAcceptAuthResponse(receivedData: BaseReceivePacket) {
         Log.e( "onAcceptAuthResponse : 정상접속 완료...")
 
-        setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value)
+        val data = receivedData as AcceptAuthResponse
+        sharedViewModel.updateDefaultInfo(data)
+
+        //setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value)
 
         replaceFragment(Index.FRAGMENT_MAIN)
     }
+
+    private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
+        Log.e( "onUpdateInfoResponse :업데이트정보 수신 완료...")
+
+        val data = receivedData as UpdateInfoResponse
+
+        when(data.updateType) {
+            0 -> {
+                Log.d("update = 0. 다운로드할 파일이 없음")
+                requestOther()
+            }
+            1 -> { // 다운로드할 파일의 첫 번째 처리 부분
+                UpdateManager.setUpdateFileInfo(receivedData.updateSize, receivedData.updateFileName)
+            }
+
+            2 -> { // 다운로드할 파일을 반복해서 처리하는 부분
+                UpdateManager.writeData(receivedData.dataArray)
+
+                if(UpdateManager.isCompleteDownload()) {
+                    if(UpdateManager.getFileExtension() == "apk") {
+                        installSilent(packageName, UpdateManager.getFileName())
+                    }
+                    else {
+                        requestOther()
+                    }
+                }
+
+            }
+            3 -> { Log.d("업데이트 실패 : update = 3.") }
+            else -> { // 그 밖의 경우 처리
+                Log.d("알 수 없는 업데이트. update = ${data.updateType}. 그밖의 경우로 현재 정의된 값이 없어서, else 인 경우는 발생되지 않음.")
+            }
+        }
+    }
+
+    private fun onReserveListResponse(receivedData: BaseReceivePacket) {
+        Log.e( "onReserveListResponse :상담예약리스트 수신 완료...")
+        val data = receivedData as ReserveListResponse
+        sharedViewModel.updateReserveList(data)
+    }
+
+    private fun onMediaListResponse(receivedData: BaseReceivePacket) {
+        Log.e( "onMediaListResponse : 영상리스트 수신 완료...")
+        val data = receivedData as MediaListResponse
+        sharedViewModel.updateMediaList(data)
+    }
+
 
     //대기자수 응답
     private fun onWaitCount() {
@@ -431,8 +587,72 @@ class MainActivity : AppCompatActivity(), FragmentResultListener {
             callWinNum = screenInfo.reserveWinNum.toInt(),
             flagVIP = screenInfo.flagVIP == 1)
     }
-}
 
-interface FragmentResultListener {
-    fun onResult(result: Const.FragmentResult)
+    private fun uploadLogFileToServer() {
+        val logFilePath = Const.Path.DIR_LOG
+        val currentDateFileName = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+
+        Log.d("=================================")
+        Log.d("   로그파일 서버전송 시작")
+        val logDir = File(logFilePath)
+        val fileList = logDir.listFiles()?.filter { it.isFile } // 파일만 필터링
+
+        fileList?.reversed()?.forEach { file ->
+            val fileName = file.name
+            // 현재 날짜 파일은 제외
+            if (fileName != "$currentDateFileName.txt") {
+                Log.d("uploadLogFileToServerSub() : 현재날짜 = $currentDateFileName, 업로드 파일 = $fileName")
+                uploadLogFileToServerSub(fileName)
+            }
+        }
+        Log.d("   로그파일 서버전송 종료")
+        Log.d("=================================")
+    }
+
+
+    private fun uploadLogFileToServerSub(fileName: String) {
+        val code = ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER.value
+
+        Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName")
+
+        try {
+            val uploadFile = File(Const.Path.DIR_LOG + fileName)
+
+            if (!uploadFile.exists()) {
+                Log.d("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
+                return
+            }
+
+            FileInputStream(uploadFile).use { fis ->
+                val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
+                var bytesRead: Int
+
+                Log.d("uploadLogFileToServerSub() 데이터 전송: 업로드 파일이름 = $fileName")
+                while (fis.read(readBuffer).also { bytesRead = it } != -1) {
+                    // ================================================================================================================
+                    // 전송할 팩킷 구조
+                    // datasize(2byte) + code(2byte) + sFileName(n byte) + 구분자(Null 1byte) + File contents(nReadLength와 같거나 작은값) + 구분자(Null 1byte)
+                    // ----------------------------------------------------------------------------------------------------------------
+                    val dataSize = (fileName.length + 1 + bytesRead + 1).toShort()
+
+                    val sendByteBuffer = ByteBuffer.allocate(dataSize.toInt() + 4).apply {
+                        order(ByteOrder.LITTLE_ENDIAN)
+                            .putShort(dataSize)
+                            .putShort(code)
+                            .put(fileName.toByteArray())
+                            .put(0x00.toByte())
+                            .put(readBuffer, 0, bytesRead)
+                            .put(0x00.toByte())
+                    }
+
+                    tcpClient.sendProtocol(sendByteBuffer)
+                }
+
+                // 파일 읽기가 끝났으므로 해당 파일 삭제
+                uploadFile.delete()
+            }
+        } catch (e: Exception) {
+            Log.e("uploadLogFileToServerSub() 예외 발생: ${e.message}", e)
+        }
+    }
 }

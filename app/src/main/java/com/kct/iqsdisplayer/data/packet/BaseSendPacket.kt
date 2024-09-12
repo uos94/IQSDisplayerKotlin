@@ -52,7 +52,10 @@ abstract class BaseSendPacket(private val protocolId: Short) {
                 put(data.toByteArray())
                 put(0x00)
             }
-            is ByteArray -> put(data)
+            is ByteArray -> {
+                put(data)
+                put(0x00)
+            }
             else -> throw IllegalArgumentException("Unsupported data type: ${data::class.simpleName}")
         }
     }

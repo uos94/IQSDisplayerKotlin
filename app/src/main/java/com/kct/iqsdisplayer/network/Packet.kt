@@ -27,7 +27,7 @@ class Packet(headerBytes: ByteArray, dataBytes: ByteArray) {
 
     fun getId(): Short      = protocolId.toShort()
     fun getLength(): Short  = length.toShort()
-
+    fun getData(): ByteBuffer  = data
     val byte: Byte get() = data.get()
 
     val string: String get() {

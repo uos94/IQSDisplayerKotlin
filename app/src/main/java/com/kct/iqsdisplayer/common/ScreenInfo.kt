@@ -7,10 +7,10 @@ import com.kct.iqsdisplayer.data.Reserve
 import com.kct.iqsdisplayer.data.Sound
 import com.kct.iqsdisplayer.data.Teller
 import com.kct.iqsdisplayer.data.TestVolume
-import com.kct.iqsdisplayer.data.WinWait
-import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponseData
+import com.kct.iqsdisplayer.data.WinInfo
+import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.CallCancelData
-import com.kct.iqsdisplayer.data.packet.receive.CallRequestData
+import com.kct.iqsdisplayer.data.packet.receive.CallRequest
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.removeChar
 import com.kct.iqsdisplayer.util.splitData
@@ -83,7 +83,7 @@ class ScreenInfo private constructor() {
         _systemError.postValue(systemError)
     }
 
-    var winList: ArrayList<WinWait> = ArrayList() // 창구별 ID 창구명 대기인원 리스트
+    var winList: ArrayList<WinInfo> = ArrayList() // 창구별 ID 창구명 대기인원 리스트
     var tellerList: ArrayList<Teller> = ArrayList() // 직원 정보 리스트
 
     var ticketNum: Int = 0 // 발권 번호
@@ -350,7 +350,7 @@ class ScreenInfo private constructor() {
     // [2023.05.17][modify kimhj] VIP실 음성 대응
     //public boolean setcallNum(int errorStatus,int callNum,int ticketWinID,int callWinID,int winWaitNum,int callWinNum,String lastCallNum,int callBkDisplay,int callBkWay,int reserve)
     fun setCallNum(
-        param: CallRequestData
+        param: CallRequest
     ): Boolean {
         try {
             this.errorStatus    = param.errorStatus
@@ -455,7 +455,7 @@ class ScreenInfo private constructor() {
                 empty = tellerData[15]
 
                 // 디스플레이 IP 가 같을 경우
-                if (Const.CommunicationInfo.MY_IP == tellerData[10]) {
+                if (Const.CommunicationInfo.DISPLAY_IP == tellerData[10]) {
                     emptyMsg = empty
                     this.teller = teller
                 }
@@ -544,7 +544,7 @@ class ScreenInfo private constructor() {
             this.tellerList.add(teller)
             empty = tellerData[15]
 
-            if (Const.CommunicationInfo.MY_IP == tellerData[10]) {
+            if (Const.ConnectionInfo.DISPLAY_IP == tellerData[10]) {
                 // 디스플레이 IP가 같을 경우
                 emptyMsg    = empty
                 tellerID    = teller.tellerID
@@ -605,7 +605,7 @@ class ScreenInfo private constructor() {
             Log.d(winIdList.size.toString())
             winIdList.forEachIndexed { i, winId ->
                 try {
-                    val winWait = WinWait(winId.toInt(), winNameList[i], winWaitList[i].toInt())
+                    val winWait = WinInfo(winId.toInt(), winNameList[i], winWaitList[i].toInt())
                     winList.add(winWait)
                     if (winId.toInt() == winID) {
                         updateWaitNum(winWaitList[i].toInt())
@@ -651,8 +651,8 @@ class ScreenInfo private constructor() {
     }
 
     // 화면 설정 정보
-    fun setScreenInfo(param: AcceptAuthResponseData) {
-        val wait = param.settingInfo
+    fun setScreenInfo(param: AcceptAuthResponse) {
+        val wait = param.displaySettingInfo
         val mentNum = param.reserve1
         val isAbsence = param.reserve2// 전산 장애 표시, 부재중데이터로 보임
         //val dontcare = param.reserve3 // 공석 표시, 기존코드에서 사용하지 않고 있었음.
@@ -694,7 +694,7 @@ class ScreenInfo private constructor() {
 
         this.bellInfo = param.bellInfo
         this.callInfo = param.callInfo
-        this.volumeInfo = param.volumeInfo
+        this.volumeInfo = param.volumeLevel
 
         Log.d("Media Info : ${param.mediaInfo}")
 
@@ -728,7 +728,7 @@ class ScreenInfo private constructor() {
         }
 
         // 231130, by HAHU 음성 호출기인 경우 화면 전환 할 필요가 없어서 설정 초기화
-        if (Const.CommunicationInfo.CALLVIEW_MODE == "3") {
+        if (Const.ConnectionInfo.CALLVIEW_MODE == "3") {
             Log.d("Media Info 초기화")
             playVideo = 0
             mainDisplayTime = 30

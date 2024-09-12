@@ -2,7 +2,7 @@ package com.kct.iqsdisplayer.common
 
 import android.content.SharedPreferences
 import android.os.Build
-import java.io.File
+import android.os.Environment
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -10,30 +10,32 @@ import java.util.Locale
 
 object Const {
     object Path {
-
         /**
          * 최초 앱 시작 시 권한이 없을 경우 init되지 않았음에 주의.
          * ExternalStorage 사용 권한을 얻은 후에 경로가 셋팅 됨. 경로는 다음과 같음.
          * 예상경로 : /storage/emulated/0
          * @see android.os.Environment.getExternalStorageDirectory()
          * **/
-        var DIR_ROOT: String = "/storage/emulated/0"
+        //var DIR_ROOT: String = "/storage/emulated/0"
+        val DIR_ROOT: String by lazy {
+            Environment.getExternalStorageDirectory().absolutePath
+        }
 
         /** 예상경로 : /storage/emulated/0/IQS/ */
-        val DIR_IQS = "${DIR_ROOT}/IQS/"
+        val DIR_IQS by lazy { "${DIR_ROOT}/IQS/" }
 
         /** 예상경로 : /storage/emulated/0/IQS/LOG/ */
-        val DIR_LOG = "${DIR_IQS}LOG/"
+        val DIR_LOG by lazy { "${DIR_IQS}LOG/" }
 
         // 이미지, 비디오, 사운드, 패치파일을 저장하는 디렉토리 경로(디바이스)
         /** 예상경로 : /storage/emulated/0/IQS/Image/ */
-        var DIR_IMAGE = "${DIR_IQS}Image/"
+        val DIR_IMAGE by lazy { "${DIR_IQS}Image/" }
         /** 예상경로 : /storage/emulated/0/IQS/Video/ */
-        var DIR_VIDEO = "${DIR_IQS}Video/"
+        val DIR_VIDEO by lazy { "${DIR_IQS}Video/" }
         /** 예상경로 : /storage/emulated/0/IQS/Sound/ */
-        var DIR_SOUND = "${DIR_IQS}Sound/"
+        val DIR_SOUND by lazy { "${DIR_IQS}Sound/" }
         /** 예상경로 : /storage/emulated/0/IQS/Patch/ */
-        val DIR_PATCH = "${DIR_IQS}Patch/"
+        val DIR_PATCH by lazy { "${DIR_IQS}Patch/" }
         /** 경로 : dicontrol/agent/resource/image/ */
         val SUB_PATH_IMAGE = "dicontrol/agent/resource/image/"
         /** 경로 : dicontrol/agent/resource/movie/ */
@@ -45,16 +47,15 @@ object Const {
         /** 경로 : dicontrol/agent/DisplayLog/ */
         val SUB_PATH_LOG: String = "dicontrol/agent/DisplayLog/"
         /** 예상경로 : /storage/emulated/0/IQS/DownLoadSound/ */
-        val DIR_DOWNLOAD_SOUND = "${DIR_IQS}DownLoadSound/"
+        val DIR_DOWNLOAD_SOUND by lazy { "${DIR_IQS}DownLoadSound/"}
         /** 예상경로 : /storage/emulated/0/IQS/DownLoadVideo/ */
-        val DIR_DOWNLOAD_VIDEO = "${DIR_IQS}DownLoadVideo/"
+        val DIR_DOWNLOAD_VIDEO by lazy { "${DIR_IQS}DownLoadVideo/"}
         /** 경로 /sys/class/net/eth0/address */
         val FILE_MAC_ADDRESS = "/sys/class/net/eth0/address"
         // 이미지 비디오 사운드 패치파일을 가지고 있는 디렉토리 경로(IQS)
 
         /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
         lateinit var DIR_SHARED_PREFS: String
-
     }
 
     object Name {
@@ -118,13 +119,13 @@ object Const {
             const val CALL_VIEW = "CallView"
         }
 
-        object DisplayInfo {
+        object DisplayInfo {    //TODO : 안쓰는 것으로 보임
             /** 실제 키값 :  StatusText */
             const val STATUS_TEXT = "StatusText"
         }
     }
 
-    object CommunicationInfo {
+    object ConnectionInfo {
         /** 기본값 1.1.1.100 */
         var IQS_IP: String = "1.1.1.100"
         /** 기본값 8697 */
@@ -144,11 +145,11 @@ object Const {
         var FTP_PW: String = "kcikci"
 
         /** 기본값 null */
-        var MY_IP: String? = null
+        var DISPLAY_IP: String? = null
         /** 기본값 null */
-        var MY_MAC: String? = null
+        var DISPLAY_MAC: String? = null
         /** 기본값 0x02 */
-        var MODE: Int = 0x02
+        var MODE: Int = 0x02 //TODO : 아무데도 안쓰는것으로 보임.
         /** 기본값 10,08,07,1000 */
         var VERSION: String = "10,08,07,1000"
         /** 기본값 10,1,102,64 */
@@ -181,13 +182,8 @@ object Const {
         const val RETRY_SERVICE_MESSAGE = 1001 //서비스 retry 메시지
     }
 
-    enum class FragmentResult {
-        INIT_NONE_PATCH,
-        INIT_PATCH
-    }
-
     enum class PJT(val value: String) {
-        EMPTY("공석"),
+        OUT_DESK("공석"),
         IN_DESK("사용중")
     }
 
@@ -214,17 +210,5 @@ object Const {
     enum class Error(val message: String) {
         NONE(""),
         FAIL_GET_EXTERNAL_STORAGE("외부 저장소 경로(Root)를 가져오는 데 실패했습니다.")
-    }
-
-    @Deprecated("File들을 정리하려고 만들었으나 별로 필요없을 것으로 보임")
-    object File {
-        val logFile: java.io.File
-            get() = File(Path.DIR_LOG, Name.getLogFileName())
-
-        val prefDisplayerSetting
-            get() = File(Path.DIR_SHARED_PREFS, Name.getPrefDisplayerSettingName())
-
-        val prefDisplayInfo
-            get() = File(Path.DIR_SHARED_PREFS, Name.getPrefDisplayInfoName())
     }
 }

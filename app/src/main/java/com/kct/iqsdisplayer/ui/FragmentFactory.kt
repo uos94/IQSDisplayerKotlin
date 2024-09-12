@@ -5,7 +5,6 @@ import android.os.Looper
 import androidx.annotation.IntDef
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
@@ -14,7 +13,7 @@ import com.kct.iqsdisplayer.util.Log
 object FragmentFactory {
     @IntDef(
         Index.NONE,                 //최초실행 아직 Fragment없음
-        Index.FRAGMENT_INIT,        //init
+        Index.FRAGMENT_INIT,        //init, TCP접속과정 및 업데이트 설치를 표시하는 용도 UI
         Index.FRAGMENT_SETTING,     //setting
         Index.FRAGMENT_MAIN,        //메인
         Index.FRAGMENT_BACKUP_CALL, //백업호출
@@ -95,7 +94,7 @@ object FragmentFactory {
     }
 
     /**
-     * Fragment를 변경하면 일정시간 뒤에 다른 Fragment로 변경됨.
+     * Fragment를 변경하면 일정시간 뒤에 자동으로 다른 Fragment로 변경됨.
      */
     fun replaceFragment(@Index targetIndex: Int, hardSetDelayTime: Long = 0) {
 
@@ -135,7 +134,7 @@ object FragmentFactory {
 
             val isAvailableMovie    = screenInfo.adDisplayTime > 0 && screenInfo.adFileList.isNotEmpty()
             val isAvailableCallList = screenInfo.subDisplayTime > 0 && screenInfo.lastCallList.value?.isNotEmpty() == true
-            val isViewModeMain      = Const.CommunicationInfo.CALLVIEW_MODE == "0"
+            val isViewModeMain      = Const.ConnectionInfo.CALLVIEW_MODE == "0"
 
             when(currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면

@@ -1,7 +1,8 @@
+package com.kct.iqsdisplayer.network
+
 import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
-import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
 import java.io.File
 import java.nio.ByteBuffer
@@ -17,9 +18,9 @@ class SendBufferClass {
     // 접속 승인 요청
     fun acceptAuthRequest(): ByteBuffer? {
         val code = ProtocolDefine.ACCEPT_AUTH_REQUEST.value
-        val mode = if (Const.CommunicationInfo.CALLVIEW_MODE == "3") 0x14 else 0x02
-        val ip = Const.CommunicationInfo.MY_IP
-        val mac = Const.CommunicationInfo.MY_MAC
+        val mode = if (Const.ConnectionInfo.CALLVIEW_MODE == "3") 0x14 else 0x02
+        val ip = Const.ConnectionInfo.DISPLAY_IP
+        val mac = Const.ConnectionInfo.DISPLAY_MAC
         val version = BuildConfig.VERSION_NAME
 
         Log.d("ip: $ip, mac: $mac, version: $version")
@@ -144,7 +145,7 @@ class SendBufferClass {
 
     // 비디오 리스트 요청
     fun videoListRequest(): ByteBuffer {
-        val code = ProtocolDefine.VIDEO_LIST_REQUEST.value
+        val code = ProtocolDefine.MEDIA_LIST_REQUEST.value
 
         val videoPath = Const.Path.DIR_VIDEO
         val dirVideo = File(videoPath)

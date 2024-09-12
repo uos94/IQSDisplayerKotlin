@@ -13,7 +13,7 @@ import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.common.Const.CommunicationInfo.loadCommunicationInfo
+import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.databinding.FragmentInitBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.service.IQSComClass
@@ -117,33 +117,6 @@ class FragmentInit : Fragment() {
         }
     }
 
-    /**
-     * SharedPreference 파일이 없을 경우 백업본 카피 복구
-     */
-    private fun restoreSharedPreferencesFiles() {
-        var prefFileName = Const.Name.getPrefDisplayerSettingName()
-        val prefDisplayerSetting = File(Const.Path.DIR_SHARED_PREFS, prefFileName)
-
-        if (!prefDisplayerSetting.exists()) {
-            val sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
-            val destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
-            context?.let { copyFile(it, sourcePath, destPath) }
-        } else {
-            Log.d("설정정보파일 정상[${Const.Name.PREF_DISPLAYER_SETTING}]")
-        }
-
-        prefFileName = Const.Name.getPrefDisplayInfoName()
-        val prefDisplayInfo = File(Const.Path.DIR_SHARED_PREFS, prefFileName)
-
-        if (!prefDisplayInfo.exists()) {
-            val sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
-            val destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
-            context?.let { copyFile(it, sourcePath, destPath) }
-        } else {
-            Log.d("화면정보파일 정상[${Const.Name.PREF_DISPLAY_INFO}]")
-        }
-    }
-
     private fun backupSharedPreferencesFiles() {
         // 설정 정보 파일 백업
         val displayerSettingFile = File(Const.Path.DIR_SHARED_PREFS + Const.Name.getPrefDisplayerSettingName())
@@ -175,12 +148,12 @@ class FragmentInit : Fragment() {
             pref.loadCommunicationInfo()
         }
 
-        Const.CommunicationInfo.MY_IP = getLocalIpAddress()
-        Const.CommunicationInfo.MY_MAC = getMacAddress()
-        Log.d("MY_IP : ${Const.CommunicationInfo.MY_IP} MY_MAC : ${Const.CommunicationInfo.MY_MAC}")
+        Const.ConnectionInfo.DISPLAY_IP = getLocalIpAddress()
+        Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
+        Log.d("DISPLAY_IP : ${Const.ConnectionInfo.DISPLAY_IP} DISPLAY_MAC : ${Const.ConnectionInfo.DISPLAY_MAC}")
 
-        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.CommunicationInfo.IQS_IP)
-        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.CommunicationInfo.IQS_PORT)
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.ConnectionInfo.IQS_IP)
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.ConnectionInfo.IQS_PORT)
     }
 
     private var bFTPSuccess = false

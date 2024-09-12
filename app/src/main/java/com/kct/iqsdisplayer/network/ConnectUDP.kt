@@ -16,7 +16,7 @@ class ConnectUDP : Thread() {
     override fun run() {
         super.run()
         try {
-            udpSocket = DatagramSocket(Const.CommunicationInfo.UDP_PORT)
+            udpSocket = DatagramSocket(Const.ConnectionInfo.UDP_PORT)
 
             val receiveBuf = ByteArray(8192)
             val packet = DatagramPacket(receiveBuf, receiveBuf.size)

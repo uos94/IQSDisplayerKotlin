@@ -8,9 +8,9 @@ package com.kct.iqsdisplayer.network
 enum class ProtocolDefine(val value: Short) {
     // 접속 관련 프로토콜 (Connection)
     /** 0xF0F0, 지능형 순번발행기 접속 시 표시기로 전송되는 패킷. 데이터 없음 (IQS -> 표시기)*/
-    ACCEPT_REQUEST(0xF0F0.toShort()),
+    CONNECT_SUCCESS(0xF0F0.toShort()),
     /** 0xF0F1, 접속거부 응답	등록되지 않은 IP로 접속 또는 승인 요청 시 응답 패킷. 데이터 없음 (IQS -> 표시기) */
-    ACCEPT_REJECT(0xF0F1.toShort()),
+    CONNECT_REJECT(0xF0F1.toShort()),
     /** 0x1001, 표시기 접속 승인 요청 패킷. (표시기 -> IQS) */
     ACCEPT_AUTH_REQUEST(0x1001.toShort()),
     /** 0x1002, 접속승인 요청 패킷에 대한 응답 패킷. (IQS -> 표시기) */
@@ -51,15 +51,15 @@ enum class ProtocolDefine(val value: Short) {
 
     // 직원 정보 관련 프로토콜 (Teller Information)
     /** 0x000D, 직원정보 설정, 관제서버에서 직원 설정시 순번발행기로부터 전송되는 패킷 (IQS -> 표시기) */
-    TELLER(0x000D.toShort()),
+    TELLER_LIST(0x000D.toShort()),
     /** 0x000E, 상세직원정보 (미사용) */
     //INFO_TELLER(0x000E.toShort()),
 
     // 시스템 관련 프로토콜 (System)
     /** 0x000F, 순번발행기 종료시 전송되는 패킷 (IQS -> 표시기) */
     SYSTEM_OFF(0x000F.toShort()),
-    /** 0x0010, 동영상 설정, (관제서버)동영상 설정 변경 되었을 때 순번발행기로부터 수신되는 패킷 */
-    VIDEO_SET(0x0010.toShort()),
+    /** 0x0010, 동영상 설정, (관제서버)동영상 설정 변경 되었을 때 순번발행기로부터 수신되는 패킷 (미사용)*/
+    //VIDEO_SET(0x0010.toShort()),
 
     // 기타 설정 관련 프로토콜 (Other Settings)
     /** 0x0011, 볼륨테스트, 관리자에서 창구표시기 호출볼륨 테스트시 순번발행기로부터 전송되는 패킷 (미사용)*/
@@ -73,7 +73,7 @@ enum class ProtocolDefine(val value: Short) {
     /** 0x0015, 혼잡메세지, 창구 대기인수가 혼잡상태 및 해제 상태 발생시 순번발행기에서 전송하는 패킷*/
     CROWDED_REQUEST(0x0015.toShort()),
     /** 0x0016, 혼잡 응답 (미사용)*/
-    CROWDED_RESPONSE(0x0016.toShort()),
+    //CROWDED_RESPONSE(0x0016.toShort()),
     /** 0x0017, 창구정보 요청 (미사용)*/
     WIN_REQUEST(0x0017.toShort()),
     /** 0x0018, 창구정보 응답, 순번발행기에서 창구정보 변경 시 전송하는 패킷 */
@@ -93,9 +93,9 @@ enum class ProtocolDefine(val value: Short) {
     /** 0x001F, 배경음악정보, 관리자에서 직원별 배경음악 설정시 순번발행기로부터 전송되는 패킷 (미사용)*/
     //BGM_INFO(0x001F.toShort()),
     /** 0x0020, 동영상 리스트 요청 (표시기 -> IQS) */
-    VIDEO_LIST_REQUEST(0x0020.toShort()),
-    /** 0x0021, 동영상 리스트 응답 (IQS -> 표시기) */
-    VIDEO_LIST_RESPONSE(0x0021.toShort()),
+    MEDIA_LIST_REQUEST(0x0020.toShort()),
+    /** 0x0021, 동영상 리스트 응답, 이미지도같이 내려옴 (IQS -> 표시기) */
+    MEDIA_LIST_RESPONSE(0x0021.toShort()),
     /** 0x0022, 호출취소요청, 호출음성 재생중 중단이 필요한 경우 순번발행기에서 전송되는 패킷 (미사용)*/
     //CALL_CANCEL(0x0022.toShort()),
     /** 0x0023, 호출횟수설정, 1회 호출시 음성 출력 횟수를 설정하는 패킷 (미사용)*/
@@ -176,10 +176,12 @@ enum class ProtocolDefine(val value: Short) {
     /** 0x402C, 직원 정보 갱신 요청 */
     TELLER_RENEW_REQUEST(0x402C.toShort()),
     /** 0x402D, 직원 정보 갱신 응답 */
-    TELLER_RENEW_RESPONSE(0x402D.toShort()),
+    TELLER_RENEW_RESPONSE(0x402D.toShort());
+
+    override fun toString(): String {
+        return "ProtocolName:${name}[0x${String.format("%04X", value.toInt())}]"
+    }
 }
-
-
 
 
 /*object ProtocolId {

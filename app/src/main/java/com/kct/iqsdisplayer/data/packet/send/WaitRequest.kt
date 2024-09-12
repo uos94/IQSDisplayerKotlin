@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.data.packet.BaseSendPacket
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
 data class WaitRequest(
-    val winId: Int = ScreenInfo.instance.winID,
+    val winNum: Int = ScreenInfo.instance.winID,
     val code: Short = ProtocolDefine.WAIT_REQUEST.value
 ): BaseSendPacket(code) {
     override fun toString(): String {
@@ -13,7 +13,7 @@ data class WaitRequest(
     }
 
     override fun getDataArray(): Array<Any> {
-        return arrayOf(winId)
+        return arrayOf(winNum)
     }
 }
 

@@ -1,6 +1,9 @@
 package com.kct.iqsdisplayer.data
 
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
+import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
 import com.kct.iqsdisplayer.network.Packet
+import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.splitData
 
@@ -26,8 +29,10 @@ data class Reserve(
     /** 호출 시간 HH:MM:SS */
     var callTime: String = "",      // 16.호출 시간
     var isCancel: Boolean = false,  // 17.취소 여부   // N Y
-    var channelType: Int = 0        // 18.채널 타입(하나원큐,콜센터,네이버)
-) {
+    var channelType: Int = 0,       // 18.채널 타입(하나원큐,콜센터,네이버)
+    override var protocolDefine: ProtocolDefine? = null
+) : BaseReceivePacket() {
+
     override fun toString(): String {
         return "예약 일자 : $reserveDate, 지점 번호 : $branchNum, 예약 번호 : $reserveNum, 예약 시간 : $reserveTime, " +
                 "직원 번호 : $tellerNum, 직원 명 : $tellerName, 업무 명 : $tellerJob, 고객 번호 : $customerNum, " +
@@ -37,13 +42,13 @@ data class Reserve(
     }
 }
 
-private fun Array<String>.newReserve() : Reserve? {
+private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve? {
     // 데이터 추출 및 변환
     if(this.isEmpty()) return null
 
     val size = this.size
 
-    val result = Reserve()
+    val result = Reserve().apply { protocolDefine = protocol }
     if(size > 0) result.reserveDate     = this[0]
     if(size > 1) result.branchNum       = this[1].toIntOrNull() ?: 0
     if(size > 2) result.reserveNum      = this[2].toIntOrNull() ?: 0
@@ -65,7 +70,7 @@ private fun Array<String>.newReserve() : Reserve? {
     return result
 }
 
-fun Packet.toReserveAddRequestData(): Reserve? {
+fun Packet.toReserveAddRequest(): Reserve? {
     val splitData = string.splitData("#")
 
     // 데이터 유효성 검사
@@ -74,10 +79,12 @@ fun Packet.toReserveAddRequestData(): Reserve? {
         return null
     }
 
-    return splitData.newReserve()
+    return splitData.newReserve(ProtocolDefine.RESERVE_ADD_REQUEST)
 }
 
-fun Packet.toReserveUpdateRequestData(): Reserve? {
+fun Packet.toReserveUpdateRequest(): Reserve? {
+    //TODO : 패킷정의서에는 없는 데이터 인데. AS-IS보면 실제로 뭔가 넘어온다. 변수명도 mul 그대로 가져옴.
+    val mul = integer
     val splitData = string.splitData("#")
 
     // 데이터 유효성 검사
@@ -86,10 +93,10 @@ fun Packet.toReserveUpdateRequestData(): Reserve? {
         return null
     }
 
-    return splitData.newReserve()
+    return splitData.newReserve(ProtocolDefine.RESERVE_UPDATE_REQUEST)
 }
 
-fun Packet.toReserveCancelRequestData(): Reserve? {
+fun Packet.toReserveCancelRequest(): Reserve? {
     val splitData = string.splitData("#")
 
     // 데이터 유효성 검사
@@ -98,11 +105,11 @@ fun Packet.toReserveCancelRequestData(): Reserve? {
         return null
     }
 
-    return splitData.newReserve()
+    return splitData.newReserve(ProtocolDefine.RESERVE_CANCEL_REQUEST)
 }
 
 
-fun Packet.toReserveArriveRequestData(): Reserve? {
+fun Packet.toReserveArriveRequest(): Reserve? {
 // 2019-12-12#0000#2019121200009008#14:30:00#CUST0123456789#김고객님#01012345566#3###개인대출상담#1#종합상담창구#14:18:32#Y#00:00:00#N
     val splitData = string.splitData("#")
     // 데이터 유효성 검사
@@ -111,5 +118,20 @@ fun Packet.toReserveArriveRequestData(): Reserve? {
         return null
     }
 
-    return splitData.newReserve()
+    return splitData.newReserve(ProtocolDefine.RESERVE_ARRIVE_REQUEST)
+}
+
+fun Packet.toReserveListResponse(): ReserveListResponse {
+    val resultList = ArrayList<Reserve>()
+    val reserveSplitData = string.splitData("&")
+    for (reserveData in reserveSplitData) {
+        val splitData = string.splitData("#")
+        val reserve = splitData.newReserve(ProtocolDefine.RESERVE_LIST_RESPONSE) //ProtocolDefine 안해도 상관 없음.
+        reserve?.let { resultList.add(it) }
+    }
+
+    return ReserveListResponse(
+        reserveList = resultList,
+        protocolDefine = ProtocolDefine.RESERVE_LIST_RESPONSE
+    )
 }

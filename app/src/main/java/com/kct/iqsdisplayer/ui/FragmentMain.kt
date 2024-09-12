@@ -15,9 +15,7 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.kct.iqsdisplayer.R
@@ -25,7 +23,6 @@ import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentMainBinding
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.setPreference
 
 class FragmentMain : Fragment() {
 
@@ -165,7 +162,7 @@ class FragmentMain : Fragment() {
     //this.text = getString(R.string.format_four_digit).format(Locale.getDefault(), callNumber)
     private fun ImageView.setTellerImage() {
         val tellerImageFileName = ScreenInfo.instance.imgName
-        val serverIp = Const.CommunicationInfo.IQS_IP
+        val serverIp = Const.ConnectionInfo.IQS_IP
 
         Glide.with(requireContext())
             .load("http://$serverIp/image/staff/$tellerImageFileName")

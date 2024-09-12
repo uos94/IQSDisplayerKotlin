@@ -13,15 +13,19 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kct.iqsdisplayer.common.Const
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStreamReader
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.SocketException
+import java.nio.ByteBuffer
 
 fun AppCompatActivity.setFullScreen() {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -70,7 +74,86 @@ fun makeDir(path: String): File? {
     return dir
 }
 
-fun copyFile(context: Context, sourcePath: String, destPath: String) {
+fun deleteFile(filePath: String): Boolean {
+    val fileToDelete = File(filePath)
+
+    return if (fileToDelete.exists() && fileToDelete.isFile && fileToDelete.canWrite()) {
+        fileToDelete.delete()
+    } else {
+        // 삭제 불가능한 경우 false 반환
+        false
+    }
+}
+
+fun copyFile(sourcePath: String, destPath: String): Boolean {
+    try {
+        val sourceFile = File(sourcePath)
+        val destFile = File(destPath)
+
+        val destDir = destFile.parentFile
+        if (destDir != null && !destDir.exists()) {
+            destDir.mkdirs()
+        }
+
+        var copiedSize: Long = 0
+
+        FileInputStream(sourceFile).channel.use { inputChannel ->
+            FileOutputStream(destFile).channel.use { outputChannel ->
+                val bufferSize = 8192 // 8KB 버퍼 사용
+                val buffer = ByteBuffer.allocateDirect(bufferSize)
+
+                while (inputChannel.read(buffer) != -1) {
+                    buffer.flip()
+                    outputChannel.write(buffer)
+                    buffer.clear()
+
+                    copiedSize += bufferSize
+                }
+            }
+        }
+        return true // 파일 복사 성공
+    } catch (e: IOException) {
+        e.printStackTrace()
+        return false // 파일 복사 실패
+    }
+}
+
+suspend fun copyFileCoroutine(sourcePath: String, destPath: String): Boolean {
+    return CoroutineScope(Dispatchers.IO).async {
+        try {
+            val sourceFile = File(sourcePath)
+            val destFile = File(destPath)
+
+            val destDir = destFile.parentFile
+            if (destDir != null && !destDir.exists()) {
+                destDir.mkdirs()
+            }
+
+            var copiedSize: Long = 0
+
+            FileInputStream(sourceFile).channel.use { inputChannel ->
+                FileOutputStream(destFile).channel.use { outputChannel ->
+                    val bufferSize = 8192
+                    val buffer = ByteBuffer.allocateDirect(bufferSize)
+
+                    while (inputChannel.read(buffer) != -1) {
+                        buffer.flip()
+                        outputChannel.write(buffer)
+                        buffer.clear()
+
+                        copiedSize += bufferSize
+                    }
+                }
+            }
+            true
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false
+        }
+    }.await()
+}
+
+fun copyFilePopup(context: Context, sourcePath: String, destPath: String) {
     val builder = AlertDialog.Builder(context)
     builder.setTitle("파일 복사 중")
     val progressBar = ProgressBar(context)
@@ -121,7 +204,7 @@ fun saveFile(fileName: String, directory: String, data: ByteArray) {
     if (!dir.exists()) dir.mkdirs()
 
     val file = File(directory, fileName)
-    FileOutputStream(file).use { fos ->
+    FileOutputStream(file, true).use { fos ->
         fos.write(data)
     }
 }
@@ -207,6 +290,15 @@ fun getMacAddress2(): String {
     }
 }
 
+fun rebootIQSDisplayer() {
+    val pb = ProcessBuilder("su", "-c", "/system/bin/reboot")
+    try {
+        val process = pb.start()
+        process.waitFor()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
 
 fun String.removeChar(replacement: String) = this.replace(replacement, "")
 
@@ -216,4 +308,76 @@ fun String.splitData(delimiter: String): Array<String> {
     } else {
         this.split(delimiter.toRegex()).toTypedArray()
     }
+}
+
+fun <T> String?.splitToArrayList(delimiter: String, transform: (String) -> T): ArrayList<T> {
+    if (this.isNullOrEmpty()) return arrayListOf()
+
+    val splitList = this.split(delimiter)
+    val resultList = ArrayList<T>()
+
+    for (item in splitList) {
+        resultList.add(transform(item)) // 변환 함수 적용 후 결과 리스트에 추가
+    }
+
+    return resultList
+}
+
+//TODO : 나중에 시간되면 명령어 날리고 반환값 확인하는 class로 따로 빼야함.
+// 업체 패치 파일 업데이트 함수 AS-IS코드 적용
+fun installSilent(packageName: String, fileName: String): Int {
+    Log.d("Start Patch File install..File Name : $fileName")
+
+    val filePath = Const.Path.DIR_PATCH + fileName
+    val file = File(filePath)
+    if (fileName.isEmpty() || file.length() <= 0 || !file.exists() || !file.isFile) {
+        Log.d("Not exist File")
+        return 1
+    }
+
+    val args = arrayOf("pm", "install", "-i", packageName, filePath)
+
+    val processBuilder = ProcessBuilder(*args) // *args를 사용하여 배열을 펼쳐서 전달
+    var process: Process? = null
+    var successResult: BufferedReader? = null
+    var errorResult: BufferedReader? = null
+    val successMsg = StringBuilder()
+    val errorMsg = StringBuilder()
+    var result: Int
+
+    try {
+        process = processBuilder.start()
+        successResult = BufferedReader(InputStreamReader(process.inputStream))
+        errorResult = BufferedReader(InputStreamReader(process.errorStream))
+        var s: String?
+
+        while (successResult.readLine().also { s = it } != null) {
+            successMsg.append(s)
+        }
+
+        while (errorResult.readLine().also { s = it } != null) {
+            errorMsg.append(s)
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+        Log.d("Fail Process IOException")
+        result = 2
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Log.d("Fail Process Exception")
+        result = 2
+    } finally {
+        successResult?.close()
+        errorResult?.close()
+        process?.destroy()
+    }
+
+    result = if (successMsg.toString().contains("Success") || successMsg.toString().contains("success")) {
+        0
+    } else {
+        2
+    }
+    Log.d("successMsg: $successMsg, ErrorMsg: $errorMsg")
+
+    return result
 }

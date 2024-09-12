@@ -1,19 +1,22 @@
 package com.kct.iqsdisplayer.data.packet.receive
 
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
+import com.kct.iqsdisplayer.network.ProtocolDefine
 
 // ProtocolDefine.INFO_MESSAGE_REQUEST 데이터 클래스
-data class InfoMessageRequestData(
+data class InfoMessageRequest(
     val infoMessageWinNum: Int,// 창구 번호
     val infoMessage: String // 안내 메시지
-) {
+    , override var protocolDefine: ProtocolDefine? = ProtocolDefine.INFO_MESSAGE_REQUEST
+) : BaseReceivePacket() {
     override fun toString(): String {
-        return "InfoMessageRequestData(infoMessageWinNum=$infoMessageWinNum, infoMessage='$infoMessage')"
+        return "InfoMessageRequest(infoMessageWinNum=$infoMessageWinNum, infoMessage='$infoMessage')"
     }
 }
 
-fun Packet.toInfoMessageRequestData(): InfoMessageRequestData {
-    return InfoMessageRequestData(
+fun Packet.toInfoMessageRequest(): InfoMessageRequest {
+    return InfoMessageRequest(
         infoMessageWinNum = integer,
         infoMessage = string
     )

@@ -1,23 +1,68 @@
 package com.kct.iqsdisplayer.data.packet.receive
 
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
+import com.kct.iqsdisplayer.network.ProtocolDefine
 
+/**
+ * updateType이 1일때는 fileSize와 fileName이 온다.
+ * updateType이 1일때는 fileSize와 fileName이 없다.
+ */
 data class UpdateInfoResponse(
     var updateType: Int = 0,
     var updateSize: Int = 0,
-    var updateFileName: String = ""
-){
+    var updateFileName: String = "",
+    var dataArray: ByteArray? = null
+    , override var protocolDefine: ProtocolDefine? = ProtocolDefine.UPDATE_INFO_RESPONSE
+) : BaseReceivePacket() {
     override fun toString(): String {
         return "UpdateInfoResponse(updateType=$updateType, updateSize=$updateSize, updateFileName='$updateFileName')"
     }
+
+    /** 사용할일은 없음 */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UpdateInfoResponse
+
+        if (updateType != other.updateType) return false
+        if (updateSize != other.updateSize) return false
+        if (updateFileName != other.updateFileName) return false
+        if (dataArray != null) {
+            if (other.dataArray == null) return false
+            if (!dataArray.contentEquals(other.dataArray)) return false
+        } else if (other.dataArray != null) return false
+        if (protocolDefine != other.protocolDefine) return false
+
+        return true
+    }
+    /** 사용할일은 없음 */
+    override fun hashCode(): Int {
+        var result = updateType
+        result = 31 * result + updateSize
+        result = 31 * result + updateFileName.hashCode()
+        result = 31 * result + (dataArray?.contentHashCode() ?: 0)
+        result = 31 * result + (protocolDefine?.hashCode() ?: 0)
+        return result
+    }
 }
 
-fun Packet.toUpdateInfoResponseData(): UpdateInfoResponse {
+fun Packet.toUpdateInfoResponse(): UpdateInfoResponse {
     val updateType = integer
-    val updateSize = integer
-    val updateFileName = string
-    return UpdateInfoResponse(updateType, updateSize, updateFileName)
+    val result = UpdateInfoResponse()
+    if(updateType == 1) {
+        result.updateType = updateType
+        result.updateSize = integer
+        result.updateFileName = string
+    }
+    else {
+        result.updateType = updateType
+        result.dataArray = ByteArray(getData().remaining()) { getData().get() }
+    }
+    return result
 }
+
 
 /**
  * 아래 주석은 참고용 (기존 코드 주석 )

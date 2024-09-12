@@ -1,7 +1,9 @@
 package com.kct.iqsdisplayer.data
 
 import com.kct.iqsdisplayer.common.Const.Arrow
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
+import com.kct.iqsdisplayer.network.ProtocolDefine
 
 data class Call(
     /** 해당 표시기 장애 여부 BOOL (4) */
@@ -30,14 +32,15 @@ data class Call(
     val ticketType: Int = 0,
     /** VIP실 여부 */
     val flagVip: Int = 0  //아직 value가 어떻게 오는지 몰라 대기중
-) {
+    , override var protocolDefine: ProtocolDefine? = null
+) : BaseReceivePacket() {
     override fun toString(): String {
         return "Call(isError=$isError, callNum=$callNum, ticketWinID=$ticketWinID, callWinID=$callWinID, winWaitNum=$winWaitNum, callWinNum=$callWinNum, lastCallList=$lastCallList, bkDisplayNum=$bkDisplayNum, bkWay=$bkWay, ticketType=$ticketType, flagVip=$flagVip)"
     }
 }
 
 // Packet 클래스 확장 함수
-fun Packet.toCallRequestData(): Call {
+fun Packet.toCallRequest(): Call {
     return Call(
         isError = integer == 1,
         callNum = integer,
@@ -49,10 +52,11 @@ fun Packet.toCallRequestData(): Call {
         bkDisplayNum = integer,
         bkWay = integer.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT,
         ticketType = integer,
-        flagVip = integer
+        flagVip = integer,
+        protocolDefine = ProtocolDefine.CALL_REQUEST
     )
 }
-
+/*
 fun Packet.toCallCancelData(): Call {
     return Call(
         isError = integer == 1,
@@ -63,6 +67,7 @@ fun Packet.toCallCancelData(): Call {
         callWinNum = integer,
         lastCallList = string.toLastCallList(),
         bkDisplayNum = integer,
-        bkWay = integer.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT
+        bkWay = integer.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT,
+        protocolDefine = ProtocolDefine.CALL_CANCEL
     )
-}
+}*/

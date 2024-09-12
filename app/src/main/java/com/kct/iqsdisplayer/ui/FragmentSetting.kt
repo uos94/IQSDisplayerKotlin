@@ -72,11 +72,11 @@ class FragmentSetting : Fragment() {
                     "사운드파일위치"      -> Const.Path.DIR_SOUND = newValue
                     "홍보영상파일위치"    -> Const.Path.DIR_VIDEO = newValue
                     "이미지파일위치"      -> Const.Path.DIR_IMAGE = newValue
-                    "발행기IP"          -> Const.CommunicationInfo.IQS_IP = newValue
-                    "발행기PORT"        -> Const.CommunicationInfo.IQS_PORT = newValue.toIntOrNull() ?: 8697
+                    "발행기IP"          -> Const.ConnectionInfo.IQS_IP = newValue
+                    "발행기PORT"        -> Const.ConnectionInfo.IQS_PORT = newValue.toIntOrNull() ?: 8697
                     "백업서버IP"        -> { /* 사용 안 함 */ }
                     "백업서버PORT"      -> { /* 사용 안 함 */ }
-                    "호출화면"          -> Const.CommunicationInfo.CALLVIEW_MODE = newValue
+                    "호출화면"          -> Const.ConnectionInfo.CALLVIEW_MODE = newValue
                 }
 
                 Log.i("${item.mainText} : $newValue 저장")

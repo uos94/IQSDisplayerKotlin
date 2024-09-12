@@ -9,30 +9,24 @@ import android.os.IBinder
 import android.os.ResultReceiver
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
-import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponseData
-import com.kct.iqsdisplayer.data.packet.receive.toCallRequestData
-import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequestData
-import com.kct.iqsdisplayer.data.packet.receive.toEmptyRequestData
-import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequestData
-import com.kct.iqsdisplayer.data.packet.receive.toReserveListResponseData
-import com.kct.iqsdisplayer.data.packet.receive.toRestartRequestData
-import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponse
+import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequest
+import com.kct.iqsdisplayer.data.packet.receive.toEmptyRequest
+import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequest
+import com.kct.iqsdisplayer.data.packet.receive.toReserveListResponse
+import com.kct.iqsdisplayer.data.packet.receive.toRestartRequest
+import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewRequest
 import com.kct.iqsdisplayer.data.packet.receive.toWaitResponse
-import com.kct.iqsdisplayer.data.packet.receive.toWinResponseData
-import com.kct.iqsdisplayer.data.toCallRequestData
+import com.kct.iqsdisplayer.data.packet.receive.toWinResponse
+import com.kct.iqsdisplayer.data.toCallRequest
 import com.kct.iqsdisplayer.data.toTellerData
 import com.kct.iqsdisplayer.network.ConnectFTP
 import com.kct.iqsdisplayer.network.Packet
-import com.kct.iqsdisplayer.network.PacketAnalyzer
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
-import java.net.Socket
-import java.net.SocketException
-import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.text.SimpleDateFormat
@@ -50,12 +44,6 @@ class IQSComClass : Service() {
 
     private var connectTcp: ConnectTcp? = null // TCP 통신 Thread
     private var connectFTP: ConnectFTP? = null // FTP 통신 및 이벤트 처리 클래스
-
-    lateinit var tcpSocket: Socket
-    lateinit var tcpReceiver: TcpReceiver
-
-    /** KeepAlive용 카운트 10이 되면 send */
-    private var timerKeepAlive = 0
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -85,194 +73,7 @@ class IQSComClass : Service() {
         return START_NOT_STICKY
     }
 
-    private fun initNetwork() {
-        connectTcp = ConnectTcp().apply { start() }
-    }
-
-    /**
-     * 순번발행기와 TCP 연결
-     * TimeOut 20초, IP와 Port 번호는 CommunicationInfo 에서 받아옴,
-     * 연결 성공후 TCP Receive 하는 Thread를 생성
-     * Timeout,SocketException, IOException 발생 시 서비스 클래스를 실행 한 액티비티에 전달
-     */
-    inner class ConnectTcp : Thread() {
-        init {
-            Log.d("ConnectTcp: Initializing connection to ${Const.CommunicationInfo.IQS_IP}:${Const.CommunicationInfo.IQS_PORT}")
-        }
-
-        override fun run() {
-            super.run()
-            var exceptionMessage: String? = null
-            try {
-                tcpSocket = Socket(Const.CommunicationInfo.IQS_IP, Const.CommunicationInfo.IQS_PORT).apply { setSoTimeout(20000) }
-                tcpReceiver = TcpReceiver().apply { start() }
-                Log.d("ConnectTcp STARTED...TcpReceiver START")
-            } catch (e: SocketException) {
-                exceptionMessage = "ConnectTcp : SocketException (${e.message})"
-            } catch (e: SocketTimeoutException) {
-                exceptionMessage = "ConnectTcp : SocketTimeoutException (${e.message})"
-            } catch (e: IOException) {
-                exceptionMessage = "ConnectTcp : IOException (${e.message})"
-            } catch (e: Exception) {
-                exceptionMessage = "ConnectTcp : Exception (${e.message})"
-            } finally {
-                exceptionMessage?.let {
-                    Log.e(it)
-                    stopSelf()
-                }
-            }
-        }
-    }
-
-    /**
-     * 순번발행기 TCP 데이터 수신
-     * TCP 통신으로 받아들이는 정보는 byte형으로 받음
-     * 통신 최대 사이즈는 8192byte
-     * SocketException, Timeout, 일 경우 ComResultReceiver을 통해 실행한 액티비티에 전달
-     */
-    inner class TcpReceiver : Thread() {
-
-        private var isRun = true
-
-        override fun run() {
-            var exceptionMessage: String? = null
-            Log.d("TcpReceiver STARTED...isRun : $isRun")
-            while (isRun) {
-
-                //val readDataArr = ByteArray(4)
-
-                try {
-                    val packetAnalyzer = PacketAnalyzer(tcpSocket.getInputStream())
-                    val protocolDefine = packetAnalyzer.getProtocolId()
-                    val receivedData   = packetAnalyzer.getData()
-
-//                    var nHeadRead = 0
-//                    var nToHeadRead = 4
-//                    var nOffset = 0
-//
-//                    while (nToHeadRead > 0) {
-//                        nHeadRead = tcpSocket.getInputStream().read(readDataArr, nOffset, nToHeadRead)
-//                        if (nHeadRead == -1) {
-//                            Log.d("Head Read End Of Stream")
-//                            break
-//                        }
-//                        nToHeadRead -= nHeadRead
-//                        nOffset += nHeadRead
-//                        if (nToHeadRead > 0) {
-//                            Log.d("Head Not Read Complete")
-//                        }
-//                    }
-//
-//                    val nBodySize = ((readDataArr[1].toInt() and 0xff) shl 8) or (readDataArr[0].toInt() and 0xff)
-//                    val nId = ((readDataArr[3].toInt() and 0xff) shl 8) or (readDataArr[2].toInt() and 0xff)
-//
-//                    if (nId == 0x00) {
-//                        Log.d("ID is null")
-//                        isRun = false
-//                        break // while 루프 종료
-//                    }
-//
-//                    val bodyData = ByteArray(nBodySize)
-//                    var nBodyRead = 0
-//                    var nToBodyRead = nBodySize
-//                    var nBodyOffset = 0
-//
-//                    while (nToBodyRead > 0) {
-//                        nBodyRead = tcpSocket.getInputStream().read(bodyData, nBodyOffset, nToBodyRead)
-//                        if (nBodyRead == -1) {
-//                            Log.d("Body Read End")
-//                            break
-//                        }
-//                        nToBodyRead -= nBodyRead
-//                        nBodyOffset += nBodyRead
-//                        if (nToBodyRead > 0) {
-//                            Log.d("Body Not Read Complete")
-//                        }
-//                    }
-//
-//                    val realRecv = ByteArray(4 + nBodySize)
-//                    arraycopy(readDataArr, 0, realRecv, 0, 4)
-//                    arraycopy(bodyData, 0, realRecv, 4, nBodySize)
-//
-//                    analysisID(realRecv)
-
-                    timerKeepAlive = 0
-                } catch (e: SocketException) {
-                    exceptionMessage = "TcpReceiver : SocketException (${e.message})"
-                } catch (e: SocketTimeoutException) {
-                    exceptionMessage = "TcpReceiver : SocketTimeoutException (${e.message})"
-                } catch (e: IOException) {
-                    exceptionMessage = "TcpReceiver : IOException (${e.message})"
-                } finally {
-                    exceptionMessage?.let {
-                        Log.e(it)
-                        isRun = false // 쓰레드 종료
-                        stopSelf()
-                        exceptionMessage = null
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * 앱에서 순번발행기로 TCP 데이터 전송
-     * 전달 파라미터는 byte형으로 ByteBuffer에 담아서 전송
-     */
-    inner class SendProtocol(private val sendByteBuffer: ByteBuffer) : Thread() {
-
-        override fun run() {
-            try {
-                tcpSocket.getOutputStream().let { outStream ->
-                    outStream.write(sendByteBuffer.array())
-                    outStream.flush()
-                }
-                timerKeepAlive = 0
-                // Log.d(Tag,"Send Message to TCP Server ");
-            } catch (e: java.lang.Exception) {
-                Log.d("SendProtocol : Exception (" + e.message + ")")
-            }
-        }
-    }
-
-    /**
-     * 순번발행기와 10초간 송수신이 없을경우 KEEPALIVE를 순번발행기로 전달
-     * 전달 파라미터는 byte형으로 ByteBuffer에 담아서 전송
-     */
-    inner class SendKEEPALIVE : Thread() {
-        override fun run() {
-            while (true) {
-                if (timerKeepAlive >= 10) {
-                    try {
-                        val sendBuffer = SendBufferClass()
-                        val sendByteBuffer = sendBuffer.keepAlive()
-
-                        tcpSocket.getOutputStream().let { outStream ->
-                            outStream.write(sendByteBuffer.array())
-                            outStream.flush()
-                        }
-                    } catch (e: java.lang.Exception) {
-                        Log.d("SendKEEPALIVE : Exception (${e.message})")
-                        stopSelf()
-                        break
-                    }
-                    timerKeepAlive = 0
-                } else {
-                    try {
-                        timerKeepAlive += 1
-                        sleep(1000)
-                    } catch (e: InterruptedException) {
-                        Log.d("SendKEEPALIVE : InterruptedException (${e.message})")
-                        stopSelf()
-                        break
-                    }
-                }
-            }
-        }
-    }
-
-    /**
+     /**
      * 순번발행기에 접속하여 FTP를 통해 다운로드 받는 클래스
      * 순번발행기 경로내 이미지, 패치파일, 사운드, 홍보영상 다운로드
      * 최초 접속시 이미지, 패치파일, 사운드, 홍보영상은 모두 다운로드 받으며,
@@ -292,13 +93,13 @@ class IQSComClass : Service() {
         private var appVer: Int = 0
 
         init {
-            Log.i("FTP IP : ${Const.CommunicationInfo.IQS_IP} FTP PORT : ${Const.CommunicationInfo.FTP_PORT}")
+            Log.i("FTP IP : ${Const.ConnectionInfo.IQS_IP} FTP PORT : ${Const.ConnectionInfo.FTP_PORT}")
             connectFTP = ConnectFTP()
             status = connectFTP?.ftpConnect(
-                Const.CommunicationInfo.IQS_IP,
-                Const.CommunicationInfo.FTP_ID,
-                Const.CommunicationInfo.FTP_PW,
-                Const.CommunicationInfo.FTP_PORT
+                Const.ConnectionInfo.IQS_IP,
+                Const.ConnectionInfo.FTP_ID,
+                Const.ConnectionInfo.FTP_PW,
+                Const.ConnectionInfo.FTP_PORT
             ) ?: false
         }
 
@@ -552,9 +353,9 @@ class IQSComClass : Service() {
             ProtocolDefine.KEEP_ALIVE_REQUEST.value -> null                                 // KEEPALIVE 요청
             //ProtocolDefine.INSTALL_INFO.value       -> null                                 // 설치 정보 패킷
             //ProtocolDefine.SUB_SCREEN_REQUEST.value -> null                                 // 보조 표시정보 요청
-            ProtocolDefine.VIDEO_LIST_REQUEST.value -> SendBufferClass().videoListRequest() // 동영상 리스트 요청
+            ProtocolDefine.MEDIA_LIST_REQUEST.value -> SendBufferClass().videoListRequest() // 동영상 리스트 요청
             ProtocolDefine.VIDEO_DOWNLOAD_REQUEST.value -> SendBufferClass().videoDownLoadRequest() // 231211, by HAHU  광고파일 요청
-            ProtocolDefine.ACCEPT_REQUEST.value -> {
+            ProtocolDefine.CONNECT_SUCCESS.value -> {
                 val acceptAuthRequest = SendBufferClass().acceptAuthRequest()
                 if (acceptAuthRequest != null) {
                     acceptAuthRequest
@@ -591,25 +392,25 @@ class IQSComClass : Service() {
         Log.d("IQS Response $protocolName") // 실제 protocolName 출력
 
         when (protocolID) {
-            ProtocolDefine.ACCEPT_REQUEST.value -> {
+            ProtocolDefine.CONNECT_SUCCESS.value -> {
                 // 접속 성공 응답
-                requestIQS(ProtocolDefine.ACCEPT_REQUEST.value)
+                requestIQS(ProtocolDefine.CONNECT_SUCCESS.value)
                 SendKEEPALIVE().start()
             }
             // 접속 거부 응답
-            ProtocolDefine.ACCEPT_REJECT.value -> {}
+            ProtocolDefine.CONNECT_REJECT.value -> {}
             // 접속 승인 응답
             ProtocolDefine.ACCEPT_AUTH_REQUEST.value -> {
                 Log.d("IQS Response AcceptAuthRequest data : ${packet.string}")
             }
 
             ProtocolDefine.ACCEPT_AUTH_RESPONSE.value -> {
-                val data = packet.toAcceptAuthResponseData()
+                val data = packet.toAcceptAuthResponse()
 
                 ScreenInfo.instance.setTellerInfo(data.tellerInfo)
                 Log.d("SetTellerInfo")
 
-                ScreenInfo.instance.setWinList(data.winIdList, data.winNameList, data.waitList)
+                ScreenInfo.instance.setWinList(data.winNumList, data.winNameList, data.waitingNumList)
                 Log.d("SetWinList")
 
                 ScreenInfo.instance.setScreenInfo(data)
@@ -645,12 +446,12 @@ class IQSComClass : Service() {
                     ProtocolDefine.RE_CALL_REQUEST.value
                 }
 
-                val data = packet.toCallRequestData()
+                val data = packet.toCallRequest()
 
                 var result = false
                 Log.d("IQS Response $data")
 
-                if (Const.CommunicationInfo.CALLVIEW_MODE == "2" || Const.CommunicationInfo.CALLVIEW_MODE == "3") { // 보조 순번
+                if (Const.ConnectionInfo.CALLVIEW_MODE == "2" || Const.ConnectionInfo.CALLVIEW_MODE == "3") { // 보조 순번
                     result = ScreenInfo.instance.setCallNum(data)
                     if (result) {
                         bundleData.putString("Display", "Main")
@@ -696,7 +497,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.EMPTY_REQUEST.value -> {
                 // 부재 정보 요청
-                val data = packet.toEmptyRequestData()
+                val data = packet.toEmptyRequest()
 
                 if (data.winNum == ScreenInfo.instance.winNum) {
                     ScreenInfo.instance.setEmpty(data.emptyFlag, data.emptyMsg)
@@ -709,7 +510,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.INFO_MESSAGE_REQUEST.value -> {
                 // 안내 메시지 설정 요청
-                val data = packet.toInfoMessageRequestData()
+                val data = packet.toInfoMessageRequest()
 
                 if (data.infoMessageWinNum == ScreenInfo.instance.winNum) {
                     Log.d("infoMessage : $data")
@@ -720,14 +521,14 @@ class IQSComClass : Service() {
                 }
             }
 
-            ProtocolDefine.TELLER.value -> {
+            ProtocolDefine.TELLER_LIST.value -> {
                 // 직원 정보
 
                 val data = packet.string          // 직원 설정 정보 리스트
                 Log.d("IQS Response Teller Data  : $data")
                 val tellerList = packet.toTellerData()
                 ScreenInfo.instance.setTellerList(tellerList)
-                commResultReceiver?.send(ProtocolDefine.TELLER.value.toInt(), bundleData)
+                commResultReceiver?.send(ProtocolDefine.TELLER_LIST.value.toInt(), bundleData)
             }
 
             // 시스템 종료 패킷
@@ -780,10 +581,10 @@ class IQSComClass : Service() {
 
             // 재시작 요청
             ProtocolDefine.RESTART_REQUEST.value -> {
-                val data = packet.toRestartRequestData()
+                val data = packet.toRestartRequest()
 
                 if (data.restartWinNum == ScreenInfo.instance.winNum) {
-                    Const.CommunicationInfo.MODE = data.mode
+                    Const.ConnectionInfo.MODE = data.mode
                     Log.d("IQS Response $data")
                     commResultReceiver?.send(ProtocolDefine.RESTART_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -793,7 +594,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.CROWDED_REQUEST.value -> {
                 // 혼잡 요청
-                val data = packet.toCrowdedRequestData()
+                val data = packet.toCrowdedRequest()
 
                 if (data.crowdedWinID == ScreenInfo.instance.winID) {
                     ScreenInfo.instance.setCrowed(data.isCrowded, data.crowdedMsg)
@@ -806,7 +607,7 @@ class IQSComClass : Service() {
 
             ProtocolDefine.WIN_RESPONSE.value -> {
                 // 창구 응답
-                val data = packet.toWinResponseData()
+                val data = packet.toWinResponse()
 
                 ScreenInfo.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
                 Log.d("IQS Response $data")
@@ -829,7 +630,7 @@ class IQSComClass : Service() {
 //            }
 
             // 동영상 리스트 응답
-            ProtocolDefine.VIDEO_LIST_RESPONSE.value -> {
+            ProtocolDefine.MEDIA_LIST_RESPONSE.value -> {
                 val videoList = packet.string                      // 동영상 리스트
                 Log.d("IQS Response VideoListResponse Data : $videoList")
 
@@ -906,7 +707,7 @@ class IQSComClass : Service() {
 
             // 예약 리스트 응답
             ProtocolDefine.RESERVE_LIST_RESPONSE.value -> {
-                val data = packet.toReserveListResponseData()
+                val data = packet.toReserveListResponse()
                 ScreenInfo.instance.setReserveList(data.mul, data.reserveListStr)
                 Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.RESERVE_LIST_RESPONSE.value.toInt(), bundleData)
@@ -921,8 +722,8 @@ class IQSComClass : Service() {
                 // ftp로 다운로드가 처리되던 것을 tcp로 방법을 변경
                 // DownLoadFile()를 RequestIQS(protocolDefine.ReservUpdateInfoRequest)로 대체하여 처리
                 // 231130, by HAHU  광고 업데이트 후 앱 업데이트. 표시기일 때만 받아 감. 음성 호출이나 보조 순번은 광고 필요 없음
-                if (Const.CommunicationInfo.CALLVIEW_MODE == "0") {
-                    requestIQS(ProtocolDefine.VIDEO_LIST_REQUEST.value)
+                if (Const.ConnectionInfo.CALLVIEW_MODE == "0") {
+                    requestIQS(ProtocolDefine.MEDIA_LIST_REQUEST.value)
                 } else {
                     requestIQS(ProtocolDefine.UPDATE_INFO_REQUEST.value)
                 }
@@ -966,7 +767,7 @@ class IQSComClass : Service() {
                 val reserveCall = packet.string
                 nReserveCall = ScreenInfo.instance.setCallReserve(reserveCall)
 
-                if (nReserveCall == ScreenInfo.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
+                if (nReserveCall == ScreenInfo.instance.winNum || Const.ConnectionInfo.CALLVIEW_MODE == "3") {
                     Log.d("IQS Response ReservCallRequest Data : $reserveCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -981,7 +782,7 @@ class IQSComClass : Service() {
                 var nReserveReCall = 0
                 nReserveReCall = ScreenInfo.instance.setCallReserve(reserveReCall)
 
-                if (nReserveReCall == ScreenInfo.instance.winNum || Const.CommunicationInfo.CALLVIEW_MODE == "3") {
+                if (nReserveReCall == ScreenInfo.instance.winNum || Const.ConnectionInfo.CALLVIEW_MODE == "3") {
                     Log.d("IQS Response ReservReCallRequest Data : $reserveReCall")
                     commResultReceiver?.send(ProtocolDefine.RESERVE_RE_CALL_REQUEST.value.toInt(), bundleData)
                 } else {
@@ -991,7 +792,7 @@ class IQSComClass : Service() {
 
             // 직원 정보 갱신
             ProtocolDefine.TELLER_RENEW_REQUEST.value -> {
-                val data = packet.toTellerRenewRequestData()
+                val data = packet.toTellerRenewRequest()
 
                 if (data.renewWinNum == ScreenInfo.instance.winNum) {
                     Log.d("IQS Response $data")

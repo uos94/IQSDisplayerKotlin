@@ -48,7 +48,7 @@ class FragmentSubScreen : Fragment() {
         }
 
         // dyyoon 하나은행, 사운드 디스플레이일 경우 대기명 보이지 않음
-        binding.tvWaitNum.visibility = if(Const.CommunicationInfo.CALLVIEW_MODE == "3") TextView.INVISIBLE else TextView.VISIBLE
+        binding.tvWaitNum.visibility = if(Const.ConnectionInfo.CALLVIEW_MODE == "3") TextView.INVISIBLE else TextView.VISIBLE
         ScreenInfo.instance.waitNum.observe(viewLifecycleOwner) {
             binding.tvWaitNum.text  = getString(R.string.format_wait_num).format(it)
         }

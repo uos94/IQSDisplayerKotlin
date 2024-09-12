@@ -15,7 +15,7 @@ data class AcceptAuthRequest(
     val ip: String,
     val mac: String,
     val version: String = BuildConfig.VERSION_NAME,
-    val mode: Int = if (Const.CommunicationInfo.CALLVIEW_MODE == "3") 0x14 else 0x02,
+    val mode: Int = if (Const.ConnectionInfo.CALLVIEW_MODE == "3") 0x14 else 0x02,
     val code: Short = ProtocolDefine.ACCEPT_AUTH_REQUEST.value
 ) : BaseSendPacket(code) {
 
