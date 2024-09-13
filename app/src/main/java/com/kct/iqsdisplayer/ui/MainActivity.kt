@@ -23,15 +23,20 @@ import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.common.SharedViewModel
 import com.kct.iqsdisplayer.common.UpdateManager
+import com.kct.iqsdisplayer.data.Call
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
+import com.kct.iqsdisplayer.data.packet.receive.InfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
+import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
 import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoResponse
+import com.kct.iqsdisplayer.data.packet.receive.WaitResponse
 import com.kct.iqsdisplayer.data.packet.send.AcceptAuthRequest
 import com.kct.iqsdisplayer.data.packet.send.MediaListRequest
 import com.kct.iqsdisplayer.data.packet.send.ReserveListRequest
 import com.kct.iqsdisplayer.data.packet.send.UpdateInfoRequest
+import com.kct.iqsdisplayer.data.packet.send.WaitRequest
 import com.kct.iqsdisplayer.databinding.ActivityMainBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.network.TCPClient
@@ -63,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tcpClient: TCPClient
 
-    private val sharedViewModel: SharedViewModel by viewModels()
+    private val vm: SharedViewModel by viewModels()
 
     private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
 
@@ -155,11 +160,14 @@ class MainActivity : AppCompatActivity() {
         Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
         getSharedPreferences(Const.Name.PREF_DISPLAYER_SETTING, Context.MODE_PRIVATE).loadCommunicationInfo()
 
-        Const.ConnectionInfo.DISPLAY_IP = getLocalIpAddress()
-        Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
-
-        setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.ConnectionInfo.IQS_IP)
-        setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.ConnectionInfo.IQS_PORT)
+        if(Const.ConnectionInfo.DISPLAY_IP == null) {
+            Const.ConnectionInfo.DISPLAY_IP = getLocalIpAddress()
+            setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.DISPLAY_IP, "")
+        }
+        if(Const.ConnectionInfo.DISPLAY_MAC == null) {
+            Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
+            setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.DISPLAY_MAC, "")
+        }
     }
 
     private fun restoreSharedPreferencesFiles() {
@@ -213,11 +221,12 @@ class MainActivity : AppCompatActivity() {
                     Log.d("업데이트 정보 요청")
                     tcpClient.sendProtocol(UpdateInfoRequest().toByteBuffer())
                 }
-                ProtocolDefine.WAIT_RESPONSE -> TODO()
-                ProtocolDefine.CALL_REQUEST -> TODO()
-                ProtocolDefine.RE_CALL_REQUEST -> TODO()
-                ProtocolDefine.EMPTY_REQUEST -> TODO()
-                ProtocolDefine.INFO_MESSAGE_REQUEST -> TODO()
+                ProtocolDefine.WAIT_RESPONSE -> onWaitResponse(receivedData)
+
+                ProtocolDefine.CALL_REQUEST -> onCallRequest(receivedData)
+                ProtocolDefine.RE_CALL_REQUEST -> onCallRequest(receivedData)
+                ProtocolDefine.PAUSED_WORK_REQUEST -> onPausedWork(receivedData)
+                ProtocolDefine.INFO_MESSAGE_REQUEST -> onInfoMessage(receivedData)
                 ProtocolDefine.TELLER_LIST -> TODO()
                 ProtocolDefine.SYSTEM_OFF -> TODO()
                 ProtocolDefine.RESTART_REQUEST -> TODO()
@@ -241,15 +250,15 @@ class MainActivity : AppCompatActivity() {
                 ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER -> TODO()
                 ProtocolDefine.VIDEO_DOWNLOAD_REQUEST -> TODO()
                 ProtocolDefine.VIDEO_DOWNLOAD_RESPONSE -> TODO()
-                ProtocolDefine.START_PATCH -> TODO() //없는 패킷같은데
-                ProtocolDefine.END_PATCH -> TODO()//없는 패킷같은데
+                ProtocolDefine.SERVICE_RETRY -> onServiceRetry()
+
                 ProtocolDefine.START_IMAGE -> TODO()
                 ProtocolDefine.END_IMAGE -> TODO()
                 ProtocolDefine.START_VIDEO -> TODO()
                 ProtocolDefine.END_VIDEO -> TODO()
                 ProtocolDefine.START_SOUND -> TODO()
                 ProtocolDefine.END_SOUND -> TODO()
-                ProtocolDefine.SERVICE_RETRY -> TODO()
+
                 ProtocolDefine.NO_IP_RETRY -> TODO()
                 ProtocolDefine.TELLER_RENEW_REQUEST -> TODO()
                 ProtocolDefine.TELLER_RENEW_RESPONSE -> TODO()
@@ -272,6 +281,8 @@ class MainActivity : AppCompatActivity() {
         tcpClient.sendProtocol(ReserveListRequest().toByteBuffer())
         Log.d("영상 재생 리스트 요청")
         tcpClient.sendProtocol(MediaListRequest().toByteBuffer())
+        Log.d("대기인수 리스트 요청")
+        tcpClient.sendProtocol(WaitRequest(winNum = vm.winNum).toByteBuffer())
         Log.d("로그파일 업로드")
         uploadLogFileToServer()
     }
@@ -302,7 +313,7 @@ class MainActivity : AppCompatActivity() {
             ProtocolDefine.RE_CALL_REQUEST.value ->
                 if (resultData.getString("Display") == "Main") onReCall(true) else onReCall(false)
 
-            ProtocolDefine.EMPTY_REQUEST.value -> onAbsent()
+            ProtocolDefine.PAUSED_WORK_REQUEST.value -> onAbsent()
             ProtocolDefine.INFO_MESSAGE_REQUEST.value -> onInfoText()
             ProtocolDefine.SYSTEM_OFF.value -> onSystemOFF()
             ProtocolDefine.RESTART_REQUEST.value -> onRestartRequest()
@@ -348,10 +359,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onAcceptAuthResponse(receivedData: BaseReceivePacket) {
-        Log.e( "onAcceptAuthResponse : 정상접속 완료...")
-
         val data = receivedData as AcceptAuthResponse
-        sharedViewModel.updateDefaultInfo(data)
+        Log.e( "onAcceptAuthResponse : 정상접속 완료...$data")
+
+        vm.updateDefaultInfo(data)
 
         //setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value)
 
@@ -359,9 +370,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
-        Log.e( "onUpdateInfoResponse :업데이트정보 수신 완료...")
-
         val data = receivedData as UpdateInfoResponse
+        Log.e( "onUpdateInfoResponse :업데이트정보 수신 완료...$data")
 
         when(data.updateType) {
             0 -> {
@@ -393,72 +403,95 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onReserveListResponse(receivedData: BaseReceivePacket) {
-        Log.e( "onReserveListResponse :상담예약리스트 수신 완료...")
         val data = receivedData as ReserveListResponse
-        sharedViewModel.updateReserveList(data)
+        Log.e( "onReserveListResponse :상담예약리스트 수신 완료...$data")
+        vm.updateReserveList(data)
     }
 
     private fun onMediaListResponse(receivedData: BaseReceivePacket) {
-        Log.e( "onMediaListResponse : 영상리스트 수신 완료...")
         val data = receivedData as MediaListResponse
-        sharedViewModel.updateMediaList(data)
+        Log.e( "onMediaListResponse : 영상리스트 수신 완료...$data")
+        vm.updateMediaList(data)
     }
 
-
-    //대기자수 응답
-    private fun onWaitCount() {
-        Log.i("onWaitCount : 대기자수 수신..." + ScreenInfo.instance.waitNum.value)
-        //LiveData observe 로 처리됨.
-    }
-
-    private fun onCall(isMain: Boolean) {
-        Log.i("onCall : 호출 수신... isMain:$isMain")
-        //LiveData observe 로 처리됨. 음성호출만 처리함.
-        val screenInfo = ScreenInfo.instance
-
-        //Call 이 왔을때 20초 강제 설정
-        if(isMain) replaceFragment(Index.FRAGMENT_MAIN, 20000)
-        else replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
-
-        CallSoundManager().play(callNum = screenInfo.callNum.value!!,
-                                callWinNum = screenInfo.callWinNum,
-                                flagVIP = screenInfo.flagVIP == 1)
-    }
-
-    private fun onReCall(isMain: Boolean) {
-        Log.i("onReCall : 호출 수신... isMain:$isMain")
-        //LiveData observe 로 처리됨. 음성호출만 처리함.
-        val screenInfo = ScreenInfo.instance
-
-        //Call 이 왔을때 20초 강제 설정
-        if(isMain) replaceFragment(Index.FRAGMENT_MAIN, 20000)
-        else replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
-
-        CallSoundManager().play(callNum = screenInfo.callNum.value!!,
-            callWinNum = screenInfo.callWinNum,
-            flagVIP = screenInfo.flagVIP == 1)
-    }
-
-    private fun onAbsent() {
-        Log.i("onAbsent WinID ${ScreenInfo.instance.winID}")
-
-        //화상 창구 일 경우 부재중 정보 무시
-        if(ScreenInfo.instance.winID == 91) return
-
-        replaceFragment(Index.FRAGMENT_MAIN)
-
-        val logMessage = if(ScreenInfo.instance.flagEmpty.value == 0) { //부재해제
-            "부재해제 수신 ... EmptyFlag : ${ScreenInfo.instance.flagEmpty.value}, TellerMent : ${ScreenInfo.instance.tellerMent.value}"
+    /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
+    private fun onWaitResponse(receivedData: BaseReceivePacket) {
+        val data = receivedData as WaitResponse
+        Log.e( "onWaitResopnse : 대기자수 응답...$data")
+        if(vm.winNum == data.winNum) {
+            vm.updateWaitNum(data.waitNum)
         }
-        else { //부재중
-            "부재중 수신 ... EmptyFlag : ${ScreenInfo.instance.flagEmpty.value}, EmptyMsg : ${ScreenInfo.instance.emptyMsg}"
+    }
+
+    private fun onServiceRetry() {
+        Log.e( "onServiceRetry : TCPClient 재시작")
+        Handler(Looper.getMainLooper()).postDelayed({
+            tcpClient.onDestroy()
+            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
+            tcpClient.setOnTcpEventListener(tcpEventListener)
+        }, Const.Handle.RETRY_SERVICE_TIME)
+    }
+
+    private fun onCallRequest(receivedData: BaseReceivePacket) {
+        //LiveData observe 로 처리됨. 음성호출만 처리함.
+        val data = receivedData as Call
+        Log.i("onCall : 호출 수신... data:$data")
+        vm.updateCallInfo(data)
+
+        val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE //나의 ViewMode
+        val isStopWork  = vm.isStopWork  //구 pjt             //나의 업무상태
+        val isMyCall = data.bkDisplayNum == vm.winNum || data.callWinNum == vm.winNum
+
+        if(viewMode == Const.CallViewMode.MAIN) {
+            if(isStopWork) {    //내가 공석이면 처리안함.
+                Log.i("onCall PASS - 공석 상태")
+            }
+            else {  //공석이 아님
+                if(data.isError) { // Call이 장애상황에 해당하면
+                    if(data.bkDisplayNum == vm.winNum) { //백업표시로 나에게 할당 되었다면
+                        replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
+                    }
+                }
+                else { //정상 Call이면
+                    if(data.callWinNum == vm.winNum) { //나의 Call이면 처리, 다른사람 Call은 Pass
+                        replaceFragment(Index.FRAGMENT_MAIN, 20000)
+                    }
+                }
+            }
         }
+//        else { //내 표시기 상태가 보조거나 음성호출기라면
+//            replaceFragment(Index.FRAGMENT_SUB_SCREEN, 20000)
+//        }
+
+        if(!isStopWork && isMyCall) {
+            CallSoundManager().play(callNum = data.callNum,
+                callWinNum = data.callWinNum,
+                flagVIP = data.flagVip)
+        }
+    }
+
+    private fun onPausedWork(receivedData: BaseReceivePacket) {
+        val data = receivedData as PausedWorkRequest
+        Log.i("onPausedWork : 호출 수신... data:$data")
+
+        if(vm.winNum ==  receivedData.pausedWinNum) {
+            vm.updatePausedWork(receivedData)
+            replaceFragment(Index.FRAGMENT_MAIN)
+        }
+
+        val isPausedWork = vm.isPausedWork.value ?: false
+        val logMessage = if(!isPausedWork) { "부재해제 수신 ... 업무중 메세지 : ${vm.workingMessage}"}
+        else { "부재중 수신 ... 부재중 메세지 : ${vm.pausedWorkMessage}"}
         Log.d(logMessage)
     }
 
-    private fun onInfoText() {
-        Log.i("onInfoText : 안내문구 수신... (${ScreenInfo.instance.tellerMent})")
-        setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value) //기존것 대로 가져왔으나 추후 필요성이 없으면 삭제하겠음.
+    private fun onInfoMessage(receivedData: BaseReceivePacket) {
+        val data = receivedData as InfoMessageRequest
+        Log.i("onInfoMessage : 안내문구 수신... (${data})")
+        if(vm.winNum == data.infoMessageWinNum) {
+            vm.updateInfoMessage(data)
+            setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, data.infoMessage)
+        }
     }
 
     private fun onSystemOFF() {

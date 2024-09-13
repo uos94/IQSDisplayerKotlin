@@ -42,10 +42,8 @@ data class Reserve(
     }
 }
 
-private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve? {
+private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve {
     // 데이터 추출 및 변환
-    if(this.isEmpty()) return null
-
     val size = this.size
 
     val result = Reserve().apply { protocolDefine = protocol }
@@ -70,14 +68,8 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve? {
     return result
 }
 
-fun Packet.toReserveAddRequest(): Reserve? {
+fun Packet.toReserveAddRequest(): Reserve {
     val splitData = string.splitData("#")
-
-    // 데이터 유효성 검사
-    if (splitData.size <= 11) {
-        Log.w("데이터오류 - ProtocolDefine.RESERVE_ADD_REQUEST[0x0029] : $string")
-        return null
-    }
 
     return splitData.newReserve(ProtocolDefine.RESERVE_ADD_REQUEST)
 }
@@ -87,23 +79,11 @@ fun Packet.toReserveUpdateRequest(): Reserve? {
     val mul = integer
     val splitData = string.splitData("#")
 
-    // 데이터 유효성 검사
-    if (splitData.size < 11) {
-        Log.w("데이터오류 - ProtocolDefine.RESERVE_UPDATE_REQUEST[0x002B] : $string")
-        return null
-    }
-
     return splitData.newReserve(ProtocolDefine.RESERVE_UPDATE_REQUEST)
 }
 
 fun Packet.toReserveCancelRequest(): Reserve? {
     val splitData = string.splitData("#")
-
-    // 데이터 유효성 검사
-    if (splitData.size < 11) {
-        Log.w("데이터오류 - ProtocolDefine.RESERVE_CANCEL_REQUEST[0x002D] : $string")
-        return null
-    }
 
     return splitData.newReserve(ProtocolDefine.RESERVE_CANCEL_REQUEST)
 }
@@ -112,11 +92,6 @@ fun Packet.toReserveCancelRequest(): Reserve? {
 fun Packet.toReserveArriveRequest(): Reserve? {
 // 2019-12-12#0000#2019121200009008#14:30:00#CUST0123456789#김고객님#01012345566#3###개인대출상담#1#종합상담창구#14:18:32#Y#00:00:00#N
     val splitData = string.splitData("#")
-    // 데이터 유효성 검사
-    if (splitData.size < 17) {
-        Log.w("데이터오류 - ProtocolDefine.RESERVE_ARRIVE_REQUEST[0x002F] : $string")
-        return null
-    }
 
     return splitData.newReserve(ProtocolDefine.RESERVE_ARRIVE_REQUEST)
 }
@@ -127,7 +102,7 @@ fun Packet.toReserveListResponse(): ReserveListResponse {
     for (reserveData in reserveSplitData) {
         val splitData = string.splitData("#")
         val reserve = splitData.newReserve(ProtocolDefine.RESERVE_LIST_RESPONSE) //ProtocolDefine 안해도 상관 없음.
-        reserve?.let { resultList.add(it) }
+        reserve.let { resultList.add(it) }
     }
 
     return ReserveListResponse(

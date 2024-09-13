@@ -88,9 +88,11 @@ object Const {
     }
 
     object Key {
-        object DisplayerSetting {
+        object DisplaySetting {
             /** 실제 키값 : DisplayerIP */
-            const val DISPLAYER_IP = "DisplayerIP"
+            const val DISPLAY_IP = "DisplayerIP"
+            /** 실제 키값 : DisplayerMac */
+            const val DISPLAY_MAC = "DisplayerMac" //신규추가
             /** 실제 키값 :  PathSoundFile */
             const val PATH_SOUND_FILE = "PathSoundFile"
             /** 실제 키값 :  PathVideoFile */
@@ -157,20 +159,24 @@ object Const {
 
         // 20191216 symoon 호출 확대화면 추가
         /** 기본값[0], 보조순번[2], 음성호출기[3] */
-        var CALLVIEW_MODE: String = "0"     // 표시기 화면 타입, ScreenInfo에 DisplayType과 혼용되고 있어 ScreenInfo에서는 삭제하였음.
+        var CALLVIEW_MODE: CallViewMode = CallViewMode.MAIN  // 표시기 화면 타입, ScreenInfo에 DisplayType과 혼용되고 있어 ScreenInfo에서는 삭제하였음.
 
         /** SharedPreferences값을 CommunicationInfo로 복사한다.
          * SharedPreferences에 없으면 기본값을 유지한다.*/
         fun SharedPreferences.loadCommunicationInfo() {
-            IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
-            IQS_IP = getString(Key.DisplayerSetting.IQS_IP, IQS_IP)!!
-            IQS_PORT = getInt(Key.DisplayerSetting.IQS_PORT, IQS_PORT)
+            IQS_IP = getString(Key.DisplaySetting.IQS_IP, IQS_IP)!!
+            IQS_PORT = getInt(Key.DisplaySetting.IQS_PORT, IQS_PORT)
 
-            FTP_PORT = getInt(Key.DisplayerSetting.FTP_SERVER_PORT, FTP_PORT)
-            FTP_ID = getString(Key.DisplayerSetting.FTP_USER_ID, FTP_ID) ?: FTP_ID
-            FTP_PW = getString(Key.DisplayerSetting.FTP_USER_PW, FTP_PW) ?: FTP_PW
-
-            CALLVIEW_MODE = getString(Key.DisplayerSetting.CALL_VIEW, CALLVIEW_MODE) ?: CALLVIEW_MODE
+            FTP_PORT = getInt(Key.DisplaySetting.FTP_SERVER_PORT, FTP_PORT)
+            FTP_ID = getString(Key.DisplaySetting.FTP_USER_ID, FTP_ID) ?: FTP_ID
+            FTP_PW = getString(Key.DisplaySetting.FTP_USER_PW, FTP_PW) ?: FTP_PW
+            val mode = getString(Key.DisplaySetting.CALL_VIEW, "0") ?: CALLVIEW_MODE
+            CALLVIEW_MODE = when(mode) {
+                "0" -> CallViewMode.MAIN
+                "2" -> CallViewMode.SUB
+                "3" -> CallViewMode.SOUND
+                else -> CallViewMode.MAIN
+            }
             //TODO : 우선은 보이는 것들만 옮겨두었음. 추가로 Load할 것이 있을 수 있음.
         }
     }
@@ -182,15 +188,16 @@ object Const {
         const val RETRY_SERVICE_MESSAGE = 1001 //서비스 retry 메시지
     }
 
-    enum class PJT(val value: String) {
-        OUT_DESK("공석"),
-        IN_DESK("사용중")
-    }
-
     enum class Arrow(val value: Int) {
         LEFT(1),
         RIGHT(2),
         CENTER(3)
+    }
+
+    enum class CallViewMode(val value: Int) {
+        MAIN(0),
+        SUB(1),
+        SOUND(2)
     }
 
     const val OK        = 1

@@ -152,8 +152,8 @@ class FragmentInit : Fragment() {
         Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
         Log.d("DISPLAY_IP : ${Const.ConnectionInfo.DISPLAY_IP} DISPLAY_MAC : ${Const.ConnectionInfo.DISPLAY_MAC}")
 
-        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_IP, Const.ConnectionInfo.IQS_IP)
-        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplayerSetting.IQS_PORT, Const.ConnectionInfo.IQS_PORT)
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.IQS_IP, Const.ConnectionInfo.IQS_IP)
+        context?.setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.IQS_PORT, Const.ConnectionInfo.IQS_PORT)
     }
 
     private var bFTPSuccess = false

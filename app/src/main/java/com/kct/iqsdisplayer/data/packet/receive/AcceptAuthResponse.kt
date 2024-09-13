@@ -8,7 +8,7 @@ data class AcceptAuthResponse(
     /** 표시기의 창구 번호 */
     val winNum : Int = 0,//1
     /** 지점에서 사용중인 창구ID 리스트(구분자 “;”) */
-    val winNumList : String = "",//1;2;3;
+    val winIdList : String = "",//1;2;3;
     /** 지점에서 사용중인 창구명 리스트 (구분자 “;”) */
     val winNameList : String = "",//입출금/제신고;일반업무;상담업무;
     /** 직원정보(구분자 “;”) */
@@ -37,11 +37,11 @@ data class AcceptAuthResponse(
      * 부재여부(1:부재,0:사용중), 부재메시지(구분자 “;”), 전산장애여부(0: 정상 운영, 1: 전산장애)*/
     val pausedWork : String = "",//0;;
     /** 공석표시, 0: 정상화면 표시, 1: 공석화면 표시 */
-    val notWork : String = ""//0
+    val stopWork : String = ""//0
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.ACCEPT_AUTH_RESPONSE
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "AcceptAuthResponse(winNum=$winNum, winNumList='$winNumList', winNameList='$winNameList', tellerInfo='$tellerInfo', mediaInfo='$mediaInfo', volumeLevel='$volumeLevel', waitingNumList='$waitingNumList', serverTime=$serverTime, displaySettingInfo='$displaySettingInfo', deleteMovieInfo='$deleteMovieInfo', bellFileName='$bellFileName', callRepeatCount='$callRepeatCount', callMentNum='$callMentNum', pausedWork='$pausedWork', notWork='$notWork', protocolDefine=$protocolDefine)"
+        return "AcceptAuthResponse(winNum=$winNum, winIdList='$winIdList', winNameList='$winNameList', tellerInfo='$tellerInfo', mediaInfo='$mediaInfo', volumeLevel='$volumeLevel', waitingNumList='$waitingNumList', serverTime=$serverTime, displaySettingInfo='$displaySettingInfo', deleteMovieInfo='$deleteMovieInfo', bellFileName='$bellFileName', callRepeatCount='$callRepeatCount', callMentNum='$callMentNum', pausedWork='$pausedWork', notWork='$stopWork', protocolDefine=$protocolDefine)"
     }
 }
 
@@ -49,7 +49,7 @@ data class AcceptAuthResponse(
 fun Packet.toAcceptAuthResponse(): AcceptAuthResponse {
     return AcceptAuthResponse(
         winNum = integer,
-        winNumList = string,
+        winIdList = string,
         winNameList = string,
         tellerInfo = string,
         mediaInfo = string,
@@ -62,6 +62,6 @@ fun Packet.toAcceptAuthResponse(): AcceptAuthResponse {
         callRepeatCount = string,
         callMentNum = string,
         pausedWork = string,
-        notWork = string
+        stopWork = string
     )
 }

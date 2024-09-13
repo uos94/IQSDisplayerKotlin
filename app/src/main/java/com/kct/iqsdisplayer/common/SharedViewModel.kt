@@ -1,11 +1,17 @@
 package com.kct.iqsdisplayer.common
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.kct.iqsdisplayer.data.Call
+import com.kct.iqsdisplayer.data.LastCall
 import com.kct.iqsdisplayer.data.Reserve
 import com.kct.iqsdisplayer.data.Teller
 import com.kct.iqsdisplayer.data.WinInfo
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
+import com.kct.iqsdisplayer.data.packet.receive.InfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
+import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
 import com.kct.iqsdisplayer.data.toTeller
 import com.kct.iqsdisplayer.util.Log
@@ -26,17 +32,37 @@ class SharedViewModel : ViewModel() {
     var volumeLevel = 1
     var serverTime = 0
     var isShowWaiting = false
-    var rotateMessage = ""
-    var deleteMovieInfo = "" //사용 안하는 것으로 예상된다.
+    var workingMessage = ""
+    var deleteMovieInfo = ""                //사용 안하는 것으로 예상된다.
     var bellFileName = ""
     var callRepeatCount = 0
-    var callMent = "" //호출안내멘트
-    var isPausedWork = false
+    var callMent = ""                       //호출안내멘트
+    private val _isPausedWork = MutableLiveData(false) // 부재 여부
+    val isPausedWork: LiveData<Boolean> get() = _isPausedWork //부재여부, 접속승인때 넘어옴, isPausedByServerError와 따로 넘어옴
+
     var pausedWorkMessage = ""
-    var isPausedByServerError = false
-    var isNotWork = false   //구 PJT
+    var isPausedByServerError = false       //전상장애여부, 접속승인때 넘어옴
+    var isStopWork = false                  //구 PJT, 공석여부
 
     val reserveList = ArrayList<Reserve>() //상담예약리스트
+    val lastCallList = ArrayList<LastCall>() //상담예약리스트
+
+
+
+    private val _waitNum = MutableLiveData(0) // 창구 대기 인원
+    val waitNum: LiveData<Int> get() = _waitNum
+    fun updateWaitNum(newWaitNum: Int) {
+        _waitNum.postValue(newWaitNum)
+    }
+
+    private val _callInfo = MutableLiveData(Call()) // 호출패킷 저장
+    val callInfo: LiveData<Call> get() = _callInfo
+
+    fun updateCallInfo(newCall: Call) {
+        _callInfo.postValue(newCall)
+        updateWaitNum(newCall.winWaitNum)
+    }
+
 /*    private val _sharedData = MutableLiveData<String>()
     val sharedData: LiveData<String> = _sharedData
 
@@ -62,7 +88,7 @@ class SharedViewModel : ViewModel() {
     fun updateDefaultInfo(data: AcceptAuthResponse) {
         winNum = data.winNum
 
-        val winIds      = data.winNumList.splitData(";")
+        val winIds      = data.winIdList.splitData(";")
         val winNames    = data.winNameList.splitData(";")
         val waits       = data.waitingNumList.splitData(";")
 
@@ -92,7 +118,7 @@ class SharedViewModel : ViewModel() {
         data.displaySettingInfo.splitData(";").forEachIndexed { index, value ->
             when (index) {
                 0 -> isShowWaiting = value == "1"
-                1 -> rotateMessage = value
+                1 -> workingMessage = value
             }
         }
 
@@ -107,16 +133,16 @@ class SharedViewModel : ViewModel() {
 
         data.pausedWork.splitData(";").forEachIndexed { index, value ->
             when (index) {
-                0 -> isPausedWork           = value == "1"
+                0 -> _isPausedWork.postValue(value == "1")
                 1 -> pausedWorkMessage      = value
                 2 -> isPausedByServerError  = value == "1"
             }
         }
 
-        isNotWork = data.notWork == "1"
+        isStopWork = data.stopWork == "1"
     }
 
-    //TODO : 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+    //모든 창구의 상담예약리스트가 넘어온다. 나의것만 걸러서 가져오도록 함.
     fun updateReserveList(data: ReserveListResponse) {
         reserveList.clear()
         val myList = data.reserveList.filter { reserve -> winNum == reserve.reserveWinID }
@@ -127,4 +153,15 @@ class SharedViewModel : ViewModel() {
         mediaFileNameList.clear()
         mediaFileNameList.addAll(data.mediaList)
     }
+
+    fun updatePausedWork(data: PausedWorkRequest) {
+        Log.d("부재상태 업데이트 : $data")
+        _isPausedWork.postValue(data.isPausedWork)
+        pausedWorkMessage   = data.pausedMessage
+    }
+
+    fun updateInfoMessage(data: InfoMessageRequest) {
+        workingMessage = data.infoMessage
+    }
+
 }

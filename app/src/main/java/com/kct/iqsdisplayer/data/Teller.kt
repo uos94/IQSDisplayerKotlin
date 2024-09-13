@@ -1,12 +1,10 @@
 package com.kct.iqsdisplayer.data
 
-import com.kct.iqsdisplayer.common.Const.PJT
 import com.kct.iqsdisplayer.common.Const.Arrow
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.TellerListResponse
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
-import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.splitData
 
 // 231005, by HAHU  하나은행은 16개
@@ -36,7 +34,7 @@ data class Teller(
     /** 직원명 */
     var tellerName: String = "",    // 직원명
     /** 공석 여부 , 기본값 0, 0이면 사용중, 1이면 공석 */
-    var pjt: PJT = PJT.IN_DESK, // 공석 여부
+    var isNotWork: Boolean = false, // 공석 여부
     /** 창구명 */
     var winName: String = "",       // 창구명
     /** 창구 번호 , 기본값 0 */
@@ -63,7 +61,7 @@ data class Teller(
         직원 행번      : $tellerNum
         표시기 IP      : $displayIP
         직원명         : $tellerName
-        공석 여부      : ${pjt.value}
+        공석 여부      : $isNotWork
         창구명         : $winName
         창구 번호      : $winNum
         부재 메세지     : $emptyMsg
@@ -88,7 +86,7 @@ fun String.toTeller(): Teller {
     if(size > 9) teller.tellerNum   = splitTeller[9].toIntOrNull() ?: 0
     if(size > 10) teller.displayIP  = splitTeller[10]
     if(size > 11) teller.tellerName = splitTeller[11]
-    if(size > 12) teller.pjt        = when(splitTeller[12]) {"공석", "공석(PJT)", "1" -> PJT.OUT_DESK  else -> PJT.IN_DESK }
+    if(size > 12) teller.isNotWork  = when(splitTeller[12]) {"공석", "공석(PJT)", "1" -> true  else -> false }
     if(size > 13) teller.winName    = splitTeller[13]
     if(size > 14) teller.winNum     = splitTeller[14].toIntOrNull() ?: 0
     if(size > 15) teller.emptyMsg   = splitTeller[15]

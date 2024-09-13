@@ -1,9 +1,10 @@
 package com.kct.iqsdisplayer.network
 
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
+import com.kct.iqsdisplayer.data.packet.receive.EmptyData
 import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequest
-import com.kct.iqsdisplayer.data.packet.receive.toEmptyRequest
+import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.toMediaListResponse
 import com.kct.iqsdisplayer.data.packet.receive.toRestartRequest
@@ -31,16 +32,17 @@ class PacketAnalyzer(inputStream: InputStream) {
     }
 
     private val parserMap = mapOf<Short, Packet.() -> BaseReceivePacket?>(
-        ProtocolDefine.CONNECT_SUCCESS.value         to { null },
-        ProtocolDefine.CONNECT_REJECT.value          to { null },
+        ProtocolDefine.CONNECT_SUCCESS.value        to { null },
+        ProtocolDefine.CONNECT_REJECT.value         to { null },
         ProtocolDefine.ACCEPT_AUTH_RESPONSE.value   to Packet::toAcceptAuthResponse,
         ProtocolDefine.WAIT_RESPONSE.value          to Packet::toWaitResponse,
         ProtocolDefine.CALL_REQUEST.value           to Packet::toCallRequest,
         ProtocolDefine.RE_CALL_REQUEST.value        to Packet::toCallRequest,
-        ProtocolDefine.EMPTY_REQUEST.value          to Packet::toEmptyRequest,
+        ProtocolDefine.PAUSED_WORK_REQUEST.value    to Packet::toPausedWorkRequest,
         ProtocolDefine.INFO_MESSAGE_REQUEST.value   to Packet::toInfoMessageRequest,
         ProtocolDefine.TELLER_LIST.value            to Packet::toTellerList,
         ProtocolDefine.SYSTEM_OFF.value             to { null },
+        ProtocolDefine.SERVICE_RETRY.value          to { null },
         ProtocolDefine.RESTART_REQUEST.value        to Packet::toRestartRequest,
         ProtocolDefine.CROWDED_REQUEST.value        to Packet::toCrowdedRequest,
         ProtocolDefine.WIN_RESPONSE.value           to Packet::toWinResponse,
@@ -60,8 +62,7 @@ class PacketAnalyzer(inputStream: InputStream) {
     )
 
     private var protocolId: ProtocolDefine? = null
-    private var parsedData: BaseReceivePacket? = null
-
+    private var parsedData: BaseReceivePacket = EmptyData()
 
     init {
         val headerBytes = ByteArray(HEADER_SIZE)
@@ -93,7 +94,12 @@ class PacketAnalyzer(inputStream: InputStream) {
 
             val packet = Packet(dataBytes, headerBytes)
             if(parserMap.containsKey(protocolId?.value)) {
-                parserMap[protocolId?.value]?.let { parsedData = packet.it() }
+                val parserFunction = parserMap[protocolId?.value]
+                parsedData = if (parserFunction != null) {
+                    packet.parserFunction() ?: EmptyData(protocolId)
+                } else {
+                    EmptyData(protocolId)
+                }
             }
             else {
                 Log.w("프로토콜[${protocolId?.value}에 대한 처리가 parseMap에 등록되지 않았습니다.")
@@ -105,7 +111,7 @@ class PacketAnalyzer(inputStream: InputStream) {
         return protocolId
     }
 
-    fun getData(): BaseReceivePacket? {
+    fun getData(): BaseReceivePacket {
         return parsedData
     }
 

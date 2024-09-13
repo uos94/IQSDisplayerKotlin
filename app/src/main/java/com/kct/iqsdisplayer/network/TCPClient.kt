@@ -135,7 +135,7 @@ class TCPClient(private val host: String, private val port: Int) {
                 val protocolDefine = packetAnalyzer.getProtocolId()
                 val receivedData = packetAnalyzer.getData()
                 timerKeepAlive = 0
-                if(protocolDefine != null && receivedData != null) {
+                if(protocolDefine != null) {
                     listener?.onReceivedData(protocolDefine, receivedData) // 데이터 수신 알림
                 }
                 else {

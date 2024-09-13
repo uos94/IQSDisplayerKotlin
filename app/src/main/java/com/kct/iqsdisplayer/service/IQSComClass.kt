@@ -11,7 +11,7 @@ import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequest
-import com.kct.iqsdisplayer.data.packet.receive.toEmptyRequest
+import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.toReserveListResponse
 import com.kct.iqsdisplayer.data.packet.receive.toRestartRequest
@@ -410,7 +410,7 @@ class IQSComClass : Service() {
                 ScreenInfo.instance.setTellerInfo(data.tellerInfo)
                 Log.d("SetTellerInfo")
 
-                ScreenInfo.instance.setWinList(data.winNumList, data.winNameList, data.waitingNumList)
+                ScreenInfo.instance.setWinList(data.winIdList, data.winNameList, data.waitingNumList)
                 Log.d("SetWinList")
 
                 ScreenInfo.instance.setScreenInfo(data)
@@ -427,7 +427,7 @@ class IQSComClass : Service() {
                 val data = packet.toWaitResponse()
                 Log.d("$data")
 
-                if (data.winID == ScreenInfo.instance.winID) {
+                if (data.winNum == ScreenInfo.instance.winID) {
                     // 같은 창구일 때
                     ScreenInfo.instance.setWaitResponse(data.ticketNum, data.waitNum)
                     Log.d("IQS Response $data")
@@ -495,14 +495,14 @@ class IQSComClass : Service() {
 //                commResultReceiver?.send(ProtocolDefine.DISPLAY_INFO.value.toInt(), bundleData)
 //            }
 
-            ProtocolDefine.EMPTY_REQUEST.value -> {
+            ProtocolDefine.PAUSED_WORK_REQUEST.value -> {
                 // 부재 정보 요청
-                val data = packet.toEmptyRequest()
+                val data = packet.toPausedWorkRequest()
 
                 if (data.winNum == ScreenInfo.instance.winNum) {
                     ScreenInfo.instance.setEmpty(data.emptyFlag, data.emptyMsg)
                     Log.d("IQS Response $data")
-                    commResultReceiver?.send(ProtocolDefine.EMPTY_REQUEST.value.toInt(), bundleData)
+                    commResultReceiver?.send(ProtocolDefine.PAUSED_WORK_REQUEST.value.toInt(), bundleData)
                 } else {
                     // 다른 창구일 때 처리 (필요한 경우)
                 }

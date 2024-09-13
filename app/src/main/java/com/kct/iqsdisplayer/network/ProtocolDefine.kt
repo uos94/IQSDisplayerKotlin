@@ -40,8 +40,8 @@ enum class ProtocolDefine(val value: Short) {
 
     // 부재 정보 관련 프로토콜 (Empty Information) (미사용)
     /** 0x0009, 부재정보 요청, 직원 부재 설정 시 전송되는 패킷 (IQS -> 표시기) */
-    EMPTY_REQUEST(0x0009.toShort()),
-    //EMPTY_RESPONSE(0x000A.toShort()),
+    PAUSED_WORK_REQUEST(0x0009.toShort()),
+    //PAUSED_WORK_RESPONSE(0x000A.toShort()),
 
     // 안내 메시지 관련 프로토콜 (Information Message) (미사용)
     /** 0x000B, 안내메시지 설정 요청, 직원이 안내 메시지 설정시 순번발행기로부터 전송되는 패킷. (IQS -> 표시기) */
@@ -197,7 +197,7 @@ enum class ProtocolDefine(val value: Short) {
     const val CallResponse: Short = 0x0006 // 호출 응답(미사용)
     const val ReCallRequest: Short = 0x0007 // 재호출 요청
     const val ReCallResponse: Short = 0x0008 // 재호출 응답(미사용)
-    const val EmptyRequest: Short = 0x0009 // 부재정보 요청
+    const val PausedWorkRequest: Short = 0x0009 // 부재정보 요청
     const val EmptyResponse: Short = 0x000A // 부재정보 응답(미사용)
     const val InfoMessageRequest: Short = 0x000B // 안내메시지설정 요청
     const val InfoMessageResponse: Short = 0x000C // 안내메시지설정 응답(미사용)
