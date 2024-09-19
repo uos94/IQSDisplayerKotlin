@@ -609,7 +609,7 @@ class IQSComClass : Service() {
                 // 창구 응답
                 val data = packet.toWinResponse()
 
-                ScreenInfo.instance.setWinList(data.winIDList, data.winNmList, data.waitList)
+                ScreenInfo.instance.setWinList(data.winIds, data.winNames, data.waitNums)
                 Log.d("IQS Response $data")
                 commResultReceiver?.send(ProtocolDefine.WIN_RESPONSE.value.toInt(), bundleData)
             }

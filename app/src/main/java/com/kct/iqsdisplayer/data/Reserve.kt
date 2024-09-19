@@ -74,7 +74,7 @@ fun Packet.toReserveAddRequest(): Reserve {
     return splitData.newReserve(ProtocolDefine.RESERVE_ADD_REQUEST)
 }
 
-fun Packet.toReserveUpdateRequest(): Reserve? {
+fun Packet.toReserveUpdateRequest(): Reserve {
     //TODO : 패킷정의서에는 없는 데이터 인데. AS-IS보면 실제로 뭔가 넘어온다. 변수명도 mul 그대로 가져옴.
     val mul = integer
     val splitData = string.splitData("#")
@@ -82,14 +82,14 @@ fun Packet.toReserveUpdateRequest(): Reserve? {
     return splitData.newReserve(ProtocolDefine.RESERVE_UPDATE_REQUEST)
 }
 
-fun Packet.toReserveCancelRequest(): Reserve? {
+fun Packet.toReserveCancelRequest(): Reserve {
     val splitData = string.splitData("#")
 
     return splitData.newReserve(ProtocolDefine.RESERVE_CANCEL_REQUEST)
 }
 
 
-fun Packet.toReserveArriveRequest(): Reserve? {
+fun Packet.toReserveArriveRequest(): Reserve {
 // 2019-12-12#0000#2019121200009008#14:30:00#CUST0123456789#김고객님#01012345566#3###개인대출상담#1#종합상담창구#14:18:32#Y#00:00:00#N
     val splitData = string.splitData("#")
 
@@ -97,15 +97,17 @@ fun Packet.toReserveArriveRequest(): Reserve? {
 }
 
 fun Packet.toReserveListResponse(): ReserveListResponse {
+    val mul = integer //항상 0인데 뭐하는 용도인지는 모르겠음.
     val resultList = ArrayList<Reserve>()
     val reserveSplitData = string.splitData("&")
     for (reserveData in reserveSplitData) {
-        val splitData = string.splitData("#")
+        val splitData = reserveData.splitData("#")
         val reserve = splitData.newReserve(ProtocolDefine.RESERVE_LIST_RESPONSE) //ProtocolDefine 안해도 상관 없음.
         reserve.let { resultList.add(it) }
     }
 
     return ReserveListResponse(
+        mul = mul,
         reserveList = resultList,
         protocolDefine = ProtocolDefine.RESERVE_LIST_RESPONSE
     )

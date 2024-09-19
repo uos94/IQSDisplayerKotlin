@@ -6,7 +6,7 @@ import com.kct.iqsdisplayer.network.ProtocolDefine
 
 // ProtocolDefine.CROWDED_REQUEST 데이터 클래스
 data class CrowdedRequest(
-    val isCrowded: Int,     // 혼잡 여부 (BOOL)
+    val isCrowded: Boolean,     // 혼잡 여부 (BOOL)
     val crowdedWinID: Int,  // 창구 ID
     val crowdedMsg: String  // 혼잡 메시지
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.CROWDED_REQUEST
@@ -18,7 +18,7 @@ data class CrowdedRequest(
 
 fun Packet.toCrowdedRequest(): CrowdedRequest {
     return CrowdedRequest(
-        isCrowded = integer,
+        isCrowded = integer == 1,
         crowdedWinID = integer,
         crowdedMsg = string
     )

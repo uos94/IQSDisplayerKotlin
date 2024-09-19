@@ -19,6 +19,9 @@ import com.kct.iqsdisplayer.util.splitData
 
 /** 실시간으로 필요한 변수만 LiveData로 한다.*/
 class SharedViewModel : ViewModel() {
+    //혼잡여부(0x0015)패킷에서만 windId를 사용한다. windId는 직원정보 설정(0x000D)에서 내려온다.
+    var winId: Int = 0
+
     /** 표시기의 창구 번호 */
     var winNum = 0
     var listWinInfos = ArrayList<WinInfo>()
@@ -47,7 +50,25 @@ class SharedViewModel : ViewModel() {
     val reserveList = ArrayList<Reserve>() //상담예약리스트
     val lastCallList = ArrayList<LastCall>() //상담예약리스트
 
+    /** 전산 장애 설정, 0 정상운영 1: 전산장애 */
+    private val _systemError = MutableLiveData(0) // 창구 대기 인원
+    val systemError: LiveData<Int> get() = _systemError
+    fun updateSystemError(systemError: Int) {
+        _systemError.postValue(systemError)
+    }
 
+    private val _isCrowded = MutableLiveData(false) // 혼잡여부 BOOL
+    val isCrowded: LiveData<Boolean> get() = _isCrowded
+    fun updateCrowded(isCrowded: Boolean) {
+        _isCrowded.postValue(isCrowded)
+    }
+    var crowdedMsg: String = "" // 혼잡 메세지
+
+    private val _tellerMent = MutableLiveData("") // 하단 안내 문구
+    val tellerMent: LiveData<String> get() = _tellerMent
+    fun updateTellerMent(tellerMent: String) {
+        _tellerMent.postValue(tellerMent)
+    }
 
     private val _waitNum = MutableLiveData(0) // 창구 대기 인원
     val waitNum: LiveData<Int> get() = _waitNum
@@ -88,15 +109,7 @@ class SharedViewModel : ViewModel() {
     fun updateDefaultInfo(data: AcceptAuthResponse) {
         winNum = data.winNum
 
-        val winIds      = data.winIdList.splitData(";")
-        val winNames    = data.winNameList.splitData(";")
-        val waits       = data.waitingNumList.splitData(";")
-
-        listWinInfos.clear()
-        listWinInfos.addAll(
-            winIds.zip(winNames).zip(waits) { (id, name), wait ->
-            WinInfo(id.toInt(), name, wait.toInt())
-        })
+        updateWinInfos(data.winIdList, data.winNameList, data.waitingNumList)
 
         tellerInfo = data.tellerInfo.toTeller()
 
@@ -142,12 +155,41 @@ class SharedViewModel : ViewModel() {
         isStopWork = data.stopWork == "1"
     }
 
+    fun updateWinInfos(winIds: String, winNames: String, waits: String) {
+        val splitWinIds      = winIds.splitData(";").asList()
+        val splitWinNames    = winNames.splitData(";").asList()
+        val splitWaits       = waits.splitData(";").asList()
+
+        listWinInfos.clear()
+        listWinInfos.addAll(
+            splitWinIds.zip(splitWinNames).zip(splitWaits) { (id, name), wait ->
+                WinInfo(id.toInt(), name, wait.toInt())
+            })
+    }
+
     //모든 창구의 상담예약리스트가 넘어온다. 나의것만 걸러서 가져오도록 함.
     fun updateReserveList(data: ReserveListResponse) {
         reserveList.clear()
         val myList = data.reserveList.filter { reserve -> winNum == reserve.reserveWinID }
         reserveList.addAll(myList)
     }
+
+    fun addReserveList(data: Reserve) {
+        if(winId == data.reserveWinID) reserveList.add(data)
+    }
+
+    fun updateReserveList(data: Reserve) {
+        reserveList.replaceAll{ if(it.reserveNum == data.reserveNum) data else it }
+    }
+
+    fun cancelReserve(data: Reserve) {
+        reserveList.removeIf { it.reserveNum == data.reserveNum }
+    }
+
+    fun arriveReserve(data: Reserve) {
+        reserveList.replaceAll{ if(it.reserveNum == data.reserveNum) data else it }
+    }
+
     fun updateMediaList(data: MediaListResponse) {
         Log.d("영상재생 리스트 업데이트 : ${data.mediaList}")
         mediaFileNameList.clear()

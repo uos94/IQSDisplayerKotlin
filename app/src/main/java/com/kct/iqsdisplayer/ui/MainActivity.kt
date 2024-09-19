@@ -24,14 +24,18 @@ import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.common.SharedViewModel
 import com.kct.iqsdisplayer.common.UpdateManager
 import com.kct.iqsdisplayer.data.Call
+import com.kct.iqsdisplayer.data.Reserve
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
+import com.kct.iqsdisplayer.data.packet.receive.CrowdedRequest
 import com.kct.iqsdisplayer.data.packet.receive.InfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
 import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
+import com.kct.iqsdisplayer.data.packet.receive.TellerListResponse
 import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoResponse
 import com.kct.iqsdisplayer.data.packet.receive.WaitResponse
+import com.kct.iqsdisplayer.data.packet.receive.WinResponse
 import com.kct.iqsdisplayer.data.packet.send.AcceptAuthRequest
 import com.kct.iqsdisplayer.data.packet.send.MediaListRequest
 import com.kct.iqsdisplayer.data.packet.send.ReserveListRequest
@@ -227,25 +231,19 @@ class MainActivity : AppCompatActivity() {
                 ProtocolDefine.RE_CALL_REQUEST -> onCallRequest(receivedData)
                 ProtocolDefine.PAUSED_WORK_REQUEST -> onPausedWork(receivedData)
                 ProtocolDefine.INFO_MESSAGE_REQUEST -> onInfoMessage(receivedData)
-                ProtocolDefine.TELLER_LIST -> TODO()
-                ProtocolDefine.SYSTEM_OFF -> TODO()
-                ProtocolDefine.RESTART_REQUEST -> TODO()
-                ProtocolDefine.RESTART_RESPONSE -> TODO()
-                ProtocolDefine.CROWDED_REQUEST -> TODO()
-                ProtocolDefine.WIN_REQUEST -> TODO()
-                ProtocolDefine.WIN_RESPONSE -> TODO()
+                ProtocolDefine.TELLER_LIST -> onTellerList(receivedData)
+                ProtocolDefine.SYSTEM_OFF -> onSystemOff()
+                ProtocolDefine.RESTART_REQUEST -> onRestartRequest()
+                ProtocolDefine.CROWDED_REQUEST -> onCrowedRequest(receivedData)
+                ProtocolDefine.WIN_RESPONSE -> onWinResponse(receivedData)
                 ProtocolDefine.MEDIA_LIST_RESPONSE -> onMediaListResponse(receivedData)
                 ProtocolDefine.RESERVE_LIST_RESPONSE -> onReserveListResponse(receivedData)
-                ProtocolDefine.RESERVE_ADD_REQUEST -> TODO()
-                ProtocolDefine.RESERVE_ADD_RESPONSE -> TODO()
-                ProtocolDefine.RESERVE_UPDATE_REQUEST -> TODO()
-                ProtocolDefine.RESERVE_UPDATE_RESPONSE -> TODO()
-                ProtocolDefine.RESERVE_CANCEL_REQUEST -> TODO()
-                ProtocolDefine.RESERVE_CANCEL_RESPONSE -> TODO()
-                ProtocolDefine.RESERVE_ARRIVE_REQUEST -> TODO()
-                ProtocolDefine.RESERVE_ARRIVE_RESPONSE -> TODO()
-                ProtocolDefine.RESERVE_CALL_REQUEST -> TODO()
-                ProtocolDefine.RESERVE_RE_CALL_REQUEST -> TODO()
+                ProtocolDefine.RESERVE_ADD_REQUEST -> onReserveAddRequest(receivedData)
+                ProtocolDefine.RESERVE_UPDATE_REQUEST -> onReserveUpdateRequest(receivedData)
+                ProtocolDefine.RESERVE_CANCEL_REQUEST -> onReserveCancelRequest(receivedData)
+                ProtocolDefine.RESERVE_ARRIVE_REQUEST -> onReserveArriveRequest(receivedData)
+                ProtocolDefine.RESERVE_CALL_REQUEST -> onReserveCallRequest(receivedData)
+                ProtocolDefine.RESERVE_RE_CALL_REQUEST -> onReserveCallRequest(receivedData)
                 ProtocolDefine.UPDATE_INFO_RESPONSE -> onUpdateInfoResponse(receivedData)
                 ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER -> TODO()
                 ProtocolDefine.VIDEO_DOWNLOAD_REQUEST -> TODO()
@@ -318,7 +316,7 @@ class MainActivity : AppCompatActivity() {
             ProtocolDefine.SYSTEM_OFF.value -> onSystemOFF()
             ProtocolDefine.RESTART_REQUEST.value -> onRestartRequest()
             ProtocolDefine.CROWDED_REQUEST.value -> onCrowedRequest()
-            ProtocolDefine.WIN_RESPONSE.value -> onWinResponse()
+            ProtocolDefine.WIN_RESPONSE.value -> onWinResponse(receivedData)
             ProtocolDefine.SUB_SCREEN_RESPONSE.value -> onSubScreenResponse()
             ProtocolDefine.BGM_INFO.value -> onBGMInfo()
             ProtocolDefine.VIDEO_SET.value -> restartIQSDisplayer() // 230905, by HAHU 서버에서 onVideoSet 보낸 의도가 표시기 재시작을 위함인 것임
@@ -408,6 +406,30 @@ class MainActivity : AppCompatActivity() {
         vm.updateReserveList(data)
     }
 
+    private fun onReserveAddRequest(receivedData: BaseReceivePacket) {
+        val data = receivedData as Reserve
+        Log.e( "onReserveListResponse :상담예약 추가 수신 완료...$data")
+        vm.addReserveList(data)
+    }
+
+    private fun onReserveUpdateRequest(receivedData: BaseReceivePacket) {
+        val data = receivedData as Reserve
+        Log.e( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
+        vm.updateReserveList(data)
+    }
+    
+    private fun onReserveCancelRequest(receivedData: BaseReceivePacket) {
+        val data = receivedData as Reserve
+        Log.e( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
+        vm.cancelReserve(data)
+    }
+    
+    private fun onReserveArriveRequest(receivedData: BaseReceivePacket) {
+        val data = receivedData as Reserve
+        Log.e( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
+        vm.arriveReserve(data)
+    }
+
     private fun onMediaListResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as MediaListResponse
         Log.e( "onMediaListResponse : 영상리스트 수신 완료...$data")
@@ -494,11 +516,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onSystemOFF() {
-        Log.i("onSystemOFF : 시스템종료 수신...")
+    private fun onTellerList(receivedData: BaseReceivePacket) {
+        val data = receivedData as TellerListResponse
+        Log.i("onTellerList : 직원정보 수신... (${data})")
 
-        val pb = ProcessBuilder(*arrayOf("su", "-c", "/system/bin/reboot -p"))
-        var process: Process? = null
+        val teller = data.tellerList.find { teller -> teller.displayIP == Const.ConnectionInfo.DISPLAY_IP }
+        vm.tellerInfo = teller
+        vm.winId = teller?.winID ?: 0
+    }
+
+    private fun onSystemOff() {
+        Log.i("onSystemOff : 시스템종료 수신...")
+
+        val pb = ProcessBuilder("su", "-c", "/system/bin/reboot -p")
+        val process: Process?
         try {
             process = pb.start()
             process.waitFor()
@@ -522,8 +553,8 @@ class MainActivity : AppCompatActivity() {
     private fun onRestartRequest() {
         Log.i("onRestartRequest : 시스템재시작 수신...")
 
-        val pb = ProcessBuilder(*arrayOf("su", "-c", "/system/bin/reboot"))
-        var process: Process? = null
+        val pb = ProcessBuilder("su", "-c", "/system/bin/reboot")
+        var process: Process?
         try {
             process = pb.start()
             process.waitFor()
@@ -532,13 +563,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //창구혼잡
-    private fun onCrowedRequest() {
-        Log.i("onCrowedRequest : 창구혼잡 수신... " + ScreenInfo.instance.isCrowded)
+    //창구 대기인수가 혼잡상태 및 해제 상태 발생시 순번발행기에서 전송하는 패킷
+    private fun onCrowedRequest(receivedData: BaseReceivePacket) {
+        val data = receivedData as CrowdedRequest
+        Log.i("onCrowedRequest : 창구혼잡 수신... (${data})")
+        if(vm.winId == data.crowdedWinID) {
+            vm.updateCrowded(data.isCrowded)
+            vm.crowdedMsg = data.crowdedMsg
+        }
     }
-    //창구별 대기자수
-    private fun onWinResponse() {
-        Log.i("onCrowedRequest : 창구혼잡 수신... " + ScreenInfo.instance.isCrowded)
+    //순번발행기에서 창구정보 변경 시 전송하는 패킷
+    private fun onWinResponse(receivedData: BaseReceivePacket) {
+        val data = receivedData as WinResponse
+        Log.i("onWinResponse : 창구정보 수신... (${data})")
+        vm.updateWinInfos(data.winIds, data.winNames, data.waitNums)
     }
 
     //보조표시기
@@ -600,26 +638,21 @@ class MainActivity : AppCompatActivity() {
         Log.i("onTellerRenewRequest : 직원정보갱신 수신...")
     }
 
-    private fun onReserveCallRequest() {
-        val screenInfo = ScreenInfo.instance
+    private fun onReserveCallRequest(receivedData: BaseReceivePacket) {
+        데이터클래스먼저만들어야함
+
+
+        val data = receivedData as Reserve
+        Log.e( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
 
         //Call 이 왔을때 20초 강제 설정
         replaceFragment(Index.FRAGMENT_MAIN, 20000)
 
-        CallSoundManager().play(callNum = screenInfo.reserveCallNum.toInt(),
-            callWinNum = screenInfo.reserveWinNum.toInt(),
+        CallSoundManager().play(callNum = data.reserveNum.toInt(),
+            callWinNum = data.reserveWinID reserveWinNum.toInt(),
             flagVIP = screenInfo.flagVIP == 1)
     }
 
-    private fun onReserveReCallRequest() {
-        val screenInfo = ScreenInfo.instance
-
-        replaceFragment(Index.FRAGMENT_MAIN, 20000)
-
-        CallSoundManager().play(callNum = screenInfo.reserveCallNum.toInt(),
-            callWinNum = screenInfo.reserveWinNum.toInt(),
-            flagVIP = screenInfo.flagVIP == 1)
-    }
 
     private fun uploadLogFileToServer() {
         val logFilePath = Const.Path.DIR_LOG
