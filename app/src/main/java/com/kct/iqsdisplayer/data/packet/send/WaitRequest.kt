@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.data.packet.BaseSendPacket
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
 data class WaitRequest(
-    val winNum: Int = ScreenInfo.instance.winID,
+    val winNum: Int = ScreenInfo.winNum,
     val code: Short = ProtocolDefine.WAIT_REQUEST.value
 ): BaseSendPacket(code) {
     override fun toString(): String {

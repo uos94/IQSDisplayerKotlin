@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.common.Const.CallViewMode
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.util.Log
 
@@ -18,7 +19,6 @@ object FragmentFactory {
         Index.FRAGMENT_MAIN,        //메인
         Index.FRAGMENT_BACKUP_CALL, //백업호출
         Index.FRAGMENT_MOVIE,       //동영상표출
-        Index.FRAGMENT_SUB_SCREEN,  //보조표시기
         Index.FRAGMENT_RECENTCALL   //최근응대고객
     )
 
@@ -30,8 +30,7 @@ object FragmentFactory {
             const val FRAGMENT_MAIN: Int        = FRAGMENT_SETTING + 1
             const val FRAGMENT_BACKUP_CALL: Int = FRAGMENT_MAIN + 1
             const val FRAGMENT_MOVIE: Int       = FRAGMENT_BACKUP_CALL + 1
-            const val FRAGMENT_SUB_SCREEN: Int  = FRAGMENT_MOVIE + 1
-            const val FRAGMENT_RECENTCALL: Int  = FRAGMENT_SUB_SCREEN + 1
+            const val FRAGMENT_RECENTCALL: Int  = FRAGMENT_MOVIE + 1
         }
     }
 
@@ -43,7 +42,6 @@ object FragmentFactory {
     private val fragmentMain        = FragmentMain()
     private val fragmentBackupCall  = FragmentBackupCall()
     private val fragmentMovie       = FragmentMovie()
-    private val fragmentSubScreen   = FragmentSubScreen()
     private val fragmentRecentCall  = FragmentRecentCall()
 
     @Index
@@ -59,7 +57,6 @@ object FragmentFactory {
             Index.FRAGMENT_MAIN         -> fragmentMain
             Index.FRAGMENT_BACKUP_CALL  -> fragmentBackupCall
             Index.FRAGMENT_MOVIE        -> fragmentMovie
-            Index.FRAGMENT_SUB_SCREEN   -> fragmentSubScreen
             Index.FRAGMENT_RECENTCALL   -> fragmentRecentCall
             else -> null
         }
@@ -76,20 +73,19 @@ object FragmentFactory {
         Index.FRAGMENT_MAIN         -> "FragmentMain"
         Index.FRAGMENT_BACKUP_CALL  -> "FragmentBackupCall"
         Index.FRAGMENT_MOVIE        -> "FragmentMovie"
-        Index.FRAGMENT_SUB_SCREEN   -> "FragmentSubScreen"
         Index.FRAGMENT_RECENTCALL   -> "FragmentRecentCall"
         else                        -> "UNKNOWN"
     }
 
     private fun getDelayTime(hardSetDelayTime: Long = 0) : Long{
-        val screenInfo = ScreenInfo.instance
+
         val currentFragmentIndex = getCurrentIndex()
         return if(hardSetDelayTime > 0) hardSetDelayTime else
             when (currentFragmentIndex) {
-                Index.FRAGMENT_MAIN         -> screenInfo.mainDisplayTime
-                Index.FRAGMENT_RECENTCALL   -> screenInfo.subDisplayTime
-                Index.FRAGMENT_MOVIE        -> screenInfo.adDisplayTime
-                else                        -> screenInfo.mainDisplayTime
+                Index.FRAGMENT_MAIN         -> ScreenInfo.playTimeMain
+                Index.FRAGMENT_RECENTCALL   -> ScreenInfo.playTimeSub
+                Index.FRAGMENT_MOVIE        -> ScreenInfo.playTimeMedia
+                else                        -> ScreenInfo.playTimeMain
             }.toLong()
     }
 
@@ -129,18 +125,16 @@ object FragmentFactory {
 
     private val runChangeFragment = object : Runnable {
         override fun run() {
-            val screenInfo = ScreenInfo.instance
+
             val currentFragmentIndex = getCurrentIndex()
 
-            val isAvailableMovie    = screenInfo.adDisplayTime > 0 && screenInfo.adFileList.isNotEmpty()
-            val isAvailableCallList = screenInfo.subDisplayTime > 0 && screenInfo.lastCallList.value?.isNotEmpty() == true
-            val isViewModeMain      = Const.ConnectionInfo.CALLVIEW_MODE == "0"
+            val isViewModeMain      = Const.ConnectionInfo.CALLVIEW_MODE == CallViewMode.MAIN
 
             when(currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
-                    if(isAvailableMovie && isViewModeMain) {
+                    if(ScreenInfo.usePlayMedia && isViewModeMain) {
                         replaceFragment(Index.FRAGMENT_MOVIE)
-                    } else if(isAvailableCallList) {
+                    } else if(ScreenInfo.usePlaySub) {
                         replaceFragment(Index.FRAGMENT_RECENTCALL)
                     } else {
                         Log.d("Not call, No Movie.. always MainFragment")
@@ -150,15 +144,10 @@ object FragmentFactory {
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
                 Index.FRAGMENT_MOVIE        -> { //현재화면 동영상화면
-                    if(isAvailableCallList) {
-                        replaceFragment(Index.FRAGMENT_RECENTCALL)
-                    }
-                    else {
-                        replaceFragment(Index.FRAGMENT_MAIN)
-                    }
+                    if(ScreenInfo.usePlaySub) replaceFragment(Index.FRAGMENT_RECENTCALL)
+                    else replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                else                                        -> { //현재화면 INIT, SETTING, 기타등등
-                    //아무처리 없이 해당 화면에 그대로 있는다.
+                else -> { //현재화면 INIT, SETTING, 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
                     Log.d("ChangeFragment - 현재 화면 : ${getTagName(currentFragmentIndex)}")
                 }
             }

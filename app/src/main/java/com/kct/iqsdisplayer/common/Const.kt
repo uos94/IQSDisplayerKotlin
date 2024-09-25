@@ -200,6 +200,11 @@ object Const {
         SOUND(2)
     }
 
+    enum class CallType {
+        NORMAL_CALL,
+        RESERVE_CALL
+    }
+
     const val OK        = 1
     const val CANCEL    = 0
     const val ERROR     = -1

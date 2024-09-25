@@ -69,11 +69,11 @@ object Log {
 
         fun write(data: String) {
             val nowTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
-            val data = "$nowTime : $data\r"
+            val logLine = "$nowTime : $data"
 
             val buf = BufferedWriter(FileWriter(logFullPath, true))
             try {
-                buf.append(data)
+                buf.append(logLine)
                 buf.newLine()
                 buf.flush()
             } catch (e: IOException) {

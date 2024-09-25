@@ -7,6 +7,7 @@ import org.apache.commons.net.ftp.FTPReply
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+@Deprecated("은행에서 FTP는 이제 사용 안함. 따라서 쓸일은 없을 듯")
 class ConnectFTP {
 
     private val ftpClient = FTPClient().apply {

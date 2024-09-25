@@ -3,38 +3,9 @@
     <style name="Base.Theme.IQSDisplayerKotlin" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-        <!--custom font-family 적용-->
-        <item name="android:textViewStyle">@style/customTextViewFontStyle</item>
-        <item name="android:buttonStyle">@style/customButtonFontStyle</item>
-        <item name="android:editTextStyle">@style/customEditTextFontStyle</item>
-        <item name="android:radioButtonStyle">@style/customRadioButtonFontStyle</item>
-        <item name="android:checkboxStyle">@style/customCheckboxFontStyle</item>
-
     </style>
 
     <style name="Theme.IQSDisplayerKotlin" parent="Base.Theme.IQSDisplayerKotlin" />
-
-
-    <!-- Custom font 적용 -->
-    <style name="customTextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
-        <item name="android:fontFamily">@font/custom_font</item>
-    </style>
-
-    <style name="customButtonFontStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
-        <item name="android:fontFamily">@font/custom_font</item>
-    </style>
-
-    <style name="customEditTextFontStyle" parent="@android:style/Widget.DeviceDefault.EditText">
-        <item name="android:fontFamily">@font/custom_font</item>
-    </style>
-
-    <style name="customRadioButtonFontStyle" parent="@android:style/Widget.DeviceDefault.CompoundButton.RadioButton">
-        <item name="android:fontFamily">@font/custom_font</item>
-    </style>
-
-    <style name="customCheckboxFontStyle" parent="@android:style/Widget.DeviceDefault.CompoundButton.CheckBox">
-        <item name="android:fontFamily">@font/custom_font</item>
-    </style>
 
 
     <style name="CallItemWinNumStyle">
@@ -56,34 +27,4 @@
         <item name="android:textSize">200sp</item>
     </style>
 
-
-    <style name="CallItemWinNumStyle.Large">
-        <item name="android:layout_width">270dp</item>
-        <item name="android:textSize">240sp</item>
-    </style>
-
-    <style name="CallItemCallNumStyle.Large">
-        <item name="android:textSize">260sp</item>
-        <item name="android:paddingStart">100dp</item>
-    </style>
-
-    <style name="CallItemWinNumStyle.Middle">
-        <item name="android:layout_width">220dp</item>
-        <item name="android:textSize">160sp</item>
-    </style>
-
-    <style name="CallItemCallNumStyle.Middle">
-        <item name="android:textSize">200sp</item>
-        <item name="android:paddingStart">50dp</item>
-    </style>
-
-    <style name="CallItemWinNumStyle.Small">
-        <item name="android:layout_width">190dp</item>
-        <item name="android:textSize">140sp</item>
-    </style>
-
-    <style name="CallItemCallNumStyle.Small">
-        <item name="android:textSize">180sp</item>
-        <item name="android:paddingStart">100dp</item>
-    </style>
 </resources>

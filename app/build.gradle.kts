@@ -39,7 +39,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
 
-        manifestPlaceholders["packageName"] = "$applicationId"
+        //manifestPlaceholders["packageName"] = "$applicationId"
     }
 
     buildTypes {

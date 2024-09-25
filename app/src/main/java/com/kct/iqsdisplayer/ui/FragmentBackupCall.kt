@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.R
+import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentBackupCallBinding
 
@@ -37,24 +38,18 @@ class FragmentBackupCall : Fragment() {
     }
 
     private fun setUIData() {
-        binding.ivBackupArrow.setImageResource(
-            if (ScreenInfo.instance.callBkWay == 1) {
-                R.drawable.background_backup_left
-            } else {
-                R.drawable.background_backup_right
+        ScreenInfo.backupCallInfo.observe(viewLifecycleOwner) {
+            binding.tvCallNum.text    = getString(R.string.format_four_digit).format(it.callNum)
+            binding.tvDeskName.text   = it.backupWinName
+            binding.tvDeskNum.text    = it.backupWinNum.toString()
+            if (it.bkWay == Const.Arrow.LEFT) {
+                binding.vArrowLeft.visibility  = View.VISIBLE
+                binding.vArrowRight.visibility = View.GONE
             }
-        )
-
-        binding.tvBackupWinNum.text = ScreenInfo.instance.callWinNum.toString()
-
-        val digitFormat = getString(R.string.format_four_digit)
-        ScreenInfo.instance.callNum.observe(viewLifecycleOwner) {
-            binding.tvBackupCallNum.text  = digitFormat.format(it)
-        }
-
-        //창구ID 같으면 해당ID의 창구명 설정
-        ScreenInfo.instance.winList.find { it.winID == ScreenInfo.instance.ticketWinID }?.let {
-            binding.tvBackupWinName.text = it.winName
+            else {
+                binding.vArrowLeft.visibility  = View.GONE
+                binding.vArrowRight.visibility = View.VISIBLE
+            }
         }
     }
 }

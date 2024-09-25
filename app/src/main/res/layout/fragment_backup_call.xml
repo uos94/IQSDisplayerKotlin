@@ -1,43 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/reservation_list_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/_2383C6">
 
-    <ImageView
-        android:id="@+id/ivBackupArrow"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
+    <View
+        android:id="@+id/vArrowRight"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/arrow_right"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         />
-
+    <View
+        android:id="@+id/vArrowLeft"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/arrow_left"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"
+        />
     <TextView
-        android:id="@+id/tvBackupWinNum"
-        android:layout_marginStart="680dp"
-        android:layout_marginTop="280dp"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
+        android:id="@+id/tvDeskNum"
+        android:layout_width="155dp"
+        android:layout_height="155dp"
+        android:layout_marginStart="516dp"
+        android:layout_marginTop="282dp"
+        android:background="@drawable/rectangle_round_blue3"
+        tools:text="00"
+        android:textColor="@color/white"
+        android:textSize="100sp"
         android:gravity="center"
-        android:background="@drawable/radius20_ff0471e8"
-        android:textColor="@color/FFFFFFFF"
-        android:textSize="68sp" />
-
+        android:fontFamily="@font/custom_font_jalnan"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
     <TextView
-        android:id="@+id/tvBackupWinName"
-        android:layout_marginStart="800dp"
-        android:layout_marginTop="290dp"
+        android:id="@+id/tvDeskName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/FF0471E8"
-        android:gravity="left"
-        android:textSize="86sp" />
-
-    <TextView
-        android:id="@+id/tvBackupCallNum"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textColor="@color/FF000000"
+        android:layout_marginStart="24dp"
+        tools:text="간편상담"
+        android:textColor="@color/_2383C6"
+        android:textSize="116sp"
         android:gravity="center"
-        android:textSize="240dp" />
-
-
-</FrameLayout>
+        android:fontFamily="@font/custom_font_pretendard_b"
+        app:layout_constraintTop_toTopOf="@id/tvDeskNum"
+        app:layout_constraintStart_toEndOf="@id/tvDeskNum"
+        app:layout_constraintBottom_toBottomOf="@id/tvDeskNum"
+        />
+    <TextView
+        android:id="@+id/tvCallNum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="0000"
+        android:textColor="@color/black"
+        android:textSize="330sp"
+        android:gravity="center"
+        android:fontFamily="@font/custom_font_jalnan"
+        app:layout_constraintTop_toBottomOf="@id/tvDeskNum"
+        app:layout_constraintStart_toStartOf="@id/tvDeskNum"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

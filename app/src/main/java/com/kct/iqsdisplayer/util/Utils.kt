@@ -361,11 +361,9 @@ fun installSilent(packageName: String, fileName: String): Int {
     } catch (e: IOException) {
         e.printStackTrace()
         Log.d("Fail Process IOException")
-        result = 2
     } catch (e: Exception) {
         e.printStackTrace()
         Log.d("Fail Process Exception")
-        result = 2
     } finally {
         successResult?.close()
         errorResult?.close()

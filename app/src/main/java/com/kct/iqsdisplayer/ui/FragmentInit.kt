@@ -16,10 +16,8 @@ import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.databinding.FragmentInitBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
-import com.kct.iqsdisplayer.service.IQSComClass
 import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
-import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.getLocalIpAddress
 import com.kct.iqsdisplayer.util.getMacAddress
 import com.kct.iqsdisplayer.util.setPreference
@@ -33,8 +31,6 @@ class FragmentInit : Fragment() {
 
     private var _binding: FragmentInitBinding? = null
     private val binding get() = _binding!!
-
-    private var listener: FragmentResultListener? = null
     private lateinit var checkService: CheckService
     private var mainActivity: MainActivity? = null
     // 서비스 결과 수신 Receiver
@@ -52,23 +48,15 @@ class FragmentInit : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         mainActivity = activity as MainActivity
-        if (context is FragmentResultListener) {
-            listener = context
-        } else {
-            throw RuntimeException("$context must implement FragmentResultListener")
-        }
+
     }
 
     override fun onDetach() {
         super.onDetach()
-        listener = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // 설정 파일 복구
-        restoreSharedPreferencesFiles()
 
         startInit()
     }
@@ -84,7 +72,6 @@ class FragmentInit : Fragment() {
         binding.tvVersionInfo.text = BuildConfig.VERSION_NAME
 
         commResultReceiver.setReceiver(receiver)
-        mainActivity?.startIQSService(commResultReceiver)
 
         checkService = CheckService(mainActivity)
     }
@@ -99,13 +86,11 @@ class FragmentInit : Fragment() {
         when (it.id) {
             R.id.btSetting -> {
                 Log.i("설정버튼 선택")
-                mainActivity?.stopIQSService()
                 timerHandler.removeMessages(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE)
                 replaceFragment(FragmentFactory.Index.FRAGMENT_SETTING)
             }
             R.id.btReboot -> {
                 Log.i("재부팅버튼 선택")
-                mainActivity?.rebootIQSDisplayer()
             }
             R.id.btShutdown -> {
                 Log.i("프로그램종료버튼 선택")
@@ -122,7 +107,6 @@ class FragmentInit : Fragment() {
         val displayerSettingFile = File(Const.Path.DIR_SHARED_PREFS + Const.Name.getPrefDisplayerSettingName())
         if (displayerSettingFile.exists()) {
             context?.let {
-                copyFile(it, displayerSettingFile.absolutePath, Const.Path.DIR_IQS)
             }
         } else {
             Log.i("backupSharedPreferencesFiles : ${Const.Name.PREF_DISPLAYER_SETTING} is not exist.. backup failed")
@@ -132,7 +116,6 @@ class FragmentInit : Fragment() {
         val displayInfoFile = File(Const.Path.DIR_SHARED_PREFS + Const.Name.getPrefDisplayInfoName())
         if (displayInfoFile.exists()) {
             context?.let {
-                copyFile(it, displayInfoFile.absolutePath, Const.Path.DIR_IQS)
             }
         } else {
             Log.i("backupSharedPreferencesFiles : ${Const.Name.PREF_DISPLAY_INFO} is not exist.. backup failed")
@@ -195,7 +178,6 @@ class FragmentInit : Fragment() {
 
                         // 패치 프로그램 설치 부분 임시 주석 처리 *나중에 풀어야 함
                         checkService.isRunning = false
-                        mainActivity?.stopIQSService()
 
                         backupSharedPreferencesFiles()
 
@@ -203,16 +185,12 @@ class FragmentInit : Fragment() {
 
                         installSilent(strPatchFileName)
 
-                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_PATCH)
-                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                     }
                 } else {
                     strResult += "\r\n패치파일 설치안함(서버 버전 <= 패치 파일 버전)"
                     binding.tvInfo.text = strResult
                     bFTPSuccess = false
 
-                    val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
-                    timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                 }
             }
 
@@ -259,8 +237,6 @@ class FragmentInit : Fragment() {
                     binding.tvInfo.text = "$strResult\n사운드파일 다운로드 완료"
 
                     if (bFTPSuccess) {
-                        val message = timerHandler.obtainMessage(Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE, Const.FragmentResult.INIT_NONE_PATCH)
-                        timerHandler.sendMessageDelayed(message, Const.Handle.TIMEOUT_CHANGE_FRAGMENT_TIME) // 엑티비티 전환 타이머 시작
                     } else {
                         binding.pbLoading.visibility = View.INVISIBLE
                         timerHandler.sendEmptyMessageDelayed(
@@ -363,16 +339,12 @@ class FragmentInit : Fragment() {
                 Const.Handle.TIMEOUT_CHANGE_FRAGMENT_MESSAGE -> {
                     Log.i("TimerHandler : 초기화 Fragment 종료 => 메인 액티비티로 전환")
                     checkService.isRunning = false
-                    if(msg.obj != null && msg.obj is Const.FragmentResult) {
-                        listener?.onResult(msg.obj as Const.FragmentResult)
-                    }
                 }
 
                 Const.Handle.RETRY_SERVICE_MESSAGE -> {
                     Log.i("TimerHandler: 서비스 retry")
                     val mainActivity = activity as MainActivity
                     // 서비스 재시작
-                    mainActivity.stopIQSService() // IQSComClass 서비스 중지
                     startInit()
                 }
             }
@@ -389,15 +361,6 @@ class FragmentInit : Fragment() {
 
         override fun run() {
             while (isRunning) {
-                if (mainActivity?.isMyServiceRunning(IQSComClass::class.java) == false) {
-                    Log.i("InitializeFragment : ServiceRestart")
-                    // timerHandler.sendEmptyMessageDelayed(Define.RETRY_SERVICE_MESSAGE, Define.RETRY_SERVICE_TIME) //서비스 retry 타이머 시작
-
-                    Handler(Looper.getMainLooper()).post {
-                        binding.tvInfo.text = "서버 재 접속 중.."
-                    }
-                    mainActivity.startIQSService(commResultReceiver)
-                }
 
                 try {
                     sleep(5000)

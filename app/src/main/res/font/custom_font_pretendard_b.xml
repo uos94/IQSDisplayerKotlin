@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+<font-family
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- FontWeight에 따른 용도
 100    Extra Light or Ultra Light
@@ -14,17 +16,12 @@
     -->
     <!-- API 26 이상 android:fontStyle
          API 26 이하 app:fontStyle -->
-    <font
-        android:fontStyle="normal"
-        android:fontWeight="200"
-        android:font="@font/wooridauml"/>
 
     <font
         android:fontStyle="normal"
-        android:fontWeight="400"
-        android:font="@font/wooridaumr"/>
-    <font
-        android:fontStyle="normal"
         android:fontWeight="700"
-        android:font="@font/wooridaumb"/>
+        android:font="@font/pretendard_bold"
+        app:fontStyle="normal"
+        app:fontWeight="700"
+        app:font="@font/pretendard_bold"/>
 </font-family>

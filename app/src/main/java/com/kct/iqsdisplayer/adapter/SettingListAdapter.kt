@@ -13,10 +13,10 @@ class SettingListAdapter : RecyclerView.Adapter<SettingListAdapter.ViewHolder>()
     // 설정 항목 데이터 (예시)
     private val settingItems = listOf(
         SettingItem("표시기 환경설정", 	"",										 ""),
-        SettingItem("표시기IP", 			"순번표시기(클라이언트)의 IP를 입력해주세요",	 Const.Key.DisplaySetting.DISPLAYER_IP),
-        SettingItem("사운드파일위치", 	"사운드파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_SOUND_FILE),
-        SettingItem("홍보영상파일위치",	"홍보영상파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_VIDEO_FILE),
-        SettingItem("이미지파일위치", 	"이미지파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_IMG_FILE),
+        SettingItem("표시기IP", 			"순번표시기(클라이언트)의 IP를 입력해주세요",	 Const.Key.DisplaySetting.DISPLAY_IP),
+        //SettingItem("사운드파일위치", 	"사운드파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_SOUND_FILE),
+        //SettingItem("홍보영상파일위치",	"홍보영상파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_VIDEO_FILE),
+        //SettingItem("이미지파일위치", 	"이미지파일 위치를 입력해주세요(상대경로)",	 Const.Key.DisplaySetting.PATH_IMG_FILE),
         SettingItem("순번발행기 환경설정", "",										 ""),
         SettingItem("발행기IP", 			"순번발행기(서버)의 IP를 입력해주세요",		 Const.Key.DisplaySetting.IQS_IP),
         SettingItem("발행기PORT", 		"순번발행기(서버)의 PORT를 입력해주세요",		 Const.Key.DisplaySetting.IQS_PORT),

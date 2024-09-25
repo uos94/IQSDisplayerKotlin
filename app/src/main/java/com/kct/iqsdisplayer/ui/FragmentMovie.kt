@@ -82,12 +82,12 @@ class FragmentMovie : Fragment() {
     private fun makeList() {
         list.clear()
 
-        val fileNames = ScreenInfo.instance.adFileList
+        val fileNames = ScreenInfo.mediaFileNameList
         for (fileName in fileNames) {
             if (fileName.isEmpty()) continue
 
             val path = Const.Path.DIR_VIDEO + fileName
-            Log.d("영상 재생 리스트 추가 : $path")
+            Log.d("영상 재생 리스트 파일 : $path")
             list.add(path)
         }
     }
@@ -207,9 +207,7 @@ class FragmentMovie : Fragment() {
 
         resetVideo()
 
-        val screenInfo = ScreenInfo.instance
-        val isAvailableCallList = screenInfo.subDisplayTime > 0 && screenInfo.lastCallList.value?.isNotEmpty() == true
-        if(isAvailableCallList) {
+        if(ScreenInfo.usePlaySub) {
             replaceFragment(Index.FRAGMENT_RECENTCALL)
         }
         else {

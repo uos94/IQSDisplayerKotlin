@@ -129,6 +129,11 @@ class TCPClient(private val host: String, private val port: Int) {
         Log.d("TcpReceiver STARTED...")
         while (scope.isActive) {
             try {
+                // 연결 상태 확인
+                if (socket?.isConnected != true) {
+                    throw SocketException("Socket is disconnected")
+                }
+
                 val packetAnalyzer = PacketAnalyzer(withContext(Dispatchers.IO) {
                     socket?.getInputStream() ?: throw IOException("Socket is not connected")
                 })

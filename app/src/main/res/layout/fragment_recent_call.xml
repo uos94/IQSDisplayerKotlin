@@ -2,69 +2,184 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/called_list_view"
+    android:id="@+id/reservation_list_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/FF0471E8">
+    android:background="@color/_2383C6"
+    android:paddingHorizontal="67dp"
+    android:paddingBottom="62dp">
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="50dp"
-        android:gravity="center"
+        android:layout_height="181dp"
+        android:layout_marginTop="56dp"
+        android:layout_marginStart="18dp"
         android:text="@string/title_recent_call"
-        android:textColor="@color/FFFFFFFF"
-        android:textSize="140sp"
-        app:layout_constraintBottom_toTopOf="@id/glTitle"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/white"
+        android:textSize="152sp"
+        android:gravity="center_vertical"
+        android:fontFamily="@font/custom_font_pretendard_sb"
+        android:includeFontPadding="false"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="@string/title_recent_call" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.2" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glCenter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
-    <include
-        android:id="@+id/clCallItem1"
-        layout="@layout/item_call_middle"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/glCenter"
+        />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clDesk1"
+        android:layout_width="870dp"
+        android:layout_height="746dp"
+        android:paddingHorizontal="48dp"
+        android:background="@drawable/rectangle_round_white1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/glTitle"/>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/outline_left"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <TextView
+            android:id="@+id/tvDeskNum1"
+            android:layout_width="230dp"
+            android:layout_height="230dp"
+            android:background="@drawable/rectangle_round_blue1"
+            android:textColor="@color/white"
+            android:textSize="138sp"
+            android:gravity="center"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="00"
+            />
+        <TextView
+            android:id="@+id/tvCallNum1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="46dp"
+            android:textColor="@color/black"
+            android:textSize="170sp"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="@id/tvDeskNum1"
+            app:layout_constraintBottom_toBottomOf="@id/tvDeskNum1"
+            app:layout_constraintStart_toEndOf="@id/tvDeskNum1"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="0000"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clDesk2"
+        android:layout_width="870dp"
+        android:layout_height="222dp"
+        android:paddingHorizontal="26dp"
+        android:background="@drawable/rectangle_round_white1"
+        app:layout_constraintVertical_chainStyle="spread_inside"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/glCenter"
-        app:layout_constraintTop_toBottomOf="@id/glTitle">
-
-        <include
-            android:id="@+id/clCallItem2"
-            layout="@layout/item_call_small"/>
-        <include
-            android:id="@+id/clCallItem3"
-            layout="@layout/item_call_small"/>
-        <include
-            android:id="@+id/clCallItem4"
-            layout="@layout/item_call_small"/>
-    </LinearLayout>
-
+        app:layout_constraintTop_toTopOf="@id/clDesk1"
+        app:layout_constraintBottom_toTopOf="@id/clDesk3"
+        >
+        <TextView
+            android:id="@+id/tvDeskNum2"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:background="@drawable/rectangle_round_blue1"
+            android:textColor="@color/white"
+            android:textSize="105sp"
+            android:gravity="center"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="00"
+            />
+        <TextView
+            android:id="@+id/tvCallNum2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="55dp"
+            android:textColor="@color/black"
+            android:textSize="140sp"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="@id/tvDeskNum2"
+            app:layout_constraintBottom_toBottomOf="@id/tvDeskNum2"
+            app:layout_constraintStart_toEndOf="@id/tvDeskNum2"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="0000"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clDesk3"
+        android:layout_width="870dp"
+        android:layout_height="222dp"
+        android:paddingHorizontal="26dp"
+        android:background="@drawable/rectangle_round_white1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/clDesk2"
+        app:layout_constraintBottom_toTopOf="@id/clDesk4"
+        >
+        <TextView
+            android:id="@+id/tvDeskNum3"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:background="@drawable/rectangle_round_blue1"
+            android:textColor="@color/white"
+            android:textSize="105sp"
+            android:gravity="center"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="00"
+            />
+        <TextView
+            android:id="@+id/tvCallNum3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="55dp"
+            android:textColor="@color/black"
+            android:textSize="140sp"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="@id/tvDeskNum3"
+            app:layout_constraintBottom_toBottomOf="@id/tvDeskNum3"
+            app:layout_constraintStart_toEndOf="@id/tvDeskNum3"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="0000"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clDesk4"
+        android:layout_width="870dp"
+        android:layout_height="222dp"
+        android:paddingHorizontal="26dp"
+        android:background="@drawable/rectangle_round_white1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/clDesk3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <TextView
+            android:id="@+id/tvDeskNum4"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:background="@drawable/rectangle_round_blue1"
+            android:textColor="@color/white"
+            android:textSize="105sp"
+            android:gravity="center"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="00"
+            />
+        <TextView
+            android:id="@+id/tvCallNum4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="55dp"
+            android:textColor="@color/black"
+            android:textSize="140sp"
+            android:fontFamily="@font/jalnangothic"
+            app:layout_constraintTop_toTopOf="@id/tvDeskNum4"
+            app:layout_constraintBottom_toBottomOf="@id/tvDeskNum4"
+            app:layout_constraintStart_toEndOf="@id/tvDeskNum4"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="0000"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

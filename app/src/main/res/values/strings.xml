@@ -22,12 +22,21 @@
     <string name="msg_system_error">전산장애중</string>
     <string name="msg_network_error">통신복구중</string>
     <string name="msg_vacancy">공 석</string>
+    <string name="waiting_people2">대기인원</string>
 
     <!-- FragmentRecentCall -->
-    <string name="title_recent_call">최근 응대고객님</string>
+    <string name="title_recent_call">최근 응대 고객님</string>
     <!-- FragmentSub -->
     <string name="format_wait_num">%d 명</string>
 
     <!-- FragmentSetting -->
     <string name="msg_alert_setting">"내용을 입력한 후 확인 버튼을 눌러주세요"</string>
+
+    <!-- FragmentMovie -->
+    <string name="recent_call_title">최근응대\n고객님</string>
+    <string name="waiting_people1">대기인수</string>
+
+
+    <!-- 공통 -->
+    <string name="suffix_people">명</string>
 </resources>

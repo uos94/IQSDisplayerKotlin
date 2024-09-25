@@ -15,6 +15,7 @@ import com.kct.iqsdisplayer.data.packet.receive.toWinResponse
 import com.kct.iqsdisplayer.data.toCallRequest
 import com.kct.iqsdisplayer.data.toReserveAddRequest
 import com.kct.iqsdisplayer.data.toReserveArriveRequest
+import com.kct.iqsdisplayer.data.toReserveCallRequest
 import com.kct.iqsdisplayer.data.toReserveCancelRequest
 import com.kct.iqsdisplayer.data.toReserveListResponse
 import com.kct.iqsdisplayer.data.toReserveUpdateRequest
@@ -55,8 +56,8 @@ class PacketAnalyzer(inputStream: InputStream) {
         ProtocolDefine.RESERVE_CANCEL_REQUEST.value to  Packet::toReserveCancelRequest,
         ProtocolDefine.RESERVE_ARRIVE_REQUEST.value to  Packet::toReserveArriveRequest,
         // 예약 호출 요청 패킷은 사용함.
-        ProtocolDefine.RESERVE_CALL_REQUEST.value   to  Packet::toCallRequest,
-        ProtocolDefine.RESERVE_RE_CALL_REQUEST.value to Packet::toCallRequest,
+        ProtocolDefine.RESERVE_CALL_REQUEST.value   to  Packet::toReserveCallRequest,
+        ProtocolDefine.RESERVE_RE_CALL_REQUEST.value to Packet::toReserveCallRequest,
         ProtocolDefine.TELLER_RENEW_REQUEST.value   to  Packet::toTellerRenewRequest,
         ProtocolDefine.UPDATE_INFO_RESPONSE.value   to  Packet::toUpdateInfoResponse
     )

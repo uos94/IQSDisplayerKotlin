@@ -43,16 +43,16 @@ class CallSoundManager {
     }
 
     private fun setVolume() {
-        val volume = ScreenInfo.instance.volumeInfo.toIntOrNull() ?: 1
+        val volume = ScreenInfo.volumeLevel
         val fVolumeRate = 1 - ((ln((10 - volume).toDouble()) / ln(10.0)).toFloat())
         mp.setVolume(fVolumeRate, fVolumeRate) //볼륨 설정
     }
 
     private fun makePlayList(callNum:Int, callWinNum:Int, isVIP:Boolean = false) {
 
-        val repeatCount = ScreenInfo.instance.callInfo.toIntOrNull() ?: 1  //호출 반복횟수
-        val bellFileName = ScreenInfo.instance.bellInfo
-        val ment = ScreenInfo.instance.ment
+        val repeatCount = ScreenInfo.callRepeatCount  //호출 반복횟수
+        val bellFileName = ScreenInfo.bellFileName
+        val ment = ScreenInfo.callMent
 
         for (i in 0 until repeatCount) {
             //1. 띵동 벨소리
@@ -88,34 +88,5 @@ class CallSoundManager {
                 }
             }
         }
-    }
-
-    fun playVolumeTest() {
-
-        val repeatCount = ScreenInfo.instance.callInfo.toIntOrNull() ?: 1  //호출 반복횟수
-        val bellFileName = ScreenInfo.instance.bellInfo
-
-        for (i in 0 until repeatCount) {
-            //1. 띵동 벨소리
-            if(bellFileName.isNotEmpty()) {
-                listCallSound.add(Const.Path.DIR_SOUND+bellFileName)
-            }
-
-            //2.창구 번호
-            val strTmp = "W%04d.wav".format(ScreenInfo.instance.winNum)
-            listCallSound.add(Const.Path.DIR_SOUND + strTmp)
-
-            //3.안내 멘트 (0:창구로 오십시오 / 1:창구로 모시겠습니다 2:창구에서 도와드리겠습니다.)
-            when (ScreenInfo.instance.testVolume.infoSound) {
-                0 -> listCallSound.add(Const.Path.DIR_SOUND + "1025.wav")
-                1 -> listCallSound.add(Const.Path.DIR_SOUND + "1054.wav")
-                2 -> listCallSound.add(Const.Path.DIR_SOUND + "1055.wav")
-            }
-        }
-
-        val volumeSize = ScreenInfo.instance.testVolume.volumeSize
-        val fVolumeRate = 1 - ((ln((10 - volumeSize).toDouble()) / ln(10.0)).toFloat())
-        mp.setVolume(fVolumeRate, fVolumeRate) //볼륨 설정
-        playNextSound()
     }
 }

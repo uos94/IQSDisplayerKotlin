@@ -17,7 +17,6 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MediatorLiveData
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
@@ -58,52 +57,54 @@ class FragmentMain : Fragment() {
 
 
     private fun setUIData() {
-        val screenInfo = ScreenInfo.instance
+        binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
+        binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
 
-        binding.tvWinNum.text       = screenInfo.winNum.toString()
-        binding.tvWinName.text      = screenInfo.winName
+        binding.ivTellerImg.setTellerImage()
+        binding.tvTellerName.text   = ScreenInfo.tellerInfo.tellerName
 
-        binding.ivTellerImage.setTellerImage()
-        binding.tvTellerName.text   = screenInfo.tellerName
-
-        screenInfo.waitNum.observe(viewLifecycleOwner) {
-            binding.tvWaitNum.text  = it.toString()
+        ScreenInfo.waitNum.observe(viewLifecycleOwner) {
+            binding.tvWaitingNum.text  = it.toString()
         }
 
-        //기존코드에서는 서비스가 돌고 있지 않으면 통신복구중을 표시하였는데 아직 구현하지 못했음.
         val liveInfoData = MediatorLiveData<String>()
-        liveInfoData.addSource(screenInfo.isCrowded) { updateInfoText(liveInfoData) }
-        liveInfoData.addSource(screenInfo.systemError) { updateInfoText(liveInfoData) }
-        liveInfoData.addSource(screenInfo.tellerMent) { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(ScreenInfo.isTcpConnected)        { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(ScreenInfo.isPausedByServerError) { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(ScreenInfo.isCrowded)             { updateInfoText(liveInfoData) }
+        liveInfoData.addSource(ScreenInfo.tellerMent)            { updateInfoText(liveInfoData) }
         liveInfoData.observe(viewLifecycleOwner) { newInfoMessage -> setInfoText(newInfoMessage)}
 
         val liveCallNumData = MediatorLiveData<String>()
-        liveCallNumData.addSource(screenInfo.callNum) { updateCallNumText(liveCallNumData) }
-        liveCallNumData.addSource(screenInfo.systemError) { updateCallNumText(liveCallNumData) }
-        liveCallNumData.addSource(screenInfo.pjt) { updateCallNumText(liveCallNumData) }
-        liveCallNumData.addSource(screenInfo.flagEmpty) { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.normalCallInfo)        { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.isPausedWork)          { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.isStopWork)            { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.isTcpConnected)        { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.isPausedByServerError) { updateCallNumText(liveCallNumData) }
         liveCallNumData.observe(viewLifecycleOwner) { callNumText -> setCallNumberText(callNumText) }
     }
 
+    //우선순위 1.부재중 2.창구혼잡메세지 3.TellerMent, 부재메세지는 CallNum에 크게 띄움.
     private fun updateInfoText(liveInfoData: MediatorLiveData<String>) {
-        val screenInfo = ScreenInfo.instance
+        
         val newInfoMessage = when {
-            screenInfo.systemError.value == 1 -> getString(R.string.msg_system_error)
-            screenInfo.isCrowded.value == true-> screenInfo.crowdedMsg
-            else -> screenInfo.tellerMent.value
+            ScreenInfo.isTcpConnected.value == true        -> getString(R.string.msg_system_error)
+            ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
+            ScreenInfo.isCrowded.value == true             -> ScreenInfo.crowdedMsg
+            else -> ScreenInfo.tellerMent.value
         }
         liveInfoData.value = newInfoMessage
     }
 
-    // liveData 값 업데이트 함수
+    //우선순위 1.공석, 2.부재중, 3.호출번호
     private fun updateCallNumText(liveCallNumData: MediatorLiveData<String>) {
-        val screenInfo = ScreenInfo.instance
-        val emptyMsg = screenInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
+
+        val emptyMsg = ScreenInfo.tellerInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
         val callNumText = when {
-            screenInfo.systemError.value == 1 -> getString(R.string.msg_system_error)
-            screenInfo.pjt.value == 1         -> getString(R.string.msg_vacancy)
-            screenInfo.flagEmpty.value == 1   -> emptyMsg
-            else -> "%02d".format(screenInfo.callNum.value)
+            ScreenInfo.isStopWork.value == true            -> getString(R.string.msg_vacancy)
+            ScreenInfo.isTcpConnected.value == true        -> getString(R.string.msg_system_error)
+            ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
+            ScreenInfo.isPausedWork.value == true          -> emptyMsg
+            else -> "%02d".format(ScreenInfo.normalCallInfo.value?.callNum)
         }
         liveCallNumData.value = callNumText
     }
@@ -118,7 +119,8 @@ class FragmentMain : Fragment() {
             binding.tvInfo.gravity = Gravity.START
         }
     }
-
+    
+    //TODO : UI가 변경되어 setMarqueeAnimation하면안됨, AS-IS참고할 것
     private fun setInfoText(text: String) {
         binding.tvInfo.text = text
         val isErrorMessage = text == getString(R.string.msg_network_error) ||
@@ -161,13 +163,12 @@ class FragmentMain : Fragment() {
 
     //this.text = getString(R.string.format_four_digit).format(Locale.getDefault(), callNumber)
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfo.instance.imgName
+        val tellerImageFileName = ScreenInfo.tellerInfo.tellerImg
         val serverIp = Const.ConnectionInfo.IQS_IP
 
         Glide.with(requireContext())
             .load("http://$serverIp/image/staff/$tellerImageFileName")
             .fitCenter()
-            .transform(RoundedCorners(25))
             .error("${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}")
             .into(this)
     }

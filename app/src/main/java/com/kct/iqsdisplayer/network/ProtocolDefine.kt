@@ -141,12 +141,12 @@ enum class ProtocolDefine(val value: Short) {
 
     // 2022-08-24 written by kshong
     // FTP로 로그 파일을 업로드 하던것을 TCP로 업로드를 수행하기 위한 프로토콜 ID
-    /** 0x0037, 통신패킷정의서에 없음 */
+    /** 0x0037, 통신패킷정의서에 없음,  (표시기 -> IQS)*/
     UPLOAD_LOG_FILE_TO_SERVER(0x0037.toShort()),
-    /** 0x0038, 통신패킷정의서에 없음 */
+    /** 0x0038, 통신패킷정의서에 없음, 안쓰는 것으로 보임 (표시기 -> IQS) */
     VIDEO_DOWNLOAD_REQUEST(0x0038.toShort()),
-    /** 0x0039, 통신패킷정의서에 없음 */
-    VIDEO_DOWNLOAD_RESPONSE(0x0039.toShort()),
+    /** 0x0039, 통신패킷정의서에 없음, 안쓰는 것으로 보임 */
+    //VIDEO_DOWNLOAD_RESPONSE(0x0039.toShort()),
 
     // 접속시 FTP 다운로드 상태 리턴 받는 프로토콜
     /** 0x00F1, 패치파일 다운로드 시작, 통신패킷정의서에 없음 */
@@ -169,8 +169,8 @@ enum class ProtocolDefine(val value: Short) {
     // TCP Socket Excpetion 시 액티비티로 전달 하는 프로토콜
     /** 0x00F9, TCP 연결 소실 시 전달 */
     SERVICE_RETRY(0x00F9.toShort()),
-    /** 0x00FA, 접속 승인 요청 중 단말기 IP 또는 Mac 주소를 받아오지 못하였을 경우 */
-    NO_IP_RETRY(0x00FA.toShort()),
+    /** 0x00FA, 접속 승인 요청 중 단말기 IP 또는 Mac 주소를 받아오지 못하였을 경우, 이것도 안쓰는것으로 보인다. */
+    //NO_IP_RETRY(0x00FA.toShort()),
 
     // 추가 패킷
     /** 0x402C, 직원 정보 갱신 요청 */

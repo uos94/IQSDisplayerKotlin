@@ -14,7 +14,7 @@ data class Reserve(
     var reserveNum: Int = 0,        // 3.예약 번호
     /** 예약 시간 HH:MM:SS */
     var reserveTime: String = "",   // 4.예약 시간
-    var customerNum: Int = 0,       // 5.고객 번호
+    var customerNum: String = "",   // 5.고객 번호
     var customerName: String = "",  // 6.고객 명
     var customerTel: String = "",   // 7.고객 연락처
     var customerGrade: Int = 10,    // 8.고객 등급[1:premier, 2:ace, 3:best, 4:classic, 9:일반], 임의 고객등급이 없을경우 10 리턴
@@ -54,7 +54,7 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve {
     if(size > 4) result.tellerNum       = this[4].toIntOrNull() ?: 0
     if(size > 5) result.tellerName      = this[5]
     if(size > 6) result.tellerJob       = this[6]
-    if(size > 7) result.customerNum     = this[7].toIntOrNull() ?: 0
+    if(size > 7) result.customerNum     = this[7]
     if(size > 8) result.customerName    = this[8]
     if(size > 9) result.customerTel     = this[9]
     if(size > 10) result.customerGrade  = this[10].toIntOrNull() ?: 10
@@ -75,7 +75,7 @@ fun Packet.toReserveAddRequest(): Reserve {
 }
 
 fun Packet.toReserveUpdateRequest(): Reserve {
-    //TODO : 패킷정의서에는 없는 데이터 인데. AS-IS보면 실제로 뭔가 넘어온다. 변수명도 mul 그대로 가져옴.
+    //TODO : 패킷정의서에는 없는 데이터 인데. AS-IS보면 실제로 뭔가 넘어온다. 변수명도 mul 그대로 가져옴. 사용하지 않지만 버퍼를 소모시켜줘야한다.
     val mul = integer
     val splitData = string.splitData("#")
 

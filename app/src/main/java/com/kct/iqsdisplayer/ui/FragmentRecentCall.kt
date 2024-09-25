@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentRecentCallBinding
-import com.kct.iqsdisplayer.databinding.ItemCallMiddleBinding
-import com.kct.iqsdisplayer.databinding.ItemCallSmallBinding
 
 class FragmentRecentCall : Fragment() {
 
@@ -37,39 +37,36 @@ class FragmentRecentCall : Fragment() {
     }
 
     private fun setUIData() {
-        val callItemBindings = arrayOf(
-            ItemCallMiddleBinding.bind(binding.clCallItem1.root),
-            ItemCallSmallBinding.bind(binding.clCallItem2.root),
-            ItemCallSmallBinding.bind(binding.clCallItem3.root),
-            ItemCallSmallBinding.bind(binding.clCallItem4.root))
+        val callItems = arrayOf(
+            RecentCallItem(binding.clDesk1, binding.tvDeskNum1, binding.tvCallNum1),
+            RecentCallItem(binding.clDesk2, binding.tvDeskNum2, binding.tvCallNum2),
+            RecentCallItem(binding.clDesk3, binding.tvDeskNum3, binding.tvCallNum3),
+            RecentCallItem(binding.clDesk4, binding.tvDeskNum4, binding.tvCallNum4)
+        )
 
-        ScreenInfo.instance.lastCallList.observe(viewLifecycleOwner) { lastCallList ->
+        ScreenInfo.lastCallList.observe(viewLifecycleOwner) { lastCallList ->
             // lastCallList 의 마지막 4개를 가져옴
             val recentCalls = lastCallList.takeLast(4)
 
             val digitFormat = getString(R.string.format_four_digit)
-            callItemBindings.forEachIndexed { index, itemBinding ->
-                if (index < recentCalls.size) {
-                    val lastCall = recentCalls[index]
-                    when(itemBinding) {
-                        is ItemCallMiddleBinding -> {
-                            itemBinding.tvWinNum.text = if(lastCall.callWinNum <= 0) "" else lastCall.callWinNum.toString()
-                            itemBinding.tvCallNum.text = if(lastCall.callNum <= 0) "" else digitFormat.format(lastCall.callNum)
-                        }
-                        is ItemCallSmallBinding -> {
-                            itemBinding.tvWinNum.text = if(lastCall.callWinNum <= 0) "" else lastCall.callWinNum.toString()
-                            itemBinding.tvCallNum.text = if(lastCall.callNum <= 0) "" else digitFormat.format(lastCall.callNum)
-                        }
-                    }
-                    itemBinding.root.visibility = View.VISIBLE
-                } else {
-                    itemBinding.root.visibility = View.INVISIBLE
-                }
+
+            // recentCalls를 역순으로 순회하며 callItems에 적용
+            recentCalls.reversed().forEachIndexed { index, lastCall ->
+                val item = callItems[index]
+                item.viewGroup.visibility = View.VISIBLE
+                item.tvWinNum.text = if(lastCall.callWinNum <= 0) "" else lastCall.callWinNum.toString()
+                item.tvCallNum.text = if(lastCall.callNum <= 0) "" else digitFormat.format(lastCall.callNum)
+            }
+
+            // 나머지 callItems는 숨김 처리
+            for (index in recentCalls.size until callItems.size) {
+                callItems[index].viewGroup.visibility = View.INVISIBLE
             }
         }
     }
 
-    enum class CallItemIndex {
-        ITEM_1, ITEM_2, ITEM_3, ITEM_4
-    }
+    inner class RecentCallItem(
+        val viewGroup: ConstraintLayout, val tvWinNum: TextView, val tvCallNum: TextView
+    )
+
 }
