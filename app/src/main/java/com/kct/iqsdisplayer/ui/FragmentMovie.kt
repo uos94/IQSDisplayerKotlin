@@ -15,6 +15,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
+import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentMovieBinding
@@ -43,13 +44,25 @@ class FragmentMovie : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMovieBinding.inflate(inflater, container, false)
+
+        val surfaceHolder: SurfaceHolder = binding.sfVideo.holder
+        surfaceHolder.addCallback(sfCallback)
+
+        setUI()
+
+        initVideo()
+
+        makeList()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val surfaceHolder: SurfaceHolder = binding.sfVideo.holder
-        surfaceHolder.addCallback(sfCallback)
+    }
+
+    private fun setUI() {
+        binding.tvWinNum.text = ScreenInfo.winNum.toString()
     }
 
     override fun onPause() {
@@ -63,10 +76,6 @@ class FragmentMovie : Fragment() {
     private val sfCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
             mp.setDisplay(holder)
-
-            initVideo()
-
-            makeList()
 
             playMedia()
         }
@@ -112,6 +121,8 @@ class FragmentMovie : Fragment() {
      * OnCompleteListener 가 아닌 수동으로 멈출 때 호출 됨
      */
     private fun stopMedia() {
+        if (list.isEmpty()) return
+
         val currentContentPath = list[currentIndex]
         val isImage = isImage(currentContentPath)
         if(isImage) {
@@ -208,7 +219,7 @@ class FragmentMovie : Fragment() {
         resetVideo()
 
         if(ScreenInfo.usePlaySub) {
-            replaceFragment(Index.FRAGMENT_RECENTCALL)
+            replaceFragment(Index.FRAGMENT_RECENT_CALL)
         }
         else {
             replaceFragment(Index.FRAGMENT_MAIN)

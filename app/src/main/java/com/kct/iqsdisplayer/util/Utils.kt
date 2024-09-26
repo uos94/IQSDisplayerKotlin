@@ -26,6 +26,9 @@ import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.SocketException
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 fun AppCompatActivity.setFullScreen() {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -323,6 +326,12 @@ fun <T> String?.splitToArrayList(delimiter: String, transform: (String) -> T): A
     return resultList
 }
 
+fun getCurrentTimeFormatted(): String {
+    val currentTime = Date()
+    val dateFormat = SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.getDefault())
+    return dateFormat.format(currentTime)
+}
+
 //TODO : 나중에 시간되면 명령어 날리고 반환값 확인하는 class로 따로 빼야함.
 // 업체 패치 파일 업데이트 함수 AS-IS코드 적용
 fun installSilent(packageName: String, fileName: String): Int {
@@ -343,7 +352,6 @@ fun installSilent(packageName: String, fileName: String): Int {
     var errorResult: BufferedReader? = null
     val successMsg = StringBuilder()
     val errorMsg = StringBuilder()
-    var result: Int
 
     try {
         process = processBuilder.start()
@@ -370,7 +378,7 @@ fun installSilent(packageName: String, fileName: String): Int {
         process?.destroy()
     }
 
-    result = if (successMsg.toString().contains("Success") || successMsg.toString().contains("success")) {
+    val result: Int = if (successMsg.toString().contains("Success") || successMsg.toString().contains("success")) {
         0
     } else {
         2

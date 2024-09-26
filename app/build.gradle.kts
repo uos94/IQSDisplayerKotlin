@@ -68,6 +68,8 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx) // ViewModelScope를 사용하기 위한 의존성
+    implementation(libs.androidx.lifecycle.livedata.ktx) // asLiveData를 사용하기 위한 의존성
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)

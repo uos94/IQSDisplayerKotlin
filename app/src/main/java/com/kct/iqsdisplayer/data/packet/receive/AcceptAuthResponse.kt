@@ -41,7 +41,26 @@ data class AcceptAuthResponse(
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.ACCEPT_AUTH_RESPONSE
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "AcceptAuthResponse(winNum=$winNum, winIdList='$winIdList', winNameList='$winNameList', tellerInfo='$tellerInfo', mediaInfo='$mediaInfo', volumeLevel='$volumeLevel', waitingNumList='$waitingNumList', serverTime=$serverTime, displaySettingInfo='$displaySettingInfo', deleteMovieInfo='$deleteMovieInfo', bellFileName='$bellFileName', callRepeatCount='$callRepeatCount', callMentNum='$callMentNum', pausedWork='$pausedWork', notWork='$stopWork', protocolDefine=$protocolDefine)"
+        return """
+        AcceptAuthResponse(
+            winNum=$winNum,
+            winIdList='$winIdList',
+            winNameList='$winNameList',
+            tellerInfo='$tellerInfo',
+            mediaInfo='$mediaInfo',
+            volumeLevel='$volumeLevel',
+            waitingNumList='$waitingNumList',
+            serverTime=$serverTime,
+            displaySettingInfo='$displaySettingInfo',
+            deleteMovieInfo='$deleteMovieInfo',
+            bellFileName='$bellFileName',
+            callRepeatCount='$callRepeatCount',
+            callMentNum='$callMentNum',
+            pausedWork='$pausedWork',
+            notWork='$stopWork',
+            protocolDefine=$protocolDefine
+        )
+    """ // trimIndent()를 사용하여 불필요한 들여쓰기 제거
     }
 }
 

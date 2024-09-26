@@ -19,28 +19,26 @@ import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.splitData
 
 object ScreenInfo {
-
     /**혼잡여부(0x0015)패킷에서 windId를 사용한다. windId는 직원정보 설정(0x000D)에서 내려온다.*/
-    var winId: Int = 0
-
+    var winId: Int      = 0
     /** 표시기의 창구 번호 */
-    var winNum = 0
-    var listWinInfos = ArrayList<WinInfo>()
+    var winNum          = 0
+    var listWinInfos    = ArrayList<WinInfo>()
     lateinit var tellerInfo: Teller
-    var playTimeMain = 0
-    var usePlaySub = false
-    var playTimeSub = 0
-    var usePlayMedia = false
-    var playTimeMedia = 0
+    var playTimeMain    = 10000    //기본값 10초로 설정
+    var usePlaySub      = false
+    var playTimeRecent  = 10000
+    var usePlayMedia    = false
+    var playTimeMedia   = 10000
     var mediaFileNameList = ArrayList<String>()
-    var volumeLevel = 1                     // 1~10까지의 볼륨값
-    var serverTime = 0
-    var isShowWaiting = false
-    var workingMessage = ""
-    var deleteMovieInfo = ""                //사용 안하는 것으로 예상된다.
-    var bellFileName = ""                   //호출 시 벨소리 파일명
-    var callRepeatCount = 0                 //호출 시 반복 출력 횟수
-    var callMent = ""                       //호출안내멘트
+    var volumeLevel     = 1         // 1~10까지의 볼륨값
+    var serverTime      = 0
+    var isShowWaiting   = false
+    var workingMessage  = ""
+    var deleteMovieInfo = ""        //사용 안하는 것으로 예상된다.
+    var bellFileName    = ""        //호출 시 벨소리 파일명
+    var callRepeatCount = 0         //호출 시 반복 출력 횟수
+    var callMent        = ""        //호출안내멘트
 
     private val _isTcpConnected        = MutableLiveData(false) // 공석 여부
     private val _isStopWork            = MutableLiveData(false) // 공석 여부
@@ -48,7 +46,7 @@ object ScreenInfo {
     private val _isPausedByServerError = MutableLiveData(false) // 부재 ,전산장애
 
     /** HISON 신규추가, 네트웤 끊김 감지. */
-    val isTcpConnected:        LiveData<Boolean> get() = _isTcpConnected        //네트워크 연결 끊김
+    val isTcpConnected:        LiveData<Boolean> get() = _isTcpConnected        //네트워크 연결 상태
     val isStopWork:            LiveData<Boolean> get() = _isStopWork            //공석여부
     val isPausedWork:          LiveData<Boolean> get() = _isPausedWork          //부재여부, 접속승인때 넘어옴, isPausedByServerError와 따로 넘어옴
     val isPausedByServerError: LiveData<Boolean> get() = _isPausedByServerError //전산장애여부, 접속승인때 넘어옴
@@ -99,26 +97,6 @@ object ScreenInfo {
         _reserveCallInfo.postValue(newCall)
     }
 
-    /*    private val _sharedData = MutableLiveData<String>()
-        val sharedData: LiveData<String> = _sharedData
-
-        fun updateSharedData(newData: String) {
-            _sharedData.value = newData
-        }
-
-        private val _winWaitMap = MutableLiveData<HashMap<Int, WinInfo>>()
-        val winWaitMap: LiveData<HashMap<Int, WinInfo>> = _winWaitMap
-
-        init {
-            _winWaitMap.value = HashMap<Int, WinInfo>()
-        }
-
-        fun updateWinInfo(winWait: WinInfo) {
-            val updatedMap = _winWaitMap.value?.clone() as HashMap<Int, WinInfo>
-            updatedMap[winWait.winID] = winWait
-            _winWaitMap.value = updatedMap
-        }*/
-
     /** AcceptAuthResponse를 받았을 때 기본적인 정보는 거의 다 내려온다.
      * 데이터가 많아서 여기서 한번 더 가공한다.*/
     fun updateDefaultInfo(data: AcceptAuthResponse) {
@@ -133,7 +111,7 @@ object ScreenInfo {
             when (index) {
                 0 -> playTimeMain   = value.toInt()
                 1 -> usePlaySub     = value == "1"
-                2 -> playTimeSub    = value.toInt()
+                2 -> playTimeRecent    = value.toInt()
                 3 -> usePlayMedia   = value == "1"
                 4 -> playTimeMedia  = value.toInt()
                 5 -> mediaFileNameList.apply { clear(); addAll(value.splitData(";")) }
@@ -229,4 +207,7 @@ object ScreenInfo {
     fun setSocketConnected(isConnected: Boolean) {
         _isTcpConnected.postValue(isConnected)
     }
+
+
+
 }

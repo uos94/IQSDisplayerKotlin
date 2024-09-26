@@ -14,30 +14,30 @@ import com.kct.iqsdisplayer.util.Log
 object FragmentFactory {
     @IntDef(
         Index.NONE,                 //최초실행 아직 Fragment없음
-        Index.FRAGMENT_INIT,        //init, TCP접속과정 및 업데이트 설치를 표시하는 용도 UI
+        Index.FRAGMENT_READY,     //init, TCP접속과정 및 업데이트 설치를 표시하는 용도 UI
         Index.FRAGMENT_SETTING,     //setting
         Index.FRAGMENT_MAIN,        //메인
         Index.FRAGMENT_BACKUP_CALL, //백업호출
         Index.FRAGMENT_MOVIE,       //동영상표출
-        Index.FRAGMENT_RECENTCALL   //최근응대고객
+        Index.FRAGMENT_RECENT_CALL   //최근응대고객
     )
 
     annotation class Index {
         companion object {
             const val NONE: Int                 = 0
-            const val FRAGMENT_INIT: Int        = NONE + 1
-            const val FRAGMENT_SETTING: Int     = FRAGMENT_INIT + 1
+            const val FRAGMENT_READY: Int       = NONE + 1
+            const val FRAGMENT_SETTING: Int     = FRAGMENT_READY + 1
             const val FRAGMENT_MAIN: Int        = FRAGMENT_SETTING + 1
             const val FRAGMENT_BACKUP_CALL: Int = FRAGMENT_MAIN + 1
             const val FRAGMENT_MOVIE: Int       = FRAGMENT_BACKUP_CALL + 1
-            const val FRAGMENT_RECENTCALL: Int  = FRAGMENT_MOVIE + 1
+            const val FRAGMENT_RECENT_CALL: Int = FRAGMENT_MOVIE + 1
         }
     }
 
     private lateinit var activity: AppCompatActivity
     private var currentIndex = Index.NONE
 
-    private val fragmentInit        = FragmentInit()
+    private val fragmentReady       = FragmentReady()
     private val fragmentSetting     = FragmentSetting()
     private val fragmentMain        = FragmentMain()
     private val fragmentBackupCall  = FragmentBackupCall()
@@ -52,12 +52,12 @@ object FragmentFactory {
     private fun getFragment(@Index index: Int): Fragment? {
 
         return when (index) {
-            Index.FRAGMENT_INIT         -> fragmentInit
+            Index.FRAGMENT_READY        -> fragmentReady
             Index.FRAGMENT_SETTING      -> fragmentSetting
             Index.FRAGMENT_MAIN         -> fragmentMain
             Index.FRAGMENT_BACKUP_CALL  -> fragmentBackupCall
             Index.FRAGMENT_MOVIE        -> fragmentMovie
-            Index.FRAGMENT_RECENTCALL   -> fragmentRecentCall
+            Index.FRAGMENT_RECENT_CALL  -> fragmentRecentCall
             else -> null
         }
     }
@@ -68,12 +68,12 @@ object FragmentFactory {
 
     fun getTagName(@Index index: Int) = when (index) {
         Index.NONE                  -> "NONE"
-        Index.FRAGMENT_INIT         -> "FragmentInit"
+        Index.FRAGMENT_READY        -> "FragmentReady"
         Index.FRAGMENT_SETTING      -> "FragmentSetting"
         Index.FRAGMENT_MAIN         -> "FragmentMain"
         Index.FRAGMENT_BACKUP_CALL  -> "FragmentBackupCall"
         Index.FRAGMENT_MOVIE        -> "FragmentMovie"
-        Index.FRAGMENT_RECENTCALL   -> "FragmentRecentCall"
+        Index.FRAGMENT_RECENT_CALL  -> "FragmentRecentCall"
         else                        -> "UNKNOWN"
     }
 
@@ -83,7 +83,7 @@ object FragmentFactory {
         return if(hardSetDelayTime > 0) hardSetDelayTime else
             when (currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> ScreenInfo.playTimeMain
-                Index.FRAGMENT_RECENTCALL   -> ScreenInfo.playTimeSub
+                Index.FRAGMENT_RECENT_CALL  -> ScreenInfo.playTimeRecent
                 Index.FRAGMENT_MOVIE        -> ScreenInfo.playTimeMedia
                 else                        -> ScreenInfo.playTimeMain
             }.toLong()
@@ -98,7 +98,7 @@ object FragmentFactory {
 
         currentIndex = targetIndex
 
-        val tagName = getTagName(targetIndex)
+        val tagName  = getTagName(targetIndex)
         val fragment = getFragment(targetIndex)
         fragment ?: run {
             Log.w("getFragment returned null for index $targetIndex. Skipping fragment replacement.")
@@ -125,30 +125,31 @@ object FragmentFactory {
 
     private val runChangeFragment = object : Runnable {
         override fun run() {
-
             val currentFragmentIndex = getCurrentIndex()
 
             val isViewModeMain      = Const.ConnectionInfo.CALLVIEW_MODE == CallViewMode.MAIN
-
+            val isAvailableMovie    = ScreenInfo.usePlayMedia && ScreenInfo.mediaFileNameList.size > 0
+            val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
             when(currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
                     if(ScreenInfo.usePlayMedia && isViewModeMain) {
                         replaceFragment(Index.FRAGMENT_MOVIE)
-                    } else if(ScreenInfo.usePlaySub) {
-                        replaceFragment(Index.FRAGMENT_RECENTCALL)
+                    } else if(isAvailableMovie) {
+                        replaceFragment(Index.FRAGMENT_RECENT_CALL)
                     } else {
                         Log.d("Not call, No Movie.. always MainFragment")
                     }
                 }
-                Index.FRAGMENT_RECENTCALL   -> { //현재화면 최근응대고객 화면
+                Index.FRAGMENT_RECENT_CALL   -> { //현재화면 최근응대고객 화면
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
                 Index.FRAGMENT_MOVIE        -> { //현재화면 동영상화면
-                    if(ScreenInfo.usePlaySub) replaceFragment(Index.FRAGMENT_RECENTCALL)
+                    if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
                     else replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                else -> { //현재화면 INIT, SETTING, 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
+                else -> { //현재화면 READY, SETTING, 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
                     Log.d("ChangeFragment - 현재 화면 : ${getTagName(currentFragmentIndex)}")
+                    return
                 }
             }
 

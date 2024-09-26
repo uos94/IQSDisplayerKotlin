@@ -85,9 +85,9 @@ class FragmentMain : Fragment() {
 
     //우선순위 1.부재중 2.창구혼잡메세지 3.TellerMent, 부재메세지는 CallNum에 크게 띄움.
     private fun updateInfoText(liveInfoData: MediatorLiveData<String>) {
-        
+        Log.d("updateInfoText isTcpConnected:${ScreenInfo.isTcpConnected.value} isPausedByServerError:${ScreenInfo.isPausedByServerError.value} isCrowded:${ScreenInfo.isCrowded.value}")
         val newInfoMessage = when {
-            ScreenInfo.isTcpConnected.value == true        -> getString(R.string.msg_system_error)
+            ScreenInfo.isTcpConnected.value == false       -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
             ScreenInfo.isCrowded.value == true             -> ScreenInfo.crowdedMsg
             else -> ScreenInfo.tellerMent.value
@@ -101,10 +101,10 @@ class FragmentMain : Fragment() {
         val emptyMsg = ScreenInfo.tellerInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
         val callNumText = when {
             ScreenInfo.isStopWork.value == true            -> getString(R.string.msg_vacancy)
-            ScreenInfo.isTcpConnected.value == true        -> getString(R.string.msg_system_error)
+            ScreenInfo.isTcpConnected.value == false       -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedWork.value == true          -> emptyMsg
-            else -> "%02d".format(ScreenInfo.normalCallInfo.value?.callNum)
+            else -> getString(R.string.format_four_digit).format(ScreenInfo.normalCallInfo.value?.callNum)
         }
         liveCallNumData.value = callNumText
     }
@@ -133,7 +133,7 @@ class FragmentMain : Fragment() {
      */
     private fun setCallNumberText(callNumText: String) {
         val isAbsence = !callNumText.all { it.isDigit() }
-        binding.tvCallNum.textSize = if (isAbsence) 330f else 420f
+        binding.tvCallNum.textSize = if (isAbsence) 250f else 370f
         binding.tvCallNum.text = callNumText
 
         if (isAbsence) {
@@ -161,7 +161,6 @@ class FragmentMain : Fragment() {
         }
     }
 
-    //this.text = getString(R.string.format_four_digit).format(Locale.getDefault(), callNumber)
     private fun ImageView.setTellerImage() {
         val tellerImageFileName = ScreenInfo.tellerInfo.tellerImg
         val serverIp = Const.ConnectionInfo.IQS_IP

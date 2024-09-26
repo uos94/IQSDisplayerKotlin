@@ -10,6 +10,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.io.InputStream
@@ -27,6 +29,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private var socket: Socket? = null
+    //private val socketLock = Mutex()
 
     private var inputStream: InputStream? = null
     private var timerKeepAlive = 0
@@ -39,13 +42,10 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private var listener: OnTcpEventListener? = null
 
-    init {
-        Log.d("Tcp 연결 시도: IP:${host}, PORT:${port}")
-        reconnectAndStartJobs()
-    }
+    init { Log.d("Tcp 연결 시도: IP:${host}, PORT:${port}") }
 
     private fun reconnectAndStartJobs() {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             var retryCount = 0
             val retryDelay = 1000L
 
@@ -63,27 +63,50 @@ class TCPClient(private val host: String, private val port: Int) {
         }
     }
 
-    private fun connect(): Boolean {
-        var exceptionMessage: String? = null
-        try {
-            if (socket == null || socket?.isClosed == true) {
-                socket = Socket(host, port).apply { soTimeout = 20000 }
-            }
-            inputStream = socket?.getInputStream()
-            Log.d("Tcp 연결 성공: IP:${host}, PORT:${port}")
-            return true
-        } catch (e: SocketException) {
-            exceptionMessage = "Tcp 연결 실패: SocketException (${e.message})"
-        } catch (e: SocketTimeoutException) {
-            exceptionMessage = "Tcp 연결 실패: SocketTimeoutException (${e.message})"
-        } catch (e: IOException) {
-            exceptionMessage = "Tcp 연결 실패: IOException (${e.message})"
-        } catch (e: Exception) {
-            exceptionMessage = "Tcp 연결 실패: Exception (${e.message})"
-        } finally {
-            exceptionMessage?.let { Log.e(it) }
+    fun setOnTcpEventListener(listener: OnTcpEventListener) {
+        this.listener = listener
+    }
+
+    fun start() {
+        coroutineScope.launch(Dispatchers.IO) {
+            reconnectAndStartJobs()
         }
-        return false
+    }
+
+    fun sendData(sendByteBuffer: ByteBuffer) {
+        coroutineScope.launch(Dispatchers.IO) {
+            sendProtocol(sendByteBuffer)
+        }
+    }
+
+    private suspend fun connect(): Boolean {
+        return withContext(Dispatchers.IO) { // IO dispatcher를 사용하여 백그라운드에서 실행
+            var exceptionMessage: String? = null
+            try {
+                if (socket == null || socket?.isClosed == true) {
+                    socket = Socket(host, port).apply { soTimeout = 20000 }
+                }
+                inputStream = socket?.getInputStream()
+                listener?.onConnected() // 연결 성공 알림
+                Log.d("Tcp 연결 성공: IP:${host}, PORT:${port}")
+                true
+            } catch (e: SocketException) {
+                exceptionMessage = "Tcp 연결 실패: SocketException (${e.message})"
+                false
+            } catch (e: SocketTimeoutException) {
+                exceptionMessage = "Tcp 연결 실패: SocketTimeoutException (${e.message})"
+                false
+            } catch (e: IOException) {
+                exceptionMessage = "Tcp 연결 실패: IOException (${e.message})"
+                false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                exceptionMessage = "Tcp 연결 실패: Exception (${e.message})"
+                false
+            } finally {
+                exceptionMessage?.let { Log.e(it) }
+            }
+        }
     }
 
     private fun disconnect() {
@@ -106,7 +129,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private fun startKeepAlive() {
-        keepAliveJob = coroutineScope.launch {
+        keepAliveJob = coroutineScope.launch(Dispatchers.IO) {
             while (isActive) {
                 if (timerKeepAlive >= 10) {
                     sendProtocol(KeepAliveRequest().toByteBuffer())
@@ -120,7 +143,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private fun startTcpReceiver() {
-        receiverJob = coroutineScope.launch {
+        receiverJob = coroutineScope.launch(Dispatchers.IO) {
             tcpReceiverLoop(this)
         }
     }
@@ -134,28 +157,29 @@ class TCPClient(private val host: String, private val port: Int) {
                     throw SocketException("Socket is disconnected")
                 }
 
-                val packetAnalyzer = PacketAnalyzer(withContext(Dispatchers.IO) {
-                    socket?.getInputStream() ?: throw IOException("Socket is not connected")
-                })
-                val protocolDefine = packetAnalyzer.getProtocolId()
-                val receivedData = packetAnalyzer.getData()
-                timerKeepAlive = 0
-                if(protocolDefine != null) {
-                    listener?.onReceivedData(protocolDefine, receivedData) // 데이터 수신 알림
-                }
-                else {
-                    Log.w("프로토콜 확인에 실패하였습니다.")
+                // 입력 스트림에 읽을 데이터가 있는지 확인
+                if ((inputStream?.available() ?: 0) > 0) {
+                    val packetAnalyzer = PacketAnalyzer(inputStream!!)
+                    val protocolDefine = packetAnalyzer.getProtocolId()
+                    val receivedData = packetAnalyzer.getData()
+                    timerKeepAlive = 0
+                    if (protocolDefine != null) {
+                        listener?.onReceivedData(protocolDefine, receivedData)
+                    } else {
+                        Log.w("프로토콜 확인에 실패하였습니다.")
+                    }
                 }
             } catch (e: SocketTimeoutException) {
+                e.printStackTrace()
                 Log.e("TcpReceiver: SocketTimeoutException (${e.message})")
             } catch (e: IOException) {
+                e.printStackTrace()
                 handleError("TcpReceiver: IOException (${e.message})")
             } catch (e: SocketException) {
+                e.printStackTrace()
                 handleError("TcpReceiver: SocketException (${e.message})")
             }
-
-            // 딜레이 추가
-            delay(10)
+            //delay(10)
         }
         Log.d("TcpReceiver STOPPED")
     }
@@ -166,26 +190,25 @@ class TCPClient(private val host: String, private val port: Int) {
         reconnectAndStartJobs()
     }
 
-    fun setOnTcpEventListener(listener: OnTcpEventListener) {
-        this.listener = listener
-    }
-
-    fun sendProtocol(sendByteBuffer: ByteBuffer) {
-        if (!isConnected) {
-            Log.e("SendProtocol: 연결되지 않은 상태입니다.")
-            return
-        }
-
-        try {
-            socket?.getOutputStream()?.let { outStream ->
-                outStream.write(sendByteBuffer.array())
-                outStream.flush()
+    private suspend fun sendProtocol(sendByteBuffer: ByteBuffer) {
+        withContext(Dispatchers.IO) {
+            if (socket == null || !socket!!.isConnected) {
+                throw SocketException("SendProtocol: 연결되지 않은 상태입니다.")
             }
-            timerKeepAlive = 0
-        } catch (e: IOException) {
-            handleError("SendProtocol: IOException (${e.message})")
-        } catch (e: Exception) {
-            handleError("SendProtocol: Exception (${e.message})")
+
+            try {
+                socket!!.getOutputStream().let { outStream ->
+                    outStream.write(sendByteBuffer.array())
+                    outStream.flush()
+                }
+                timerKeepAlive = 0
+            } catch (e: IOException) {
+                e.printStackTrace()
+                handleError("SendProtocol: IOException (${e.message})")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                handleError("SendProtocol: Exception (${e.message})")
+            }
         }
     }
 

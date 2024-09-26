@@ -5,6 +5,7 @@ import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.saveFile
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.charset.Charset
 
 /**
@@ -17,12 +18,12 @@ class Packet(headerBytes: ByteArray, dataBytes: ByteArray) {
 
     init {
         // header (ByteBuffer 활용)
-        val headerBuffer = ByteBuffer.wrap(headerBytes)
+        val headerBuffer = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
         length      = headerBuffer.short.toInt() and 0xFFFF
         protocolId  = headerBuffer.short.toInt() and 0xFFFF
 
         // data (ByteBuffer.wrap() 직접 사용)
-        data = ByteBuffer.wrap(dataBytes)
+        data = ByteBuffer.wrap(dataBytes).order(ByteOrder.LITTLE_ENDIAN)
     }
 
     fun getId(): Short      = protocolId.toShort()

@@ -12,15 +12,16 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.CallSoundManager
-import com.kct.iqsdisplayer.common.CommResultReceiver
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.common.ScreenInfo
+import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.common.UpdateManager
 import com.kct.iqsdisplayer.data.BackupCallInfo
 import com.kct.iqsdisplayer.data.Call
@@ -56,6 +57,8 @@ import com.kct.iqsdisplayer.util.installSilent
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
 import com.kct.iqsdisplayer.util.setPreference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -74,7 +77,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tcpClient: TCPClient
 
-    private var commResultReceiver = CommResultReceiver(Handler(Looper.getMainLooper()))
+    private lateinit var vmSystemReady: SystemReadyModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,12 +104,22 @@ class MainActivity : AppCompatActivity() {
     private fun startSystem() {
         if(checkStorage()) {
             //Storage 를 사용 할 준비가 되었다면 접속환경 설정 및 TCP접속부터 시작한다.
+            vmSystemReady = ViewModelProvider(this)[SystemReadyModel::class.java]
+            vmSystemReady.systemReadyLiveData.observe(this) {
+                Log.i("systemReady : $it")
+                if(it) { replaceFragment(Index.FRAGMENT_MAIN) }
+            }
+
+            replaceFragment(Index.FRAGMENT_READY)
+
             restoreSharedPreferencesFiles()
 
             initConstInfo()
 
             tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
             tcpClient.setOnTcpEventListener(tcpEventListener)
+            // 백그라운드 스레드에서 연결 시작
+            lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
         }
     }
 
@@ -145,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
                 // 모든 파일에 대한 접근 권한이 부여됨
-                Log.e("isExternalStorageManager startSystem START FRAGMENT_INIT")
+                Log.d("권한확인 완료, 시스템 시작")
                 startSystem()
             } else {
                 // 모든 파일에 대한 접근 권한이 거부됨, 앱이 동작 할 수 없음. 앱종료.
@@ -161,7 +174,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initConstInfo() {
-        Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
         getSharedPreferences(Const.Name.PREF_DISPLAYER_SETTING, Context.MODE_PRIVATE).loadCommunicationInfo()
 
         if(Const.ConnectionInfo.DISPLAY_IP == null) {
@@ -175,6 +187,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restoreSharedPreferencesFiles() {
+        Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
+
         var prefFileName = Const.Name.getPrefDisplayerSettingName()
         var sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
         var destPath: String
@@ -207,51 +221,56 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//=====================================================================================================
-// 실제 로직 시작
-//=====================================================================================================
+    /**=====================================================================================================
+     * 실제 로직 시작
+     * 주고받는 데이터 순서에 주의
+     * TCPClient로 접속시작
+     * CONNECT_SUCCESS가 내려오면 ACCEPT_AUTH_REQUEST요청
+     * 이후에 다른 패킷들 요청이 가능하다고 함.
+    =====================================================================================================*/
     private val tcpEventListener = object : TCPClient.OnTcpEventListener {
         override fun onConnected() {
             Log.d("onConnected")
             ScreenInfo.setSocketConnected(true)
+            vmSystemReady.setIsConnect(true)
+            Log.i("systemReady : setIsConnect(true)")
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
-            Log.d("${protocolDefine}$receivedData")
+            //Log.d("${protocolDefine}$receivedData")
             when(protocolDefine) {
-                ProtocolDefine.CONNECT_SUCCESS -> onConnectSuccess()
-                ProtocolDefine.CONNECT_REJECT -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
+                ProtocolDefine.CONNECT_SUCCESS      -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
+                ProtocolDefine.CONNECT_REJECT       -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
                 ProtocolDefine.ACCEPT_AUTH_RESPONSE -> {
-                    onAcceptAuthResponse(receivedData)
-                    Log.d("업데이트 정보 요청")
-                    tcpClient.sendProtocol(UpdateInfoRequest().toByteBuffer())
-                }
-                ProtocolDefine.WAIT_RESPONSE -> onWaitResponse(receivedData)
-                ProtocolDefine.CALL_REQUEST -> onCallRequest(receivedData)
-                ProtocolDefine.RE_CALL_REQUEST -> onCallRequest(receivedData)
-                ProtocolDefine.PAUSED_WORK_REQUEST -> onPausedWork(receivedData)
+                                                            onAcceptAuthResponse(receivedData)
+                                                            Log.d("업데이트 정보 요청")
+                                                            tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
+                                                        }
+                ProtocolDefine.WAIT_RESPONSE        -> onWaitResponse(receivedData)
+                ProtocolDefine.CALL_REQUEST         -> onCallRequest(receivedData)
+                ProtocolDefine.RE_CALL_REQUEST      -> onCallRequest(receivedData)
+                ProtocolDefine.PAUSED_WORK_REQUEST  -> onPausedWork(receivedData)
                 ProtocolDefine.INFO_MESSAGE_REQUEST -> onInfoMessage(receivedData)
-                ProtocolDefine.TELLER_LIST -> onTellerList(receivedData)
-                ProtocolDefine.SYSTEM_OFF -> onSystemOff()
-                ProtocolDefine.RESTART_REQUEST -> onRestartRequest()
-                ProtocolDefine.CROWDED_REQUEST -> onCrowedRequest(receivedData)
-                ProtocolDefine.WIN_RESPONSE -> onWinResponse(receivedData)
-                ProtocolDefine.MEDIA_LIST_RESPONSE -> onMediaListResponse(receivedData)
-                ProtocolDefine.RESERVE_LIST_RESPONSE -> onReserveListResponse(receivedData)
-                ProtocolDefine.RESERVE_ADD_REQUEST -> onReserveAddRequest(receivedData)
+                ProtocolDefine.TELLER_LIST          -> onTellerList(receivedData)
+                ProtocolDefine.SYSTEM_OFF           -> onSystemOff()
+                ProtocolDefine.RESTART_REQUEST      -> onRestartRequest()
+                ProtocolDefine.CROWDED_REQUEST      -> onCrowedRequest(receivedData)
+                ProtocolDefine.WIN_RESPONSE         -> onWinResponse(receivedData)
+                ProtocolDefine.MEDIA_LIST_RESPONSE  -> onMediaListResponse(receivedData)
+                ProtocolDefine.RESERVE_LIST_RESPONSE  -> onReserveListResponse(receivedData)
+                ProtocolDefine.RESERVE_ADD_REQUEST    -> onReserveAddRequest(receivedData)
                 ProtocolDefine.RESERVE_UPDATE_REQUEST -> onReserveUpdateRequest(receivedData)
                 ProtocolDefine.RESERVE_CANCEL_REQUEST -> onReserveCancelRequest(receivedData)
                 ProtocolDefine.RESERVE_ARRIVE_REQUEST -> onReserveArriveRequest(receivedData)
-                ProtocolDefine.RESERVE_CALL_REQUEST -> onReserveCallRequest(receivedData)
+                ProtocolDefine.RESERVE_CALL_REQUEST   -> onReserveCallRequest(receivedData)
                 ProtocolDefine.RESERVE_RE_CALL_REQUEST -> onReserveCallRequest(receivedData)
                 /** 업데이트 정보를 수신하고, 업데이트를 할지, 이후 정상동작을 할지 분기를 탄다. */
                 ProtocolDefine.UPDATE_INFO_RESPONSE -> onUpdateInfoResponse(receivedData)
-                ProtocolDefine.SERVICE_RETRY -> onServiceRetry()
+                ProtocolDefine.SERVICE_RETRY        -> onConnectRetry()
                 ProtocolDefine.TELLER_RENEW_REQUEST -> onTellerRenewRequest(receivedData)
+                ProtocolDefine.KEEP_ALIVE_RESPONSE -> {}
                 else -> {
-                    //Define된 Protocol중 Send에 해당하는 부분은 처리할 필요 없다.
-                    //그리고 inputStream에만 listener가 오도록 되어있어 실제로 넘어오지도 않아야 한다.
-                    Log.i("잘못 처리된 Protocol이 존재함. $protocolDefine")
+                    Log.e("잘못 처리된 Protocol이 존재함. $protocolDefine")
                 }
             }
         }
@@ -264,14 +283,45 @@ class MainActivity : AppCompatActivity() {
     /** 업데이트 여부 패킷까지 완료 하면 각 요청을 보내 데이터를 받아온다.*/
     private fun requestOther() {
         Log.d("상담예약리스트 요청")
-        tcpClient.sendProtocol(ReserveListRequest().toByteBuffer())
+        tcpClient.sendData(ReserveListRequest().toByteBuffer())
         Log.d("영상 재생 리스트 요청")
-        tcpClient.sendProtocol(MediaListRequest().toByteBuffer())
+        tcpClient.sendData(MediaListRequest().toByteBuffer())
         Log.d("대기인수 리스트 요청")
-        tcpClient.sendProtocol(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
+        tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
         Log.d("로그파일 업로드")
         uploadLogFileToServer()
     }
+
+    /*
+    private suspend fun requestOther() {
+        coroutineScope { // 새로운 CoroutineScope 생성
+            val reserveListFlow = flow {
+                tcpClient.sendData(ReserveListRequest().toByteBuffer())
+                emit(tcpClient.awaitResponse(ReserveListResponse::class))
+            }
+
+            val mediaListFlow = flow {
+                tcpClient.sendData(MediaListRequest().toByteBuffer())
+                emit(tcpClient.awaitResponse(MediaListResponse::class))
+            }
+
+            val waitListFlow = flow {
+                tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
+                emit(tcpClient.awaitResponse(WaitResponse::class)) // WaitResponse 클래스가 있다고 가정
+            }
+
+            val logUploadFlow = flow {
+                uploadLogFileToServer()
+                emit(true) // 로그 업로드 완료 시 true emit
+            }
+
+            // 모든 flow가 완료될 때까지 기다림
+            combine(reserveListFlow, mediaListFlow, waitListFlow, logUploadFlow) { _, _, _, _ ->  }.collect {
+                // 모든 요청 및 로그 업로드 완료 시 FragmentMain으로 이동
+                replaceFragment(Index.FRAGMENT_MAIN)
+            }
+        }
+    }*/
 
     private fun onConnectSuccess() {
         val ip = getLocalIpAddress()
@@ -281,24 +331,22 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             val sendData = AcceptAuthRequest(ip, mac)
-            tcpClient.sendProtocol(sendData.toByteBuffer())
+            Log.d("SendProtocol : AcceptAuthRequest")
+            tcpClient.sendData(sendData.toByteBuffer())
         }
     }
 
     private fun onAcceptAuthResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as AcceptAuthResponse
-        Log.e( "onAcceptAuthResponse : 정상접속 완료...$data")
-
+        Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
+        vmSystemReady.setIsAuthPacket(true)
+        Log.i("systemReady : setIsAuthPacket(true)")
         ScreenInfo.updateDefaultInfo(data)
-
-        //setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, ScreenInfo.instance.tellerMent.value)
-
-        replaceFragment(Index.FRAGMENT_MAIN)
     }
 
     private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoResponse
-        Log.e( "onUpdateInfoResponse :업데이트정보 수신 완료...$data")
+        Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data")
 
         when(data.updateType) {
             0 -> {
@@ -331,51 +379,58 @@ class MainActivity : AppCompatActivity() {
 
     private fun onReserveListResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveListResponse
-        Log.e( "onReserveListResponse :상담예약리스트 수신 완료...$data")
+        Log.i( "onReserveListResponse :상담예약리스트 수신 완료...$data")
+        vmSystemReady.setIsReservePacket(true)
+        Log.i("systemReady : setIsReservePacket(true)")
         ScreenInfo.updateReserveList(data)
     }
 
     private fun onReserveAddRequest(receivedData: BaseReceivePacket) {
         val data = receivedData as Reserve
-        Log.e( "onReserveListResponse :상담예약 추가 수신 완료...$data")
+        Log.i( "onReserveAddRequest :상담예약 추가 수신 완료...$data")
         ScreenInfo.addReserveList(data)
     }
 
     private fun onReserveUpdateRequest(receivedData: BaseReceivePacket) {
         val data = receivedData as Reserve
-        Log.e( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
+        Log.i( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
         ScreenInfo.updateReserveList(data)
     }
     
     private fun onReserveCancelRequest(receivedData: BaseReceivePacket) {
         val data = receivedData as Reserve
-        Log.e( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
+        Log.i( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
         ScreenInfo.cancelReserve(data)
     }
     
     private fun onReserveArriveRequest(receivedData: BaseReceivePacket) {
         val data = receivedData as Reserve
-        Log.e( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
+        Log.i( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
         ScreenInfo.arriveReserve(data)
     }
 
     private fun onMediaListResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as MediaListResponse
-        Log.e( "onMediaListResponse : 영상리스트 수신 완료...$data")
+        Log.i( "onMediaListResponse : 영상리스트 수신 완료...$data")
+
+        vmSystemReady.setIsMediaPacket(true)
+        Log.i("systemReady : setIsMediaPacket(true)")
         ScreenInfo.updateMediaList(data)
     }
 
     /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
     private fun onWaitResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as WaitResponse
-        Log.e( "onWaitResopnse : 대기자수 응답...$data")
+        Log.i( "onWaitResopnse : 대기자수 응답...$data")
         if(ScreenInfo.winNum == data.winNum) {
+            vmSystemReady.setIsWaitPacket(true)
+            Log.i("systemReady : setIsWaitPacket(true)")
             ScreenInfo.updateWaitNum(data.waitNum)
         }
     }
 
-    private fun onServiceRetry() {
-        Log.e( "onServiceRetry : TCPClient 재시작")
+    private fun onConnectRetry() {
+        Log.i( "onServiceRetry : TCPClient 재시작")
         Handler(Looper.getMainLooper()).postDelayed({
             tcpClient.onDestroy()
             tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
@@ -534,7 +589,7 @@ class MainActivity : AppCompatActivity() {
     private fun onReserveCallRequest(receivedData: BaseReceivePacket) {
 
         val data = receivedData as ReserveCall
-        Log.e( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
+        Log.i( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE  //나의 ViewMode
         val isStopWork  = ScreenInfo.isStopWork.value ?: false //나의 업무상태, 구 pjt
@@ -595,6 +650,8 @@ class MainActivity : AppCompatActivity() {
                 uploadLogFileToServerSub(fileName)
             }
         }
+        vmSystemReady.setIsUploadLog(true)
+        Log.i("systemReady : setIsUploadLog(true)")
         Log.d("   로그파일 서버전송 종료")
         Log.d("=================================")
     }
@@ -635,7 +692,7 @@ class MainActivity : AppCompatActivity() {
                             .put(0x00.toByte())
                     }
 
-                    tcpClient.sendProtocol(sendByteBuffer)
+                    tcpClient.sendData(sendByteBuffer)
                 }
 
                 // 파일 읽기가 끝났으므로 해당 파일 삭제

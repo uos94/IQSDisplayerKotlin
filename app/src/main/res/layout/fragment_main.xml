@@ -69,10 +69,12 @@
         />
     <View
         android:id="@+id/vDeskNameLine"
-        android:layout_width="756dp"
+        android:layout_width="0dp"
         android:layout_height="10dp"
+        android:layout_marginEnd="57dp"
         android:background="@color/_53B7E8"
         app:layout_constraintStart_toEndOf="@id/tvDeskNum"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/tvDeskNum"
         />
     <TextView
@@ -161,7 +163,7 @@
         app:layout_constraintEnd_toEndOf="@id/vDeskNameLine"
         app:layout_constraintTop_toBottomOf="@id/vDeskNameLine"
         app:layout_constraintBottom_toTopOf="@id/vLine2"
-        tools:text="자리비움"
+        tools:text="0000"
         />
     <View
         android:id="@+id/vBottomBackground"

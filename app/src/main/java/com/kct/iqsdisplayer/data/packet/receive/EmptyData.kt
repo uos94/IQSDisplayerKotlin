@@ -7,6 +7,6 @@ data class EmptyData(
     override var protocolDefine: ProtocolDefine? = null
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "EmptyData(protocolDefine=$protocolDefine)"
+        return "...No Data"
     }
 }

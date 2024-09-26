@@ -34,11 +34,30 @@ data class Reserve(
 ) : BaseReceivePacket() {
 
     override fun toString(): String {
-        return "예약 일자 : $reserveDate, 지점 번호 : $branchNum, 예약 번호 : $reserveNum, 예약 시간 : $reserveTime, " +
-                "직원 번호 : $tellerNum, 직원 명 : $tellerName, 업무 명 : $tellerJob, 고객 번호 : $customerNum, " +
-                "고객 이름 : $customerName, 고객 연락처 : $customerTel, 고객 등급 : $customerGrade, " +
-                "창구 ID : $reserveWinID, 창구명 : $reserveWinName, 도착 시간 : $arriveTime, 도착 등록 여부 : $isArrive, " +
-                "호출 시간 : $callTime, 취소 여부 : $isCancel, 채널타입 : $channelType"
+        return """
+        예약 정보:
+            예약 일자: $reserveDate
+            지점 번호: $branchNum
+            예약 번호: $reserveNum
+            예약 시간: $reserveTime
+        직원 정보:
+            직원 번호: $tellerNum
+            직원 명: $tellerName
+            업무 명: $tellerJob
+        고객 정보:
+            고객 번호: $customerNum
+            고객 이름: $customerName
+            고객 연락처: $customerTel
+            고객 등급: $customerGrade
+        창구 정보:
+            창구 ID: $reserveWinID
+            창구명: $reserveWinName
+            도착 시간: $arriveTime
+            도착 등록 여부: $isArrive
+            호출 시간: $callTime
+            취소 여부: $isCancel
+            채널타입: $channelType
+    """
     }
 }
 

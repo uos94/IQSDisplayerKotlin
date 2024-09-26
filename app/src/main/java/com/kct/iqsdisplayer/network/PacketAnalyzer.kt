@@ -4,9 +4,9 @@ import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.EmptyData
 import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequest
-import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.toMediaListResponse
+import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.toRestartRequest
 import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewRequest
 import com.kct.iqsdisplayer.data.packet.receive.toUpdateInfoResponse
@@ -24,12 +24,13 @@ import com.kct.iqsdisplayer.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class PacketAnalyzer(inputStream: InputStream) {
 
     companion object {
-        const val HEADER_SIZE = 4
-        const val MAX_PACKET_SIZE = 8192
+        const val HEADER_SIZE       = 4
+        const val MAX_PACKET_SIZE   = 8192
     }
 
     private val parserMap = mapOf<Short, Packet.() -> BaseReceivePacket?>(
@@ -66,46 +67,55 @@ class PacketAnalyzer(inputStream: InputStream) {
     private var parsedData: BaseReceivePacket = EmptyData()
 
     init {
-        val headerBytes = ByteArray(HEADER_SIZE)
-        val bytesRead = inputStream.read(headerBytes)
-        if (bytesRead != HEADER_SIZE) {
-            throw IOException("잘못된 헤더길이 : $bytesRead")
-        }
-
-        val headerBuffer = ByteBuffer.wrap(headerBytes)
-        val dataLength = headerBuffer.short.toInt() and 0xFFFF
-        val protocolIdValue = headerBuffer.short
-
-        protocolId = ProtocolDefine.entries.find { it.value == protocolIdValue }
-
-        if(protocolId == null) {
-            Log.w("정의되지 않은 프로토콜[${protocolIdValue.toInt()}")
-        }
-        else {
-            if (dataLength > MAX_PACKET_SIZE - HEADER_SIZE) {
-                Log.w("패킷 사이즈가 초과되었습니다. dataLength[$dataLength]")
-                //초과되도 진행은 가능
+        try {
+            val headerBytes = ByteArray(HEADER_SIZE)
+            var totalBytesRead: Int
+            val headerRead = inputStream.read(headerBytes)
+            if (headerRead != HEADER_SIZE) {
+                throw IOException("잘못된 헤더길이 : $headerRead")
             }
 
-            val dataBytes = ByteArray(dataLength)
-            val dataBytesRead = inputStream.read(dataBytes)
-            if (dataBytesRead != dataLength) { //검증용..데이터 길이가 맞지 않아도 진행한다.
-                Log.w("데이터 길이가 실제 사이즈와 맞지 않습니다.")
-            }
+            val headerBuffer = ByteBuffer.wrap(headerBytes).order(ByteOrder.LITTLE_ENDIAN)
+            val dataLength = headerBuffer.short.toInt() and 0xFFFF
+            val protocolIdValue = headerBuffer.short
 
-            val packet = Packet(dataBytes, headerBytes)
-            if(parserMap.containsKey(protocolId?.value)) {
-                val parserFunction = parserMap[protocolId?.value]
-                parsedData = if (parserFunction != null) {
-                    packet.parserFunction() ?: EmptyData(protocolId)
+            protocolId = ProtocolDefine.entries.find { it.value == protocolIdValue }
+
+            if (protocolId == null) {
+                Log.w("정의되지 않은 프로토콜[0x${String.format("%04X", protocolIdValue.toInt() and 0xFFFF)}]")
+            } else {
+                if (dataLength > MAX_PACKET_SIZE - HEADER_SIZE) {
+                    Log.w("패킷 사이즈가 초과되었습니다. dataLength[$dataLength]")
+                }
+
+                val dataBytes = ByteArray(dataLength)
+                totalBytesRead = 0
+                while (totalBytesRead < dataLength) {
+                    val bytesRead = inputStream.read(dataBytes, totalBytesRead, dataLength - totalBytesRead)
+                    if (bytesRead == -1) {
+                        Log.d("데이터 읽기완료")
+                        break
+                    }
+                    totalBytesRead += bytesRead
+                }
+
+                if (totalBytesRead != dataLength) { //검증용..데이터 길이가 맞지 않아도 진행한다.
+                    Log.w("데이터 길이가 실제 사이즈와 맞지 않습니다.")
+                }
+
+                val packet = Packet(headerBytes, dataBytes)
+                if (parserMap.containsKey(protocolId?.value)) {
+                    val parserFunction = parserMap[protocolId?.value]
+                    parsedData = if (parserFunction != null) {
+                        packet.parserFunction() ?: EmptyData(protocolId)
+                    } else {
+                        EmptyData(protocolId)
+                    }
                 } else {
-                    EmptyData(protocolId)
+                    Log.w("프로토콜[${protocolId?.value}]에 대한 처리가 parseMap에 등록되지 않았습니다.")
                 }
             }
-            else {
-                Log.w("프로토콜[${protocolId?.value}에 대한 처리가 parseMap에 등록되지 않았습니다.")
-            }
-        }
+        } catch (e: Exception) { throw e }
     }
 
     fun getProtocolId(): ProtocolDefine? {

@@ -178,8 +178,16 @@ enum class ProtocolDefine(val value: Short) {
     /** 0x402D, 직원 정보 갱신 응답 */
     TELLER_RENEW_RESPONSE(0x402D.toShort());
 
+    /**
+     * 사용법
+     *     val protocolId: Short = 0x0003 // 대기인수 정보 요청 패킷
+     *     val protocol = getProtocolById(protocolId) */
+    fun getProtocolById(protocolId: Short): ProtocolDefine? {
+        return entries.find { it.value == protocolId }
+    }
+
     override fun toString(): String {
-        return "ProtocolName:${name}[0x${String.format("%04X", value.toInt())}]"
+        return "ProtocolName:${name}[0x${String.format("%04X", value.toInt() and 0xFFFF)}]"
     }
 }
 
