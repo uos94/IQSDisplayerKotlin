@@ -10,9 +10,9 @@ import com.kct.iqsdisplayer.util.splitData
 // 231005, by HAHU  하나은행은 16개
 data class Teller(
     /** 직원 IDX */
-    var tellerID: Int = 0,          // 직원 IDX
+    var tellerId: Int = 0,          // 직원 IDX
     /** 소속 창구ID */
-    var winID: Int = 0,             // 소속 창구ID
+    var winId: Int = 0,             // 소속 창구ID
     /** 직무명 */
     var job: String = "",           // 직무명
     /** 직원 사진파일명 */
@@ -49,8 +49,8 @@ data class Teller(
 ) : BaseReceivePacket() {
     override fun toString(): String {
         return """
-        직원 IDX      : $tellerID
-        소속 창구 ID   : $winID
+        직원 IDX      : $tellerId
+        소속 창구 ID   : $winId
         직무명         : $job
         직원 사진      : $tellerImg
         직원 PC IP    : $pcIP
@@ -74,8 +74,8 @@ fun String.toTeller(): Teller {
     val splitTeller = this.splitData(";")
     val size = splitTeller.size
     val teller = Teller()
-    if(size > 0) teller.tellerID    = splitTeller[0].toIntOrNull() ?: 0
-    if(size > 1) teller.winID       = splitTeller[1].toIntOrNull() ?: 0
+    if(size > 0) teller.tellerId    = splitTeller[0].toIntOrNull() ?: 0
+    if(size > 1) teller.winId       = splitTeller[1].toIntOrNull() ?: 0
     if(size > 2) teller.job         = splitTeller[2]
     if(size > 3) teller.tellerImg   = splitTeller[3]
     if(size > 4) teller.pcIP        = splitTeller[4]

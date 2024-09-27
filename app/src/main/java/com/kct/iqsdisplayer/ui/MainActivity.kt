@@ -107,6 +107,15 @@ class MainActivity : AppCompatActivity() {
             vmSystemReady = ViewModelProvider(this)[SystemReadyModel::class.java]
             vmSystemReady.systemReadyLiveData.observe(this) {
                 Log.i("systemReady : $it")
+                Log.i(""" 
+                        |시스템 준비상태 
+                        |   접 속 완 료:${vmSystemReady.isConnect.value}
+                        |   접속승인응답:${vmSystemReady.isAuthPacket.value}
+                        |   예약정보수신:${vmSystemReady.isReservePacket.value}
+                        |   대기인원수신:${vmSystemReady.isWaitPacket.value}
+                        |   영상정보수신:${vmSystemReady.isMediaPacket.value}
+                        |   로그파일전송:${vmSystemReady.isUploadLog.value}
+                    """.trimMargin())
                 if(it) { replaceFragment(Index.FRAGMENT_MAIN) }
             }
 
@@ -340,7 +349,6 @@ class MainActivity : AppCompatActivity() {
         val data = receivedData as AcceptAuthResponse
         Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
         vmSystemReady.setIsAuthPacket(true)
-        Log.i("systemReady : setIsAuthPacket(true)")
         ScreenInfo.updateDefaultInfo(data)
     }
 
@@ -381,7 +389,6 @@ class MainActivity : AppCompatActivity() {
         val data = receivedData as ReserveListResponse
         Log.i( "onReserveListResponse :상담예약리스트 수신 완료...$data")
         vmSystemReady.setIsReservePacket(true)
-        Log.i("systemReady : setIsReservePacket(true)")
         ScreenInfo.updateReserveList(data)
     }
 
@@ -414,17 +421,15 @@ class MainActivity : AppCompatActivity() {
         Log.i( "onMediaListResponse : 영상리스트 수신 완료...$data")
 
         vmSystemReady.setIsMediaPacket(true)
-        Log.i("systemReady : setIsMediaPacket(true)")
         ScreenInfo.updateMediaList(data)
     }
 
     /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
     private fun onWaitResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as WaitResponse
-        Log.i( "onWaitResopnse : 대기자수 응답...$data")
-        if(ScreenInfo.winNum == data.winNum) {
+        Log.i( "onWaitResopnse : 대기자수 응답 현재 창구ID:${ScreenInfo.winId}...$data")
+        if(ScreenInfo.winId == data.winId) {
             vmSystemReady.setIsWaitPacket(true)
-            Log.i("systemReady : setIsWaitPacket(true)")
             ScreenInfo.updateWaitNum(data.waitNum)
         }
     }
@@ -496,7 +501,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val isPausedWork = ScreenInfo.isPausedWork.value ?: false
-        val logMessage = if(!isPausedWork) { "부재해제 수신 ... 업무중 메세지 : ${ScreenInfo.workingMessage}"}
+        val logMessage = if(!isPausedWork) { "부재해제 수신 ... 업무중 메세지 : ${ScreenInfo.tellerMent.value}"}
         else { "부재중 수신 ... 부재중 메세지 : ${ScreenInfo.pausedWorkMessage}"}
         Log.d(logMessage)
     }
@@ -505,7 +510,7 @@ class MainActivity : AppCompatActivity() {
         val data = receivedData as InfoMessageRequest
         Log.i("onInfoMessage : 안내문구 수신... (${data})")
         if(ScreenInfo.winNum == data.infoMessageWinNum) {
-            ScreenInfo.updateInfoMessage(data)
+            ScreenInfo.updateTellerMent(data.infoMessage)
             setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, data.infoMessage)
         }
     }
@@ -517,7 +522,7 @@ class MainActivity : AppCompatActivity() {
         val teller = data.tellerList.find { teller -> teller.displayIP == Const.ConnectionInfo.DISPLAY_IP }
         if(teller != null) {
             ScreenInfo.tellerInfo = teller
-            ScreenInfo.winId = teller.winID
+            ScreenInfo.winId = teller.winId
         }
     }
 
@@ -651,7 +656,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         vmSystemReady.setIsUploadLog(true)
-        Log.i("systemReady : setIsUploadLog(true)")
         Log.d("   로그파일 서버전송 종료")
         Log.d("=================================")
     }
@@ -695,8 +699,8 @@ class MainActivity : AppCompatActivity() {
                     tcpClient.sendData(sendByteBuffer)
                 }
 
-                // 파일 읽기가 끝났으므로 해당 파일 삭제
-                uploadFile.delete()
+                // 파일 읽기가 끝났으므로 해당 파일 삭제, TODO : 임시로 삭제안함 업로드 로직 확인용
+                // uploadFile.delete()
             }
         } catch (e: Exception) {
             Log.e("uploadLogFileToServerSub() 예외 발생: ${e.message}", e)

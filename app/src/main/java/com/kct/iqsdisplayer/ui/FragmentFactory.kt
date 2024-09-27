@@ -132,13 +132,9 @@ object FragmentFactory {
             val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
             when(currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
-                    if(ScreenInfo.usePlayMedia && isViewModeMain) {
-                        replaceFragment(Index.FRAGMENT_MOVIE)
-                    } else if(isAvailableMovie) {
-                        replaceFragment(Index.FRAGMENT_RECENT_CALL)
-                    } else {
-                        Log.d("Not call, No Movie.. always MainFragment")
-                    }
+                    if(isAvailableMovie && isViewModeMain) replaceFragment(Index.FRAGMENT_MOVIE)
+                    else if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
+                    else Log.d("Not call, No Movie.. always MainFragment")
                 }
                 Index.FRAGMENT_RECENT_CALL   -> { //현재화면 최근응대고객 화면
                     replaceFragment(Index.FRAGMENT_MAIN)

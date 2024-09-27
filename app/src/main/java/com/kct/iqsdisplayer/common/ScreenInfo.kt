@@ -24,7 +24,11 @@ object ScreenInfo {
     /** 표시기의 창구 번호 */
     var winNum          = 0
     var listWinInfos    = ArrayList<WinInfo>()
-    lateinit var tellerInfo: Teller
+    var tellerInfo: Teller = Teller()
+        set(value) {
+            field = value
+            winId = value.winId
+        }
     var playTimeMain    = 10000    //기본값 10초로 설정
     var usePlaySub      = false
     var playTimeRecent  = 10000
@@ -34,7 +38,6 @@ object ScreenInfo {
     var volumeLevel     = 1         // 1~10까지의 볼륨값
     var serverTime      = 0
     var isShowWaiting   = false
-    var workingMessage  = ""
     var deleteMovieInfo = ""        //사용 안하는 것으로 예상된다.
     var bellFileName    = ""        //호출 시 벨소리 파일명
     var callRepeatCount = 0         //호출 시 반복 출력 횟수
@@ -106,12 +109,16 @@ object ScreenInfo {
 
         tellerInfo = data.tellerInfo.toTeller()
 
+        winId = tellerInfo.winId
+
+        updateWaitNum(listWinInfos.find { it.winID == winId }?.waitNum ?: 0)
+
         //15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
         data.mediaInfo.splitData("#").forEachIndexed { index, value ->
             when (index) {
                 0 -> playTimeMain   = value.toInt()
                 1 -> usePlaySub     = value == "1"
-                2 -> playTimeRecent    = value.toInt()
+                2 -> playTimeRecent = value.toInt()
                 3 -> usePlayMedia   = value == "1"
                 4 -> playTimeMedia  = value.toInt()
                 5 -> mediaFileNameList.apply { clear(); addAll(value.splitData(";")) }
@@ -124,7 +131,7 @@ object ScreenInfo {
         data.displaySettingInfo.splitData(";").forEachIndexed { index, value ->
             when (index) {
                 0 -> isShowWaiting = value == "1"
-                1 -> workingMessage = value
+                1 -> updateTellerMent(value)
             }
         }
 
@@ -148,7 +155,7 @@ object ScreenInfo {
         _isStopWork.postValue(data.stopWork == "1")
     }
 
-    fun updateWinInfos(winIds: String, winNames: String, waits: String) {
+    fun updateWinInfos(winIds: String, winNames: String, waits: String) : ArrayList<WinInfo> {
         val splitWinIds      = winIds.splitData(";").asList()
         val splitWinNames    = winNames.splitData(";").asList()
         val splitWaits       = waits.splitData(";").asList()
@@ -158,6 +165,7 @@ object ScreenInfo {
             splitWinIds.zip(splitWinNames).zip(splitWaits) { (id, name), wait ->
                 WinInfo(id.toInt(), name, wait.toInt())
             })
+        return listWinInfos
     }
 
     //모든 창구의 상담예약리스트가 넘어온다. 나의것만 걸러서 가져오도록 함.
@@ -193,10 +201,6 @@ object ScreenInfo {
         Log.d("부재상태 업데이트 : $data")
         _isPausedWork.postValue(data.isPausedWork)
         pausedWorkMessage   = data.pausedMessage
-    }
-
-    fun updateInfoMessage(data: InfoMessageRequest) {
-        workingMessage = data.infoMessage
     }
 
     fun getWinName(winId: Int): String {
