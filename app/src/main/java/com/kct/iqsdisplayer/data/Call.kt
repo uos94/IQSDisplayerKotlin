@@ -35,7 +35,23 @@ data class Call(
     , override var protocolDefine: ProtocolDefine? = null
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "Call(isError=$isError, callNum=$callNum, ticketWinID=$ticketWinId, callWinID=$callWinId, winWaitNum=$winWaitNum, callWinNum=$callWinNum, lastCallList=$lastCallList, bkDisplayNum=$bkDisplayNum, bkWay=$bkWay, ticketType=$ticketType, flagVip=$flagVip)"
+        return """
+            Call(
+                isError=$isError,
+                callNum=$callNum,
+                ticketWinID=$ticketWinId,
+                callWinID=$callWinId,
+                winWaitNum=$winWaitNum,
+                callWinNum=$callWinNum,
+                lastCallList=[
+                    ${lastCallList.joinToString(",\n                    ") { it.toString().replace("LastCall(", "").replace(")", "") }}
+                ],
+                bkDisplayNum=$bkDisplayNum,
+                bkWay=$bkWay,
+                ticketType=$ticketType,
+                flagVip=$flagVip
+            )
+        """.trimIndent()
     }
 }
 

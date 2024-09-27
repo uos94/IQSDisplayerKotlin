@@ -50,8 +50,8 @@ class FragmentRecentCall : Fragment() {
 
             val digitFormat = getString(R.string.format_four_digit)
 
-            // recentCalls를 역순으로 순회하며 callItems에 적용
-            recentCalls.reversed().forEachIndexed { index, lastCall ->
+            // recentCalls를 순회하며 callItems에 적용
+            recentCalls.forEachIndexed { index, lastCall ->
                 val item = callItems[index]
                 item.viewGroup.visibility = View.VISIBLE
                 item.tvWinNum.text = if(lastCall.callWinNum <= 0) "" else lastCall.callWinNum.toString()

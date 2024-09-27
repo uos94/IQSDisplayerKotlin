@@ -13,7 +13,7 @@ data class LastCall(
     var waitNum: Int = 0
 ) {
     override fun toString(): String {
-        return "LastCall(ticketWinID=$ticketWinID, callWinID=$callWinID, callWinNum=$callWinNum, callNum=$callNum, waitNum=$waitNum)"
+        return "TicketWinID[$ticketWinID], CallWinID[$callWinID], CallWinNum[$callWinNum], CallNum[$callNum], WaitNum[$waitNum]"
     }
 }
 
