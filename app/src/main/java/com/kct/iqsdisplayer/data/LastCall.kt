@@ -32,12 +32,15 @@ fun String?.toLastCallList() : ArrayList<LastCall> {
         val split = data.split(";")
         val size = split.size
 
+        if(size < 5) continue
+
         val item = LastCall()
-        if(size > 0) item.ticketWinID   = split[0].toIntOrNull() ?: 0
-        if(size > 1) item.callWinID     = split[1].toIntOrNull() ?: 0
-        if(size > 2) item.callWinNum    = split[2].toIntOrNull() ?: 0
-        if(size > 3) item.callNum       = split[3].toIntOrNull() ?: 0
-        if(size > 4) item.waitNum       = split[4].toIntOrNull() ?: 0
+
+        item.ticketWinID   = split[0].toIntOrNull() ?: 0
+        item.callWinID     = split[1].toIntOrNull() ?: 0
+        item.callWinNum    = split[2].toIntOrNull() ?: 0
+        item.callNum       = split[3].toIntOrNull() ?: 0
+        item.waitNum       = split[4].toIntOrNull() ?: 0
 
         lastCallList.add(item)
     }

@@ -36,9 +36,9 @@ class CallSoundManager {
         if (listCallSound.isNotEmpty()) {
             val soundPath = listCallSound.poll()
             mp.reset()
+            Log.d("soundPath : $soundPath")
             mp.setDataSource(soundPath)
             mp.prepareAsync()
-            mp.start()
         }
     }
 
@@ -53,6 +53,12 @@ class CallSoundManager {
         val repeatCount = ScreenInfo.callRepeatCount  //호출 반복횟수
         val bellFileName = ScreenInfo.bellFileName
         val ment = ScreenInfo.callMent
+        val logMessage =
+            """
+                |호출정보
+                |   변수값 : CallNum=$callNum, WinNum=$callWinNum, 반복횟수=$repeatCount, bellFileName=$bellFileName, ment=$ment
+            """.trimMargin()
+        Log.d(logMessage)
 
         for (i in 0 until repeatCount) {
             //1. 띵동 벨소리
