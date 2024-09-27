@@ -3,16 +3,6 @@
     <string name="ok">확인</string>
     <string name="cancel">취소</string>
 
-    <!--초기화면-->
-    <string name="setting">설정</string>
-    <string name="reboot">재실행</string>
-    <string name="program_shutdown">프로그램 종료</string>
-    <string name="connect">서버접속중...</string>
-    <string name="FTPimage">이미지파일 다운로드중...</string>
-    <string name="FTPvideo">동영상파일 다운로드중...</string>
-    <string name="FTPsound">사운드파일 다운로드중...</string>
-    <string name="FTPpatch">패치파일 다운로드중...</string>
-
     <string name="waiting_count_label">대기인원</string>
 
     <!-- FragmentMain -->
@@ -39,4 +29,40 @@
 
     <!-- 공통 -->
     <string name="suffix_people">명</string>
+
+
+    <!-- FragmentReady -->
+    <string name="loading_info">[Loading Info]</string>
+    <string name="move_main">메인화면 이동</string>
+    <string name="setting">설정</string>
+    <string name="reboot">재실행</string>
+    <string name="program_shutdown">프로그램 종료</string>
+    <string name="connect">서버접속중...</string>
+    <string name="FTPimage">이미지파일 다운로드중...</string>
+    <string name="FTPvideo">동영상파일 다운로드중...</string>
+    <string name="FTPsound">사운드파일 다운로드중...</string>
+    <string name="FTPpatch">패치파일 다운로드중...</string>
+    <string name="test">
+        1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.1. 0x0028 상담예약리스트 응답 때 문서상에는 String하나만 보내준다고 되어 있는데, 코드상에는 integer와 string으로 되어 있음.
+2. 0x0028 상담예약리스트 응답 때 모든 창구의 상담예약리스트가 넘어오는건지 확인을 해야한다.
+3. 0036 표시기 업데이트 정보응답 아닐까? 순번발행기에서 내려주는것 같은데.
+    </string>
 </resources>

@@ -1,10 +1,14 @@
 package com.kct.iqsdisplayer.util
 
 import android.util.Log
+import android.widget.TextView
 import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.common.Const
+import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
+import com.kct.iqsdisplayer.network.ProtocolDefine
 import java.io.BufferedWriter
 import java.io.File
+import java.io.File.separator
 import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -14,6 +18,9 @@ import java.util.Locale
 object Log {
     private const val TAG = "HISON"
     private var isEnabled = BuildConfig.DEBUG // 빌드 타입에 따라 로그 출력 여부 설정
+    private const val MAX_LOG_LINES = 1000 // View에 보여줄 최대 로그 줄 수
+    private val logLines = ArrayList<String>()
+    private var logListener: OnLogEventListener? = null
 
     private val logFile = LogFile()
     private var isFileWriteEnabled = true
@@ -38,6 +45,13 @@ object Log {
             if (isFileWriteEnabled) {
                 logFile.write(logMsg)
             }
+
+            logLines.add(logMsg)
+            if (logLines.size > MAX_LOG_LINES) {
+                logLines.removeAt(0) // 가장 오래된 로그 삭제
+            }
+
+            logListener?.onLog(logMsg)
         }
     }
 
@@ -59,6 +73,13 @@ object Log {
         }
     }
 
+    fun getLogHistory() = logLines.joinToString(separator = System.lineSeparator() )
+    fun setOnLogEventListener(listener: OnLogEventListener?) {
+        this.logListener = listener
+    }
+    interface OnLogEventListener {
+        fun onLog(logMessage: String)
+    }
 
     private class LogFile {
         private val logFullPath = Const.Path.DIR_LOG + Const.Name.getLogFileName()
