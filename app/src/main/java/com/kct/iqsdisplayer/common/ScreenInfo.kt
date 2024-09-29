@@ -34,6 +34,8 @@ object ScreenInfo {
     var playTimeRecent  = 10000
     var usePlayMedia    = false
     var playTimeMedia   = 10000
+    var playTimeReserveCall   = 20000   //서버에서 내려주는 값없음. 기본값
+    var playTimeReserveList   = 20000   //서버에서 내려주는 값없음. 기본값
     var mediaFileNameList = ArrayList<String>()
     var volumeLevel     = 1         // 1~10까지의 볼륨값
     var serverTime      = 0

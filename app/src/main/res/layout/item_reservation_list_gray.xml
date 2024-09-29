@@ -5,10 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/_EEEEEE"
+    android:id="@+id/llViewGroup"
     android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/tvReserveName"
+        android:id="@+id/tvCustomerName"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="25"

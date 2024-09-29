@@ -594,7 +594,7 @@ class MainActivity : AppCompatActivity() {
     private fun onReserveCallRequest(receivedData: BaseReceivePacket) {
 
         val data = receivedData as ReserveCall
-        Log.i( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
+        Log.i( "onReserveCallRequest :상담예약 호출 수신 완료...$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE  //나의 ViewMode
         val isStopWork  = ScreenInfo.isStopWork.value ?: false //나의 업무상태, 구 pjt
@@ -605,8 +605,6 @@ class MainActivity : AppCompatActivity() {
                 Log.i("onReserveCall PASS - 공석 상태")
             }
             else {  //공석이 아님
-                ScreenInfo.updateReserveCallInfo(data)
-
                 if(data.isError) { // Call이 장애상황에 해당하면
                     if(data.reserveBkDisplayNum == ScreenInfo.winNum) { //백업표시로 나에게 할당 되었다면
 
@@ -624,7 +622,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 else { //정상 Call이면
                     if(data.reserveCallWinNum == ScreenInfo.winNum) { //나의 Call이면 처리, 다른사람 Call은 Pass
-                        replaceFragment(Index.FRAGMENT_MAIN, 20000)
+                        ScreenInfo.updateReserveCallInfo(data)
+                        replaceFragment(Index.FRAGMENT_RECENT_CALL, 20000)
                     }
                 }
             }

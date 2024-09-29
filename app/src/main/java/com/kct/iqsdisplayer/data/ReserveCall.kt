@@ -22,7 +22,22 @@ data class ReserveCall(
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.RESERVE_CALL_REQUEST
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "ReserveCall(reserveNum=$reserveNum, reserveTime='$reserveTime', customerNum='$customerNum', customerName='$customerName', isError=$isError, reserveCallNum=$reserveCallNum, reserveCallWinID=$reserveCallWinID, reserveCallWinNum=$reserveCallWinNum, reserveBkDisplayNum=$reserveBkDisplayNum, reserveBkWay=$reserveBkWay, flagVip=$flagVip, protocolDefine=$protocolDefine)"
+        return """
+        ReserveCall(
+            reserveNum=$reserveNum,
+            reserveTime='$reserveTime',
+            customerNum='$customerNum',
+            customerName='$customerName',
+            isError=$isError,
+            reserveCallNum=$reserveCallNum,
+            reserveCallWinID=$reserveCallWinID,
+            reserveCallWinNum=$reserveCallWinNum,
+            reserveBkDisplayNum=$reserveBkDisplayNum,
+            reserveBkWay=$reserveBkWay,
+            flagVip=$flagVip,
+            protocolDefine=$protocolDefine
+        )
+    """.trimIndent()
     }
 }
 
