@@ -242,7 +242,6 @@ class MainActivity : AppCompatActivity() {
             Log.d("onConnected")
             ScreenInfo.setSocketConnected(true)
             vmSystemReady.setIsConnect(true)
-            Log.i("systemReady : setIsConnect(true)")
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
@@ -623,7 +622,7 @@ class MainActivity : AppCompatActivity() {
                 else { //정상 Call이면
                     if(data.reserveCallWinNum == ScreenInfo.winNum) { //나의 Call이면 처리, 다른사람 Call은 Pass
                         ScreenInfo.updateReserveCallInfo(data)
-                        replaceFragment(Index.FRAGMENT_RECENT_CALL, 20000)
+                        replaceFragment(Index.FRAGMENT_RESERVE_CALL, 20000)
                     }
                 }
             }

@@ -71,19 +71,24 @@ class FragmentReady : Fragment() {
         binding.clNetworkInfo.tvKey.text   = "IP"
         binding.clNetworkInfo.tvValue.text = getLocalIpAddress()
 
+        binding.tvLogView.movementMethod = ScrollingMovementMethod()
+
+        setLogText(Log.getLogHistory())
+
         Log.setOnLogEventListener( object : Log.OnLogEventListener {
             override fun onLog(logMessage: String) {
-                lifecycleScope.launch {
-                    binding.tvLogView.post {
-                        binding.tvLogView.append(logMessage + System.lineSeparator())
-                        binding.tvLogView.scrollTo(0, binding.tvLogView.bottom)
-                    }
-                }
+                setLogText(logMessage)
             }
         })
-        binding.tvLogView.movementMethod = ScrollingMovementMethod()
-        binding.tvLogView.text = Log.getLogHistory()
-        binding.tvLogView.scrollTo(0, binding.tvLogView.bottom)
+    }
+
+    private fun setLogText(logMessage: String) {
+        lifecycleScope.launch {
+            binding.tvLogView.append(logMessage + System.lineSeparator())
+//            binding.tvLogView.post { // 레이아웃 계산 완료 후 실행
+//                binding.tvLogView.scrollTo(0, binding.tvLogView.bottom)
+//            }
+        }
     }
 
     override fun onDestroyView() {

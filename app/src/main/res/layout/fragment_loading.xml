@@ -174,7 +174,7 @@
         <TextView
             android:id="@+id/tvLogView"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/pretendard_bold"
             android:gravity="start"
             android:includeFontPadding="false"

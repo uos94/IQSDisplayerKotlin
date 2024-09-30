@@ -19,6 +19,7 @@ import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
+import kotlin.math.log
 
 class TCPClient(private val host: String, private val port: Int) {
 
@@ -192,22 +193,24 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private suspend fun sendProtocol(sendByteBuffer: ByteBuffer) {
         withContext(Dispatchers.IO) {
-            if (socket == null || !socket!!.isConnected) {
-                throw SocketException("SendProtocol: 연결되지 않은 상태입니다.")
-            }
-
-            try {
-                socket!!.getOutputStream().let { outStream ->
-                    outStream.write(sendByteBuffer.array())
-                    outStream.flush()
+            socket?.let {
+                if (!it.isConnected || !it.isClosed) {
+                    Log.w("SendProtocol: 연결되지 않은 상태입니다.")
+                    return@let
                 }
-                timerKeepAlive = 0
-            } catch (e: IOException) {
-                e.printStackTrace()
-                handleError("SendProtocol: IOException (${e.message})")
-            } catch (e: Exception) {
-                e.printStackTrace()
-                handleError("SendProtocol: Exception (${e.message})")
+                try {
+                    it.getOutputStream().let { outStream ->
+                        outStream.write(sendByteBuffer.array())
+                        outStream.flush()
+                    }
+                    timerKeepAlive = 0
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    handleError("SendProtocol: IOException (${e.message})")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    handleError("SendProtocol: Exception (${e.message})")
+                }
             }
         }
     }

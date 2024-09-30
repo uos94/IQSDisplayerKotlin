@@ -73,10 +73,15 @@ object Log {
         }
     }
 
-    fun getLogHistory() = logLines.joinToString(separator = System.lineSeparator() )
+    fun getLogHistory() : String {
+        val logLinesCopy = ArrayList(logLines)
+        return logLinesCopy.joinToString(separator = System.lineSeparator())
+    }
+
     fun setOnLogEventListener(listener: OnLogEventListener?) {
         this.logListener = listener
     }
+
     interface OnLogEventListener {
         fun onLog(logMessage: String)
     }
