@@ -134,7 +134,6 @@ class TCPClient(private val host: String, private val port: Int) {
             while (isActive) {
                 if (timerKeepAlive >= 10) {
                     sendProtocol(KeepAliveRequest().toByteBuffer())
-                    timerKeepAlive = 0
                 } else {
                     delay(1000)
                     timerKeepAlive++
@@ -194,7 +193,7 @@ class TCPClient(private val host: String, private val port: Int) {
     private suspend fun sendProtocol(sendByteBuffer: ByteBuffer) {
         withContext(Dispatchers.IO) {
             socket?.let {
-                if (!it.isConnected || !it.isClosed) {
+                if (!it.isConnected || it.isClosed) {
                     Log.w("SendProtocol: 연결되지 않은 상태입니다.")
                     return@let
                 }

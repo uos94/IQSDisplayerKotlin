@@ -141,8 +141,15 @@ class FragmentMain : Fragment() {
      * TODO : autoSize 적용 해야함.
      */
     private fun setCallNumberText(callNumText: String) {
+        val callNumTextSize = when {
+            ScreenInfo.isStopWork.value == true -> 250f
+            ScreenInfo.isTcpConnected.value == false -> 200f
+            ScreenInfo.isPausedByServerError.value == true -> 200f
+            ScreenInfo.isPausedWork.value == true -> 250f
+            else -> 370f
+        }
         val isAbsence = !callNumText.all { it.isDigit() }
-        binding.tvCallNum.textSize = if (isAbsence) 250f else 370f
+        binding.tvCallNum.textSize = callNumTextSize
 
         val oldText = binding.tvCallNum.text
         binding.tvCallNum.text = callNumText

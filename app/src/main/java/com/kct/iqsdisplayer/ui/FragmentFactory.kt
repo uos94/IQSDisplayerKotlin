@@ -165,6 +165,9 @@ object FragmentFactory {
                 Index.FRAGMENT_RESERVE_CALL   -> { //예약호출
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
+                Index.FRAGMENT_BACKUP_CALL   -> { //백업호출
+                    replaceFragment(Index.FRAGMENT_MAIN)
+                }
                 else -> { //현재화면 READY, SETTING, 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
                     Log.d("ChangeFragment - 현재 화면 : ${getTagName(currentFragmentIndex)}")
                     return

@@ -35,28 +35,11 @@ data class Reserve(
 
     override fun toString(): String {
         return """
-        예약 정보:
-            예약 일자: $reserveDate
-            지점 번호: $branchNum
-            예약 번호: $reserveNum
-            예약 시간: $reserveTime
-        직원 정보:
-            직원 번호: $tellerNum
-            직원 명: $tellerName
-            업무 명: $tellerJob
-        고객 정보:
-            고객 번호: $customerNum
-            고객 이름: $customerName
-            고객 연락처: $customerTel
-            고객 등급: $customerGrade
-        창구 정보:
-            창구 ID: $reserveWinID
-            창구명: $reserveWinName
-            도착 시간: $arriveTime
-            도착 등록 여부: $isArrive
-            호출 시간: $callTime
-            취소 여부: $isCancel
-            채널타입: $channelType
+        [예약 정보] 예약일자: $reserveDate, 지점 번호: $branchNum, 예약번호: $reserveNum, 예약시간: $reserveTime
+        [직원 정보] 직원번호: $tellerNum, 직원명: $tellerName, 업무명: $tellerJob            
+        [고객 정보] 고객번호: $customerNum, 고객이름: $customerName, 고객연락처: $customerTel, 고객등급: $customerGrade
+        [창구 정보] 창구ID: $reserveWinID, 창구명: $reserveWinName
+        [기타 정보] 도착시간: $arriveTime, 도착등록여부: $isArrive, 호출시간: $callTime, 취소여부: $isCancel, 채널타입: $channelType
     """
     }
 }

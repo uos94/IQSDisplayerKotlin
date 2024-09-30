@@ -171,23 +171,27 @@
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
             />
 
-        <TextView
-            android:id="@+id/tvLogView"
+        <ScrollView
+            android:id="@+id/svLogLayer"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/pretendard_bold"
-            android:gravity="start"
-            android:includeFontPadding="false"
-            android:scrollbars="vertical"
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/vTitleLine"
-            app:layout_constraintVertical_bias="0.0"
-            tools:text="@string/test" />
+            app:layout_constraintTop_toBottomOf="@id/vTitleLine">
+            <TextView
+                android:id="@+id/tvLogView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/pretendard_bold"
+                android:gravity="start"
+                android:includeFontPadding="false"
+                android:scrollbars="vertical"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                tools:text="@string/test" />
+        </ScrollView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -25,7 +25,7 @@ object Const {
         val DIR_IQS by lazy { "${DIR_ROOT}/IQS/" }
 
         /** 예상경로 : /storage/emulated/0/IQS/LOG/ */
-        val DIR_LOG by lazy { "${DIR_IQS}LOG/" }
+        val DIR_LOG by lazy { "${DIR_IQS}Log/" }
 
         // 이미지, 비디오, 사운드, 패치파일을 저장하는 디렉토리 경로(디바이스)
         /** 예상경로 : /storage/emulated/0/IQS/Image/ */

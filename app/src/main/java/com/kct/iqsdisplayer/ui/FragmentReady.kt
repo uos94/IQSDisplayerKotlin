@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.SystemReadyModel
-import com.kct.iqsdisplayer.databinding.FragmentLoadingBinding
+import com.kct.iqsdisplayer.databinding.FragmentReadyBinding
 import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.getCurrentTimeFormatted
@@ -24,16 +24,17 @@ import kotlinx.coroutines.launch
 
 class FragmentReady : Fragment() {
 
-    private lateinit var binding: FragmentLoadingBinding
+    private lateinit var binding: FragmentReadyBinding
     private var mainActivity: MainActivity? = null
     private lateinit var viewModel: SystemReadyModel
+    private var userTouchedScrollView = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLoadingBinding.inflate(inflater, container, false)
+        binding = FragmentReadyBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -71,8 +72,6 @@ class FragmentReady : Fragment() {
         binding.clNetworkInfo.tvKey.text   = "IP"
         binding.clNetworkInfo.tvValue.text = getLocalIpAddress()
 
-        binding.tvLogView.movementMethod = ScrollingMovementMethod()
-
         setLogText(Log.getLogHistory())
 
         Log.setOnLogEventListener( object : Log.OnLogEventListener {
@@ -80,14 +79,25 @@ class FragmentReady : Fragment() {
                 setLogText(logMessage)
             }
         })
+        binding.svLogLayer.viewTreeObserver.addOnScrollChangedListener {
+            val scrollViewHeight = binding.svLogLayer.height
+            val scrollContentHeight = binding.svLogLayer.getChildAt(0).height
+            val scrollY = binding.svLogLayer.scrollY
+
+            userTouchedScrollView = scrollY + scrollViewHeight < scrollContentHeight
+
+        }
     }
 
     private fun setLogText(logMessage: String) {
         lifecycleScope.launch {
             binding.tvLogView.append(logMessage + System.lineSeparator())
-//            binding.tvLogView.post { // 레이아웃 계산 완료 후 실행
-//                binding.tvLogView.scrollTo(0, binding.tvLogView.bottom)
-//            }
+
+            if(!userTouchedScrollView) {
+                binding.svLogLayer.post {
+                    binding.svLogLayer.fullScroll(View.FOCUS_DOWN)
+                }
+            }
         }
     }
 
