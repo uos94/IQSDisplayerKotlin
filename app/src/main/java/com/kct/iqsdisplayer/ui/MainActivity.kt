@@ -125,18 +125,18 @@ class MainActivity : AppCompatActivity() {
                         |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
                 if(it) { replaceFragment(Index.FRAGMENT_MAIN) }
-
-
-                replaceFragment(Index.FRAGMENT_READY)
-
-                initConstInfo()
-
-                tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
-                tcpClient.setOnTcpEventListener(tcpEventListener)
-                // 백그라운드 스레드에서 연결 시작
-                lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
             }
+
+            replaceFragment(Index.FRAGMENT_READY)
+
+            initConstInfo()
+
+            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
+            tcpClient.setOnTcpEventListener(tcpEventListener)
+            // 백그라운드 스레드에서 연결 시작
+            lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
         }
+
     }
 
     private fun checkStorage(): Boolean {
@@ -205,7 +205,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restoreSharedPreferencesFiles() {
-        Log.d("파일복구 SharedPreferencesFiles")
         Const.Path.DIR_SHARED_PREFS = "${getDir("shared_prefs", Context.MODE_PRIVATE).absolutePath}/"
 
         var prefFileName = Const.Name.getPrefDisplayerSettingName()
@@ -342,6 +341,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onConnectSuccess() {
+        Log.d("TCP Connect 응답 수신 [onConnectSuccess]")
         val ip = getLocalIpAddress()
         val mac = getMacAddress()
         if(ip.isNullOrEmpty() || mac.isNullOrEmpty()) {

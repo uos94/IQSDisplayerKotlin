@@ -187,7 +187,7 @@ class TCPClient(private val host: String, private val port: Int) {
                 e.printStackTrace()
                 handleError("TcpReceiver: SocketException (${e.message})")
             }
-            //delay(10)
+            delay(100)
         }
         Log.d("TcpReceiver STOPPED")
     }
