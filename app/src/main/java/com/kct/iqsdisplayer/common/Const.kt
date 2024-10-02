@@ -196,8 +196,8 @@ object Const {
 
     enum class CallViewMode(val value: Int) {
         MAIN(0),
-        SUB(1),
-        SOUND(2)
+        SUB(2),
+        SOUND(3)
     }
 
     enum class CallType {

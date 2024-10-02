@@ -56,8 +56,9 @@ class FragmentSetting : Fragment() {
             val builder = AlertDialog.Builder(requireContext())
             val input = EditText(requireContext())
 
-            val loadPrefData = requireContext().getPreference(Const.Name.PREF_DISPLAYER_SETTING, item.prefKey, "")
-            input.setText(loadPrefData)
+            val loadPrefData = requireContext().getPreference(Const.Name.PREF_DISPLAYER_SETTING, item.prefKey, item.prefDefaultValue)
+            Log.d("preference name[${Const.Name.PREF_DISPLAYER_SETTING}, key[${item.prefKey}], value[$loadPrefData]")
+            input.setText(loadPrefData.toString())
             builder.setView(input)
 
             builder.setTitle(item.mainText)

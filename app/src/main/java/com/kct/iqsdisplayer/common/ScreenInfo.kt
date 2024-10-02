@@ -10,7 +10,6 @@ import com.kct.iqsdisplayer.data.ReserveCall
 import com.kct.iqsdisplayer.data.Teller
 import com.kct.iqsdisplayer.data.WinInfo
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
-import com.kct.iqsdisplayer.data.packet.receive.InfoMessageRequest
 import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
 import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse

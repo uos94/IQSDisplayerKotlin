@@ -1,7 +1,12 @@
 package com.kct.iqsdisplayer.network
 
+import androidx.lifecycle.ViewModelProvider
+import com.kct.iqsdisplayer.common.ScreenInfo
+import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.send.KeepAliveRequest
+import com.kct.iqsdisplayer.ui.FragmentFactory.Index
+import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,8 +15,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.io.InputStream
@@ -19,7 +22,6 @@ import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
-import kotlin.math.log
 
 class TCPClient(private val host: String, private val port: Int) {
 
@@ -35,6 +37,7 @@ class TCPClient(private val host: String, private val port: Int) {
     private var inputStream: InputStream? = null
     private var timerKeepAlive = 0
     private var isConnected = false
+    private var enableKeepAlive = false
 
     private val supervisorJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + supervisorJob)
@@ -129,10 +132,15 @@ class TCPClient(private val host: String, private val port: Int) {
         }
     }
 
+    fun enableKeepAlive(isEnable: Boolean) {
+        enableKeepAlive = isEnable
+    }
+
     private fun startKeepAlive() {
         keepAliveJob = coroutineScope.launch(Dispatchers.IO) {
             while (isActive) {
-                if (timerKeepAlive >= 10) {
+                if (timerKeepAlive >= 10 && enableKeepAlive) {
+                    Log.v("KeepAlive 전송")
                     sendProtocol(KeepAliveRequest().toByteBuffer())
                 } else {
                     delay(1000)
@@ -149,7 +157,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private suspend fun tcpReceiverLoop(scope: CoroutineScope) {
-        Log.d("TcpReceiver STARTED...")
+        Log.d("TCP 네트워크 수신중...")
         while (scope.isActive) {
             try {
                 // 연결 상태 확인

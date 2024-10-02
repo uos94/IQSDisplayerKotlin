@@ -16,6 +16,7 @@ object UpdateManager {
     private var targetFilePath = ""
 
     fun setUpdateFileInfo(downloadFileSize: Int, downloadFileName: String) {
+        Log.d("파일 이름: $downloadFileName, 파일 사이즈: $downloadFileSize")
         fileSize = downloadFileSize.toLong()
         fileName = downloadFileName
         fileExtension = downloadFileName.substringAfterLast(".", "").lowercase()
@@ -60,6 +61,13 @@ object UpdateManager {
                 it.write(dataArray)
                 it.close()
             }
+            // 현재까지 다운로드된 파일 크기
+            val currentFileSize = File(sourceFilePath).length()
+
+            // 완료 퍼센트 계산
+            val percent = (currentFileSize * 100 / fileSize).toInt()
+            // 로그 메시지에 완료 퍼센트 추가
+            Log.d("파일 이름: $fileName, 진행중[$percent%] - $currentFileSize/$fileSize")
 
             if(isCompleteDownload()) {
                 val copySuccess = copyFile(sourceFilePath, targetFilePath)

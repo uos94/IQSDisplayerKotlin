@@ -6,7 +6,7 @@ import com.kct.iqsdisplayer.network.ProtocolDefine
 
 /**
  * updateType이 1일때는 fileSize와 fileName이 온다.
- * updateType이 1일때는 fileSize와 fileName이 없다.
+ * updateType이 2일때는 fileSize와 fileName이 없다.
  */
 data class UpdateInfoResponse(
     var updateType: Int = 0,

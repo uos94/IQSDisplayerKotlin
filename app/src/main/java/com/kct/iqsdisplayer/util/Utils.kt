@@ -335,7 +335,7 @@ fun getCurrentTimeFormatted(): String {
 //TODO : 나중에 시간되면 명령어 날리고 반환값 확인하는 class로 따로 빼야함.
 // 업체 패치 파일 업데이트 함수 AS-IS코드 적용
 fun installSilent(packageName: String, fileName: String): Int {
-    Log.d("Start Patch File install..File Name : $fileName")
+    Log.d("신규앱 설치 시작..File Name : $fileName")
 
     val filePath = Const.Path.DIR_PATCH + fileName
     val file = File(filePath)

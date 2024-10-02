@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        Log.i("메인시작")
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         enableEdgeToEdge()
@@ -95,15 +95,23 @@ class MainActivity : AppCompatActivity() {
         startSystem()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        Log.i("메인재시작")
+        super.onNewIntent(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        Log.i("메인종료")
         tcpClient.onDestroy()
     }
 
 
     private fun startSystem() {
         if(checkStorage()) {
-            //Storage 를 사용 할 준비가 되었다면 접속환경 설정 및 TCP접속부터 시작한다.
+            //Storage 를 사용 할 준비가 되었다면 접속환경 설정, TCP접속부터 시작한다.
+            restoreSharedPreferencesFiles()
+            
             vmSystemReady = ViewModelProvider(this)[SystemReadyModel::class.java]
             vmSystemReady.systemReadyLiveData.observe(this) {
                 Log.i("systemReady : $it")
@@ -117,18 +125,17 @@ class MainActivity : AppCompatActivity() {
                         |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
                 if(it) { replaceFragment(Index.FRAGMENT_MAIN) }
+
+
+                replaceFragment(Index.FRAGMENT_READY)
+
+                initConstInfo()
+
+                tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
+                tcpClient.setOnTcpEventListener(tcpEventListener)
+                // 백그라운드 스레드에서 연결 시작
+                lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
             }
-
-            replaceFragment(Index.FRAGMENT_READY)
-
-            restoreSharedPreferencesFiles()
-
-            initConstInfo()
-
-            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
-            tcpClient.setOnTcpEventListener(tcpEventListener)
-            // 백그라운드 스레드에서 연결 시작
-            lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
         }
     }
 
@@ -185,48 +192,82 @@ class MainActivity : AppCompatActivity() {
     private fun initConstInfo() {
         getSharedPreferences(Const.Name.PREF_DISPLAYER_SETTING, Context.MODE_PRIVATE).loadCommunicationInfo()
 
-        if(Const.ConnectionInfo.DISPLAY_IP == null) {
+        if(Const.ConnectionInfo.DISPLAY_IP.isNullOrEmpty()) {
             Const.ConnectionInfo.DISPLAY_IP = getLocalIpAddress()
+            Log.d("IP설정 : ${Const.ConnectionInfo.DISPLAY_IP}")
             setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.DISPLAY_IP, "")
         }
-        if(Const.ConnectionInfo.DISPLAY_MAC == null) {
+        if(Const.ConnectionInfo.DISPLAY_MAC.isNullOrEmpty()) {
             Const.ConnectionInfo.DISPLAY_MAC = getMacAddress()
+            Log.d("MAC설정 : ${Const.ConnectionInfo.DISPLAY_MAC}")
             setPreference(Const.Name.PREF_DISPLAYER_SETTING, Const.Key.DisplaySetting.DISPLAY_MAC, "")
         }
     }
 
     private fun restoreSharedPreferencesFiles() {
-        Const.Path.DIR_SHARED_PREFS = "${filesDir.absolutePath}/shared_prefs/"
+        Log.d("파일복구 SharedPreferencesFiles")
+        Const.Path.DIR_SHARED_PREFS = "${getDir("shared_prefs", Context.MODE_PRIVATE).absolutePath}/"
 
         var prefFileName = Const.Name.getPrefDisplayerSettingName()
-        var sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
-        var destPath: String
+        var sourcePath : String
+        var destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
 
-        val prefDisplayerSetting = File(sourcePath)
+        val prefDisplayerSetting = File(destPath)
 
         if (!prefDisplayerSetting.exists()) {
             sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
             destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
 
             if(File(sourcePath).exists()) copyFile(sourcePath, destPath)
-
+            Log.d("설정정보파일 복구 sourceFile[$sourcePath], destFile[$destPath]")
         } else {
-            Log.d("설정정보파일 정상[${Const.Name.PREF_DISPLAYER_SETTING}]")
+            Log.d("설정정보파일 정상[${Const.Name.PREF_DISPLAYER_SETTING}], Path[$destPath]")
         }
 
         prefFileName = Const.Name.getPrefDisplayInfoName()
-        sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+        destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
 
-        val prefDisplayInfo = File(sourcePath)
+        val prefDisplayInfo = File(destPath)
 
         if (!prefDisplayInfo.exists()) {
             sourcePath = "${Const.Path.DIR_IQS}$prefFileName"
             destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
 
             if(File(sourcePath).exists()) copyFile(sourcePath, destPath)
-
+            Log.d("화면정보파일 복구 sourceFile[$sourcePath], destFile[$destPath]")
         } else {
-            Log.d("화면정보파일 정상[${Const.Name.PREF_DISPLAY_INFO}]")
+            Log.d("화면정보파일 정상[${Const.Name.PREF_DISPLAY_INFO}], Path[$destPath]")
+        }
+    }
+
+    private fun backupSharedPreferencesFiles() {
+        Log.d("파일백업 SharedPreferencesFiles")
+        Const.Path.DIR_SHARED_PREFS = "${getDir("shared_prefs", Context.MODE_PRIVATE).absolutePath}/"
+
+        var prefFileName = Const.Name.getPrefDisplayerSettingName()
+        var sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+        var destPath = "${Const.Path.DIR_IQS}$prefFileName"
+
+        val prefDisplayerSetting = File(sourcePath)
+
+        if (!prefDisplayerSetting.exists()) {
+            copyFile(sourcePath, destPath)
+            Log.d("설정정보파일 백업 sourceFile[$sourcePath], destFile[$destPath]")
+        } else {
+            Log.d("설정정보파일 없음, 백업실패[${Const.Name.PREF_DISPLAYER_SETTING}], Path[$sourcePath]")
+        }
+
+        prefFileName = Const.Name.getPrefDisplayInfoName()
+        sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
+        destPath = "${Const.Path.DIR_IQS}$prefFileName"
+
+        val prefDisplayerInfo = File(sourcePath)
+
+        if (!prefDisplayerInfo.exists()) {
+            copyFile(sourcePath, destPath)
+            Log.d("화면정보파일 백업 sourceFile[$sourcePath], destFile[$destPath]")
+        } else {
+            Log.d("화면정보파일 없음, 백업실패[${Const.Name.PREF_DISPLAYER_SETTING}], Path[$sourcePath]")
         }
     }
 
@@ -239,7 +280,7 @@ class MainActivity : AppCompatActivity() {
     =====================================================================================================*/
     private val tcpEventListener = object : TCPClient.OnTcpEventListener {
         override fun onConnected() {
-            Log.d("onConnected")
+            //Log.d("onConnected")
             ScreenInfo.setSocketConnected(true)
             vmSystemReady.setIsConnect(true)
         }
@@ -300,37 +341,6 @@ class MainActivity : AppCompatActivity() {
         uploadLogFileToServer()
     }
 
-    /*
-    private suspend fun requestOther() {
-        coroutineScope { // 새로운 CoroutineScope 생성
-            val reserveListFlow = flow {
-                tcpClient.sendData(ReserveListRequest().toByteBuffer())
-                emit(tcpClient.awaitResponse(ReserveListResponse::class))
-            }
-
-            val mediaListFlow = flow {
-                tcpClient.sendData(MediaListRequest().toByteBuffer())
-                emit(tcpClient.awaitResponse(MediaListResponse::class))
-            }
-
-            val waitListFlow = flow {
-                tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
-                emit(tcpClient.awaitResponse(WaitResponse::class)) // WaitResponse 클래스가 있다고 가정
-            }
-
-            val logUploadFlow = flow {
-                uploadLogFileToServer()
-                emit(true) // 로그 업로드 완료 시 true emit
-            }
-
-            // 모든 flow가 완료될 때까지 기다림
-            combine(reserveListFlow, mediaListFlow, waitListFlow, logUploadFlow) { _, _, _, _ ->  }.collect {
-                // 모든 요청 및 로그 업로드 완료 시 FragmentMain으로 이동
-                replaceFragment(Index.FRAGMENT_MAIN)
-            }
-        }
-    }*/
-
     private fun onConnectSuccess() {
         val ip = getLocalIpAddress()
         val mac = getMacAddress()
@@ -339,7 +349,7 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             val sendData = AcceptAuthRequest(ip, mac)
-            Log.d("SendProtocol : AcceptAuthRequest")
+            Log.d("접속승인 요청[AcceptAuthRequest]")
             tcpClient.sendData(sendData.toByteBuffer())
         }
     }
@@ -348,12 +358,14 @@ class MainActivity : AppCompatActivity() {
         val data = receivedData as AcceptAuthResponse
         Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
         vmSystemReady.setIsAuthPacket(true)
+        tcpClient.enableKeepAlive(true)
         ScreenInfo.updateDefaultInfo(data)
     }
 
+    /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함.*/
     private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoResponse
-        Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data")
+        //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
 
         when(data.updateType) {
             0 -> {
@@ -369,6 +381,7 @@ class MainActivity : AppCompatActivity() {
 
                 if(UpdateManager.isCompleteDownload()) {
                     if(UpdateManager.getFileExtension() == "apk") {
+                        backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
                         installSilent(packageName, UpdateManager.getFileName())
                     }
                     else {
@@ -648,10 +661,8 @@ class MainActivity : AppCompatActivity() {
         fileList?.reversed()?.forEach { file ->
             val fileName = file.name
             // 현재 날짜 파일은 제외
-            if (fileName != "$currentDateFileName.txt") {
-                Log.d("uploadLogFileToServerSub() : 현재날짜 = $currentDateFileName, 업로드 파일 = $fileName")
-                uploadLogFileToServerSub(fileName)
-            }
+            Log.d("uploadLogFileToServerSub() : 현재날짜 = $currentDateFileName, 업로드 파일 = $fileName")
+            uploadLogFileToServerSub(fileName)
         }
         vmSystemReady.setIsUploadLog(true)
         Log.d("   로그파일 서버전송 종료")
@@ -662,11 +673,9 @@ class MainActivity : AppCompatActivity() {
     private fun uploadLogFileToServerSub(fileName: String) {
         val code = ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER.value
 
-        Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName")
-
         try {
             val uploadFile = File(Const.Path.DIR_LOG + fileName)
-
+            Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName , size[${uploadFile.length()/1024.0}kb]")
             if (!uploadFile.exists()) {
                 Log.d("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
                 return
@@ -676,8 +685,8 @@ class MainActivity : AppCompatActivity() {
                 val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
                 var bytesRead: Int
 
-                Log.d("uploadLogFileToServerSub() 데이터 전송: 업로드 파일이름 = $fileName")
                 while (fis.read(readBuffer).also { bytesRead = it } != -1) {
+                    //여기에 로그를 넣으면 로그를 보내는 동안 파일 사이즈가 늘어나 끝나지 않는다...
                     // ================================================================================================================
                     // 전송할 팩킷 구조
                     // datasize(2byte) + code(2byte) + sFileName(n byte) + 구분자(Null 1byte) + File contents(nReadLength와 같거나 작은값) + 구분자(Null 1byte)
@@ -697,8 +706,7 @@ class MainActivity : AppCompatActivity() {
                     tcpClient.sendData(sendByteBuffer)
                 }
 
-                // 파일 읽기가 끝났으므로 해당 파일 삭제, TODO : 임시로 삭제안함 업로드 로직 확인용
-                // uploadFile.delete()
+                uploadFile.delete()
             }
         } catch (e: Exception) {
             Log.e("uploadLogFileToServerSub() 예외 발생: ${e.message}", e)

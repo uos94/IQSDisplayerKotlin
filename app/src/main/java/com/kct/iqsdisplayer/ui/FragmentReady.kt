@@ -13,6 +13,7 @@ import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.databinding.FragmentReadyBinding
+import com.kct.iqsdisplayer.ui.FragmentFactory.Index
 import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.getCurrentTimeFormatted
@@ -25,8 +26,9 @@ import kotlinx.coroutines.launch
 class FragmentReady : Fragment() {
 
     private lateinit var binding: FragmentReadyBinding
+    private lateinit var vmSystemReady: SystemReadyModel
     private var mainActivity: MainActivity? = null
-    private lateinit var viewModel: SystemReadyModel
+
     private var userTouchedScrollView = false
 
     override fun onCreateView(
@@ -51,7 +53,7 @@ class FragmentReady : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireActivity())[SystemReadyModel::class.java]
+        vmSystemReady = ViewModelProvider(requireActivity())[SystemReadyModel::class.java]
 
         setUI()
     }
@@ -87,6 +89,7 @@ class FragmentReady : Fragment() {
             userTouchedScrollView = scrollY + scrollViewHeight < scrollContentHeight
 
         }
+
     }
 
     private fun setLogText(logMessage: String) {
@@ -103,7 +106,6 @@ class FragmentReady : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.i("onDestroyView")
         Log.setOnLogEventListener(null)
     }
 
