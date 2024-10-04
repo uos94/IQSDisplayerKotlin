@@ -56,7 +56,7 @@
         <receiver
             android:name=".receiver.PackageEventReceiver"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:label="Receiver">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED"/>

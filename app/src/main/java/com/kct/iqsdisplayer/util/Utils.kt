@@ -2,7 +2,9 @@ package com.kct.iqsdisplayer.util
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -10,6 +12,7 @@ import android.view.WindowInsetsController
 import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.kct.iqsdisplayer.common.Const
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -332,7 +335,25 @@ fun getCurrentTimeFormatted(): String {
     return dateFormat.format(currentTime)
 }
 
-//TODO : 나중에 시간되면 명령어 날리고 반환값 확인하는 class로 따로 빼야함.
+fun Context.installApk(fileName: String) {
+    val filePath = Const.Path.DIR_PATCH + fileName
+    val file = File(filePath)
+    if (filePath.isEmpty() || file.length() <= 0 || !file.exists() || !file.isFile) {
+        Log.d("Not exist File")
+        return
+    }
+
+    // FileProvider를 사용하여 content Uri 생성
+    val contentUri = FileProvider.getUriForFile(this, "com.kct.iqsdisplayer.provider", file)
+
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.setDataAndType(contentUri, "application/vnd.android.package-archive")
+    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // FileProvider에 권한 부여
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    startActivity(intent)
+}
+
+//TODO : 기존에 설치하던 방식인데. 이러면 설치완료 시점을 알 수 없어 앱 재시작이 힘들다.
 // 업체 패치 파일 업데이트 함수 AS-IS코드 적용
 fun installSilent(packageName: String, fileName: String): Int {
     Log.d("신규앱 설치 시작..File Name : $fileName")

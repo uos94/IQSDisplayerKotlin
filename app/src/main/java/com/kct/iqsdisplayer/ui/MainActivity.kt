@@ -55,6 +55,7 @@ import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.getLocalIpAddress
 import com.kct.iqsdisplayer.util.getMacAddress
+import com.kct.iqsdisplayer.util.installApk
 import com.kct.iqsdisplayer.util.installSilent
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
@@ -394,7 +395,8 @@ class MainActivity : AppCompatActivity() {
                     override fun onDownloadComplete(fileName: String, targetFilePath: String, fileSize: Long) {
                         if(UpdateManager.getFileExtension() == "apk") {
                             backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
-                            installSilent(packageName, UpdateManager.getFileName())
+                            installApk(UpdateManager.getFileName())
+                            //installSilent(packageName, UpdateManager.getFileName())
                         }
                     }
                 })
