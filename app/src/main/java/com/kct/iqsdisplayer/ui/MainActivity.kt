@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -23,6 +24,7 @@ import com.kct.iqsdisplayer.common.Const.ConnectionInfo.loadCommunicationInfo
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.common.UpdateManager
+import com.kct.iqsdisplayer.common.UpdateManager.OnDownloadListener
 import com.kct.iqsdisplayer.data.BackupCallInfo
 import com.kct.iqsdisplayer.data.Call
 import com.kct.iqsdisplayer.data.Reserve
@@ -84,6 +86,8 @@ class MainActivity : AppCompatActivity() {
         Log.i("메인시작")
         binding = ActivityMainBinding.inflate(layoutInflater)
 
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         enableEdgeToEdge()
 
         setContentView(R.layout.activity_main)
@@ -106,6 +110,18 @@ class MainActivity : AppCompatActivity() {
         tcpClient.onDestroy()
     }
 
+    private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            val index = FragmentFactory.getCurrentIndex()
+            if(index != Index.FRAGMENT_MAIN) {
+                Log.i("백버튼으로 메인호출")
+                replaceFragment(Index.FRAGMENT_MAIN)
+            }
+            else {
+                finishApp("백버튼으로 종료호출")
+            }
+        }
+    }
 
     private fun startSystem() {
         if(checkStorage()) {
@@ -205,8 +221,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restoreSharedPreferencesFiles() {
-        Const.Path.DIR_SHARED_PREFS = "${getDir("shared_prefs", Context.MODE_PRIVATE).absolutePath}/"
-
         var prefFileName = Const.Name.getPrefDisplayerSettingName()
         var sourcePath : String
         var destPath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
@@ -241,8 +255,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun backupSharedPreferencesFiles() {
         Log.d("파일백업 SharedPreferencesFiles")
-        Const.Path.DIR_SHARED_PREFS = "${getDir("shared_prefs", Context.MODE_PRIVATE).absolutePath}/"
-
         var prefFileName = Const.Name.getPrefDisplayerSettingName()
         var sourcePath = "${Const.Path.DIR_SHARED_PREFS}$prefFileName"
         var destPath = "${Const.Path.DIR_IQS}$prefFileName"
@@ -374,21 +386,22 @@ class MainActivity : AppCompatActivity() {
             }
             1 -> { // 다운로드할 파일의 첫 번째 처리 부분
                 UpdateManager.setUpdateFileInfo(receivedData.updateSize, receivedData.updateFileName)
+                UpdateManager.setDownloadListener(listener = object : OnDownloadListener {
+                    override fun onDownloading(fileName: String, tempFilePath: String, currentFileSize: Long, totalFileSize: Long, percentage: Int) {
+                        Log.d("파일 이름: ${fileName}, 진행중[$percentage%] - $currentFileSize/$totalFileSize]")
+                    }
+
+                    override fun onDownloadComplete(fileName: String, targetFilePath: String, fileSize: Long) {
+                        if(UpdateManager.getFileExtension() == "apk") {
+                            backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
+                            installSilent(packageName, UpdateManager.getFileName())
+                        }
+                    }
+                })
             }
 
             2 -> { // 다운로드할 파일을 반복해서 처리하는 부분
                 UpdateManager.writeData(receivedData.dataArray)
-
-                if(UpdateManager.isCompleteDownload()) {
-                    if(UpdateManager.getFileExtension() == "apk") {
-                        backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
-                        installSilent(packageName, UpdateManager.getFileName())
-                    }
-                    else {
-                        requestOther()
-                    }
-                }
-
             }
             3 -> { Log.d("업데이트 실패 : update = 3.") }
             else -> { // 그 밖의 경우 처리

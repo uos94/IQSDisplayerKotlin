@@ -55,7 +55,7 @@ object Const {
         // 이미지 비디오 사운드 패치파일을 가지고 있는 디렉토리 경로(IQS)
 
         /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
-        lateinit var DIR_SHARED_PREFS: String
+        var DIR_SHARED_PREFS: String = "/data/data/com.kct.iqsdisplayer/shared_prefs/"
     }
 
     object Name {

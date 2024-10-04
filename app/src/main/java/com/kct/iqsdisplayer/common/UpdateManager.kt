@@ -1,5 +1,6 @@
 package com.kct.iqsdisplayer.common
 
+import android.health.connect.datatypes.units.Percentage
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.deleteFile
@@ -14,6 +15,11 @@ object UpdateManager {
     private var downloadTempDir = ""
     private var sourceFilePath = ""
     private var targetFilePath = ""
+    private var downloadListener: OnDownloadListener? = null
+
+    fun setDownloadListener(listener: OnDownloadListener?) {
+        downloadListener = listener
+    }
 
     fun setUpdateFileInfo(downloadFileSize: Int, downloadFileName: String) {
         Log.d("파일 이름: $downloadFileName, 파일 사이즈: $downloadFileSize")
@@ -66,17 +72,25 @@ object UpdateManager {
 
             // 완료 퍼센트 계산
             val percent = (currentFileSize * 100 / fileSize).toInt()
-            // 로그 메시지에 완료 퍼센트 추가
-            Log.d("파일 이름: $fileName, 진행중[$percent%] - $currentFileSize/$fileSize")
+
+            downloadListener?.onDownloading(fileName, sourceFilePath, currentFileSize, fileSize, percent)
 
             if(isCompleteDownload()) {
-                val copySuccess = copyFile(sourceFilePath, targetFilePath)
-                if(copySuccess) deleteFile(sourceFilePath)
+                if(sourceFilePath != targetFilePath) {
+                    val copySuccess = copyFile(sourceFilePath, targetFilePath)
+                    if(copySuccess) deleteFile(sourceFilePath)
+                }
+                downloadListener?.onDownloadComplete(fileName, targetFilePath, fileSize)
             }
         } catch (e: Exception) {
             // 예외 처리
             Log.e("파일 쓰기 실패: ${e.message}")
             e.printStackTrace()
         }
+    }
+
+    interface OnDownloadListener {
+        fun onDownloading(fileName: String, tempFilePath: String, currentFileSize: Long, totalFileSize: Long, percentage: Int)
+        fun onDownloadComplete(fileName: String, targetFilePath: String, fileSize: Long)
     }
 }
