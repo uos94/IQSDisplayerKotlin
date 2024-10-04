@@ -86,10 +86,14 @@ class FragmentReady : Fragment() {
             val scrollContentHeight = binding.svLogLayer.getChildAt(0).height
             val scrollY = binding.svLogLayer.scrollY
 
-            userTouchedScrollView = scrollY + scrollViewHeight < scrollContentHeight
+            // 스크롤 뷰 최하단에서부터의 거리 계산
+            val distanceFromBottom = scrollContentHeight - (scrollY + scrollViewHeight)
 
+            // 예: 최하단 50픽셀 이내에 있는 경우 자동 스크롤
+            val bottomThreshold = 50
+
+            userTouchedScrollView = distanceFromBottom > bottomThreshold
         }
-
     }
 
     private fun setLogText(logMessage: String) {
