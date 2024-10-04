@@ -14,11 +14,11 @@
         android:layout_height="match_parent"
         android:layout_weight="25"
         android:text=""
-        android:textSize="80sp"
+        android:textSize="76sp"
         android:textColor="@android:color/black"
         android:gravity="center"
         tools:text="김고객"
-        android:fontFamily="@font/custom_font_pretendard_m"
+        android:fontFamily="@font/wooridaumr"
         />
     <TextView
         android:id="@+id/tvReserveTime"
@@ -26,32 +26,32 @@
         android:layout_height="match_parent"
         android:layout_weight="25"
         android:text=""
-        android:textSize="80sp"
+        android:textSize="76sp"
         android:textColor="@android:color/black"
         android:gravity="center"
         tools:text="00:00"
-        android:fontFamily="@font/custom_font_pretendard_m"
+        android:fontFamily="@font/wooridaumr"
         />
     <TextView
         android:id="@+id/tvTellerName"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="25"
-        android:textSize="80sp"
+        android:textSize="76sp"
         android:textColor="@android:color/black"
         android:gravity="center"
         tools:text="김우리"
-        android:fontFamily="@font/custom_font_pretendard_m"
+        android:fontFamily="@font/wooridaumr"
         />
     <TextView
         android:id="@+id/tvReserveNum"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="25"
-        android:textSize="80sp"
+        android:textSize="76sp"
         android:textColor="@android:color/black"
         android:gravity="center"
         tools:text="9005"
-        android:fontFamily="@font/custom_font_pretendard_m"
+        android:fontFamily="@font/wooridaumr"
         />
 </LinearLayout>

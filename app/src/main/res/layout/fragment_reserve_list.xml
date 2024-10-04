@@ -18,13 +18,16 @@
         />
     <TextView
         android:id="@+id/tvDeskNum"
-        android:layout_width="318dp"
-        android:layout_height="271dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="70dp"
-        android:textSize="230sp"
+        android:layout_marginTop="27dp"
+        android:textSize="270sp"
         android:textColor="@color/white"
-        android:fontFamily="@font/jalnangothic"
-        app:layout_constraintBottom_toTopOf="@id/llMain"
+        android:letterSpacing="-0.03"
+        android:includeFontPadding="false"
+        android:fontFamily="@font/custom_font_pretendard_b"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="00"
         />
@@ -33,13 +36,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="43dp"
-        android:textSize="152sp"
+        android:layout_marginTop="138dp"
+        android:textSize="140sp"
         android:textColor="@color/white"
-        android:fontFamily="@font/custom_font_pretendard_sb"
-
+        android:fontFamily="@font/wooridaumr"
         app:layout_constraintStart_toEndOf="@id/tvDeskNum"
-        app:layout_constraintBottom_toTopOf="@id/llMain"
-        tools:text="종합상담창구"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="전문상담"
         />
 
     <LinearLayout
@@ -60,11 +63,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="25"
                 android:text="예약고객"
-                android:textSize="70sp"
+                android:textSize="60sp"
                 android:textColor="@color/white"
                 android:letterSpacing="0.02"
                 android:gravity="center"
-                android:fontFamily="@font/custom_font_pretendard_m"
+                android:fontFamily="@font/wooridaumr"
                 />
             <TextView
                 android:id="@+id/column_2"
@@ -72,11 +75,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="25"
                 android:text="예약시간"
-                android:textSize="70sp"
+                android:textSize="60sp"
                 android:textColor="@color/white"
                 android:letterSpacing="0.02"
                 android:gravity="center"
-                android:fontFamily="@font/custom_font_pretendard_m"
+                android:fontFamily="@font/wooridaumr"
                 />
             <TextView
                 android:id="@+id/column_3"
@@ -84,11 +87,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="25"
                 android:text="담당직원"
-                android:textSize="70sp"
+                android:textSize="60sp"
                 android:textColor="@color/white"
                 android:letterSpacing="0.02"
                 android:gravity="center"
-                android:fontFamily="@font/custom_font_pretendard_m"
+                android:fontFamily="@font/wooridaumr"
                 />
             <TextView
                 android:id="@+id/column_4"
@@ -96,11 +99,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="25"
                 android:text="발권여부"
-                android:textSize="70sp"
+                android:textSize="60sp"
                 android:textColor="@color/white"
                 android:gravity="center"
                 android:letterSpacing="0.02"
-                android:fontFamily="@font/custom_font_pretendard_m"
+                android:fontFamily="@font/wooridaumr"
                 />
         </LinearLayout>
         <include
