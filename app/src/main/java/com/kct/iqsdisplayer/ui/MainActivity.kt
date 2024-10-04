@@ -375,7 +375,7 @@ class MainActivity : AppCompatActivity() {
         ScreenInfo.updateDefaultInfo(data)
     }
 
-    /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함.*/
+    /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음. */
     private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoResponse
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제

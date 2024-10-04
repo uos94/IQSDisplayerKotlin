@@ -7,7 +7,6 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.splitData
 
-// 231005, by HAHU  하나은행은 16개
 data class Teller(
     /** 직원 IDX */
     var tellerId: Int = 0,          // 직원 IDX
@@ -22,7 +21,7 @@ data class Teller(
     /** 백업 표시기 번호, 기본값 0 */
     var bkDisplay: Int = 0,         // 백업 표시기 번호  //TODO : 나중에 변수명 수정해야함. backupDisplayNum
     /** 백업 표시기 방향 , 기본값 1, 좌(1),우(2),중앙(3)*/
-    var bkWay: Arrow = Arrow.LEFT,  // 백업 표시기 방향  //TODO : 나중에 변수명 수정해야함. backupArrow, Arrow define할것
+    var bkWay: Arrow = Arrow.LEFT,  // 백업 표시기 방향  //TODO : 나중에 변수명 수정해야함. backupArrow
     /** 프로필1 ( 자격증 | 자격등급)  */
     var proFile1: String = "",      // 프로필1 ( 자격증 | 자격등급)
     /** 프로필2 ( 자격증 | 자격등급) */

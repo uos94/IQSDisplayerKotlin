@@ -138,7 +138,7 @@ class FragmentMain : Fragment() {
     /**
      * 호출 번호 또는 부재 메시지 설정
      * 1001, 부재중, 공  석 ..등
-     * TODO : autoSize 적용 해야함.
+     * TODO : autoSize 적용 해야함. 하지만 api 26이상 부터 가능.
      */
     private fun setCallNumberText(callNumText: String) {
         val callNumTextSize = when {
