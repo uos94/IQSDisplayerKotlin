@@ -163,7 +163,7 @@ class FragmentMain : Fragment() {
                 Color.BLACK
             ).apply {
                 duration = 1000 // 1초 동안 색상 변경
-                //setEvaluator(ArgbEvaluator()) //AS-IS와 동일하게 Animation 변경함.
+                setEvaluator(ArgbEvaluator())
                 repeatCount = 5 // 총 6번 변경 (시작 시 검은색, 5번 반복)
                 repeatMode = ValueAnimator.REVERSE
             }

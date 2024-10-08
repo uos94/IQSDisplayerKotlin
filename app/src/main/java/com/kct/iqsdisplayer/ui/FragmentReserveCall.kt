@@ -2,6 +2,7 @@ package com.kct.iqsdisplayer.ui
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.graphics.Color
@@ -10,10 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MediatorLiveData
 import com.bumptech.glide.Glide
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
@@ -65,7 +63,7 @@ class FragmentReserveCall : Fragment() {
                 Color.BLUE
             ).apply {
                 duration = 1000 // 1초 동안 색상 변경
-                //setEvaluator(ArgbEvaluator()) //AS-IS와 동일하게 Animation 변경함.
+                setEvaluator(ArgbEvaluator())
                 repeatCount = 5 // 총 6번 변경 (시작 시 검은색, 5번 반복)
                 repeatMode = ValueAnimator.REVERSE
             }
