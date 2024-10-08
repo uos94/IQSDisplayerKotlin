@@ -33,8 +33,8 @@ android {
         applicationId = "com.kct.iqsdisplayer"
         minSdk = 24
         targetSdk = 34
-        versionCode = 110
-        versionName = "1.0.10"
+        versionCode = 111
+        versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.glide)
+    implementation(libs.androidx.core.animation)
     kapt(libs.glide.compiler)
     implementation(libs.androidx.constraintlayout)
     //ksp(libs.glide.compiler)
