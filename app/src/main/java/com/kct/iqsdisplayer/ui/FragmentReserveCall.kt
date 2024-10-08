@@ -1,5 +1,10 @@
 package com.kct.iqsdisplayer.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -52,6 +57,25 @@ class FragmentReserveCall : Fragment() {
             }
             binding.tvCallNum.text = getString(R.string.format_four_digit).format(reserveCallInfo.reserveCallNum)
             binding.tvCustomerName.text = customerName
+
+            val colorAnim = ObjectAnimator.ofInt(
+                binding.tvCallNum, // 애니메이션을 적용할 TextView 객체
+                "textColor", // 변경할 속성 이름
+                Color.BLACK,
+                Color.BLUE
+            ).apply {
+                duration = 1000 // 1초 동안 색상 변경
+                //setEvaluator(ArgbEvaluator()) //AS-IS와 동일하게 Animation 변경함.
+                repeatCount = 5 // 총 6번 변경 (시작 시 검은색, 5번 반복)
+                repeatMode = ValueAnimator.REVERSE
+            }
+            // 애니메이션 종료 시 텍스트 색상을 검은색으로 고정
+            colorAnim.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.tvCallNum.setTextColor(Color.BLACK)
+                }
+            })
+            colorAnim.start()
         }
     }
 
