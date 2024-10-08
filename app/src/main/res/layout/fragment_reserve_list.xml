@@ -86,7 +86,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="25"
-                android:text="담당직원"
+                android:text="예약방법"
                 android:textSize="60sp"
                 android:textColor="@color/white"
                 android:letterSpacing="0.02"

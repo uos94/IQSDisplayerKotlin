@@ -42,10 +42,10 @@ class FragmentReserveList : Fragment() {
         val row3 = binding.row3
         val row4 = binding.row4
         val reserveItems = arrayOf(
-            ReserveListItem(row1.llViewGroup, row1.tvCustomerName, row1.tvReserveTime, row1.tvTellerName, row1.tvReserveNum),
-            ReserveListItem(row2.llViewGroup, row2.tvCustomerName, row2.tvReserveTime, row2.tvTellerName, row2.tvReserveNum),
-            ReserveListItem(row3.llViewGroup, row3.tvCustomerName, row3.tvReserveTime, row3.tvTellerName, row3.tvReserveNum),
-            ReserveListItem(row4.llViewGroup, row4.tvCustomerName, row4.tvReserveTime, row4.tvTellerName, row4.tvReserveNum)
+            ReserveListItem(row1.llViewGroup, row1.tvCustomerName, row1.tvReserveTime, row1.tvReserveType, row1.tvReserveNum),
+            ReserveListItem(row2.llViewGroup, row2.tvCustomerName, row2.tvReserveTime, row2.tvReserveType, row2.tvReserveNum),
+            ReserveListItem(row3.llViewGroup, row3.tvCustomerName, row3.tvReserveTime, row3.tvReserveType, row3.tvReserveNum),
+            ReserveListItem(row4.llViewGroup, row4.tvCustomerName, row4.tvReserveTime, row4.tvReserveType, row4.tvReserveNum)
         )
 
         // reserveList 의 마지막 4개를 가져옴
@@ -56,7 +56,7 @@ class FragmentReserveList : Fragment() {
             reserveItems[index].viewGroup.visibility = View.VISIBLE
             reserveItems[index].tvCustomerName.text  = reserve.customerName
             reserveItems[index].tvReserveTime.text   = reserve.reserveTime
-            reserveItems[index].tvTellerName.text    = reserve.tellerName
+            reserveItems[index].tvReserveType.text    = reserve.reserveType
             reserveItems[index].tvReserveNum.text    = digitFormat.format(reserve.reserveNum)
         }
         // 나머지 callItems는 숨김 처리
@@ -69,7 +69,7 @@ class FragmentReserveList : Fragment() {
         val viewGroup: LinearLayout,
         val tvCustomerName: TextView,
         val tvReserveTime: TextView,
-        val tvTellerName: TextView,
+        val tvReserveType: TextView,
         val tvReserveNum: TextView
     )
 

@@ -33,14 +33,14 @@
         android:fontFamily="@font/wooridaumr"
         />
     <TextView
-        android:id="@+id/tvTellerName"
+        android:id="@+id/tvReserveType"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="25"
         android:textSize="76sp"
         android:textColor="@android:color/black"
         android:gravity="center"
-        tools:text="김우리"
+        tools:text="인터넷"
         android:fontFamily="@font/wooridaumr"
         />
     <TextView

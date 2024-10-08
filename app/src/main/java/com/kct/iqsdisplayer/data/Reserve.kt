@@ -17,7 +17,7 @@ data class Reserve(
     var customerNum: String = "",   // 5.고객 번호
     var customerName: String = "",  // 6.고객 명
     var customerTel: String = "",   // 7.고객 연락처
-    var customerGrade: Int = 10,    // 8.고객 등급[1:premier, 2:ace, 3:best, 4:classic, 9:일반], 임의 고객등급이 없을경우 10 리턴
+    var reserveType: String = "",      // 8.고객 예약타입, 모바일, 인터넷 등등 온다고 함.
     var tellerNum: Int = 0,         // 9.상담 직원 번호
     var tellerName: String = "",    // 10.상담 직원 이름
     var tellerJob: String = "",     // 11.상담 업무
@@ -37,7 +37,7 @@ data class Reserve(
         return """
         [예약 정보] 예약일자: $reserveDate, 지점 번호: $branchNum, 예약번호: $reserveNum, 예약시간: $reserveTime
         [직원 정보] 직원번호: $tellerNum, 직원명: $tellerName, 업무명: $tellerJob            
-        [고객 정보] 고객번호: $customerNum, 고객이름: $customerName, 고객연락처: $customerTel, 고객등급: $customerGrade
+        [고객 정보] 고객번호: $customerNum, 고객이름: $customerName, 고객연락처: $customerTel, 예약타입: $reserveType
         [창구 정보] 창구ID: $reserveWinID, 창구명: $reserveWinName
         [기타 정보] 도착시간: $arriveTime, 도착등록여부: $isArrive, 호출시간: $callTime, 취소여부: $isCancel, 채널타입: $channelType
     """
@@ -59,7 +59,7 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve {
     if(size > 7) result.customerNum     = this[7]
     if(size > 8) result.customerName    = this[8]
     if(size > 9) result.customerTel     = this[9]
-    if(size > 10) result.customerGrade  = this[10].toIntOrNull() ?: 10
+    if(size > 10) result.reserveType    = this[10]
     if(size > 11) result.reserveWinID   = this[11].toIntOrNull() ?: 0
     if(size > 12) result.reserveWinName = this[12]
     if(size > 13) result.arriveTime     = this[13]
