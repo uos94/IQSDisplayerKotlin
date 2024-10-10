@@ -30,7 +30,7 @@ Apk용량이 1Mb정도 줄어들었음
    - Log 클래스 개선으로 어떤 클래스명과 Line 수 확인가능하도록 함.
 
 4. TimerHandler를 사용하면서 타이밍 적인 이슈들이 생기고 불필요 변수들이 많아져 Handler자체를 삭제하고 FragmentFactory로 분리함.
-   - 화면간의 이동을 
+   - 화면간의 이동을 함수 하나로 단순화 하였음. FragmentFactory의 runChangeFragment참조
 5. 서비스 클래스 삭제
    - 서비스 클래스의 목적이 네트워크 통신 때문인것으로 판단하고 TcpClient클래스로 통신만을 하도록 수정함
    - 서비스 클래스와 데이터를 주고 받기 위해 동일한 목적의 Receiver가 두개의 Activity에 존재하던 것을 삭제함
