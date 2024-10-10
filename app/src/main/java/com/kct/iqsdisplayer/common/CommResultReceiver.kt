@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
 
+@Deprecated("서비스 삭제로 더 이상 사용 안함")
 class CommResultReceiver(handler: Handler) : ResultReceiver(handler) {
     private var receiver: Receiver? = null
 

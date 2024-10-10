@@ -33,6 +33,7 @@ class PacketAnalyzer(inputStream: InputStream) {
         const val MAX_PACKET_SIZE   = 8192
     }
 
+    /** 패킷에 따라 수행해야 할 funtion을 정의해 둔다. **/
     private val parserMap = mapOf<Short, Packet.() -> BaseReceivePacket?>(
         ProtocolDefine.CONNECT_SUCCESS.value        to { null },
         ProtocolDefine.CONNECT_REJECT.value         to { null },
