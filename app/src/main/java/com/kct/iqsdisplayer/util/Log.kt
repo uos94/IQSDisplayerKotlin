@@ -1,14 +1,10 @@
 package com.kct.iqsdisplayer.util
 
 import android.util.Log
-import android.widget.TextView
 import com.kct.iqsdisplayer.BuildConfig
 import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
-import com.kct.iqsdisplayer.network.ProtocolDefine
 import java.io.BufferedWriter
 import java.io.File
-import java.io.File.separator
 import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -66,10 +62,9 @@ object Log {
     fun d(strMsg: String, tr: Throwable? = null) = log(Log.DEBUG, strMsg, tr)
     fun v(strMsg: String, tr: Throwable? = null) = log(Log.VERBOSE, strMsg, tr)
 
-    fun s() {
+    fun s(e: Throwable) {
         if (isEnabled) {
-            val e = Exception("STACK TRACE")
-            Log.v(TAG, "Method called on the UI thread", e)
+            Log.v(TAG, "PRINT STACK TRACE", e)
         }
     }
 

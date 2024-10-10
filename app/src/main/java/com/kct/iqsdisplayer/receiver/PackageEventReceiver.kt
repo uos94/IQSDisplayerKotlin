@@ -17,7 +17,7 @@ class PackageEventReceiver : BroadcastReceiver() {
             // 새로운 버전의 앱 패키지가 설치 되거나 업데이트 되었을 때
             Log.d("업데이트 버전 설치 완료 : VERSION_NAME[${BuildConfig.VERSION_NAME}]")
             val intentMainActivity = Intent(context, MainActivity::class.java)
-            intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             context.startActivity(intentMainActivity)
         }
     }

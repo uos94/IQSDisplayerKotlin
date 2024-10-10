@@ -140,7 +140,7 @@ class TCPClient(private val host: String, private val port: Int) {
         keepAliveJob = coroutineScope.launch(Dispatchers.IO) {
             while (isActive) {
                 if (timerKeepAlive >= 10 && enableKeepAlive) {
-                    Log.v("KeepAlive 전송")
+                    //Log.v("KeepAlive 전송")
                     sendProtocol(KeepAliveRequest().toByteBuffer())
                 } else {
                     delay(1000)
