@@ -101,7 +101,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
-        Log.i("메인재시작")
+        //Log.i("메인재시작")
+        //com.kct.iqsdisplaywatch에서 앱이 실행중인데도 불구하고 앱시작 명령이 날아온다. service를 check하는 듯하다.
         super.onNewIntent(intent)
     }
 
