@@ -22,12 +22,12 @@
    - 위의 로직에 따라 기존에 있던 서비스 process 감지 Thread를 삭제함. 
    - 위의 로직에 따라 앱을 강제로 재시작하던 Watch앱 불필요(기존에는 Watch앱으로 인해 앱 시작 시 두번 뜨는 이슈가 있었음)
    
-2. Packet 데이터를 파싱할 하고 생성하는 코드들이 모든 패킷마다 따로 작업되어 있어 PacketAnalyzer class로 통합, 일관된 로직을 통과하도록 수정함. 
+2. Packet 데이터를 파싱하고 생성하는 코드들이 모든 패킷마다 따로 작업되어 있어 PacketAnalyzer class로 통합, 일관된 로직을 통과하도록 수정함. 
    
 3. 로그Viewer 추가함
    - Log를 보고 싶어도 PC를 연결해야만 볼 수 있었기 때문에 MainFragment에서 창구번호를 Long click하면 로그화면을 보여주도록 함.
    - 기존 Log를 File로 남기는 부분이 나누어져 있어. Log부분과 File로 저장하는 부분을 통합함.
-   - Log 클래스 개선으로 클래스명과 Line 수 확인가능하도록 함.
+   - Log클래스 Custom 하여 클래스명과 Line 수 확인가능하도록 함.
 
 4. TimerHandler를 사용하면서 타이밍 적인 이슈들이 생기고 불필요 변수들이 많아져 Handler자체를 삭제하고 FragmentFactory로 분리함.
    - 화면간의 이동을 함수 하나로 단순화 하였음. FragmentFactory의 runChangeFragment참조
