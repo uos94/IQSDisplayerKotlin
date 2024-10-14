@@ -17,6 +17,10 @@ import com.kct.iqsdisplayer.data.toTeller
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.splitData
 
+/**
+ * TCP통신으로 받은 데이터를 모든 클래스에서 접근하여 사용하도록 만든 클래스
+ * 기존 Java코드의 ScreenInfo와 사용방법이 비슷하고 용도도 같으나 중복코드 불필요코드 모두 삭제하였음.
+ */
 object ScreenInfo {
     /**혼잡여부(0x0015)패킷에서 windId를 사용한다. windId는 직원정보 설정(0x000D)에서 내려온다.*/
     var winId: Int      = 0

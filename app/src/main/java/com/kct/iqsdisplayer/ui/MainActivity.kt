@@ -332,6 +332,7 @@ class MainActivity : AppCompatActivity() {
                 ProtocolDefine.TELLER_RENEW_REQUEST -> onTellerRenewRequest(receivedData)
                 ProtocolDefine.KEEP_ALIVE_RESPONSE -> {}
                 else -> {
+                    // PacketAnalyzer의 parserMap 확인요망
                     Log.e("잘못 처리된 Protocol이 존재함. $protocolDefine")
                 }
             }
@@ -508,9 +509,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-//        else { //내 표시기 상태가 보조거나 음성호출기라면
-//            replaceFragment(Index.FRAGMENT_SUB_SCREEN, 20000)
-//        }
 
         if(!isStopWork && isMyCall) {
             CallSoundManager().play(callNum = data.callNum,

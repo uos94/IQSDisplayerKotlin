@@ -1,6 +1,5 @@
 package com.kct.iqsdisplayer.common
 
-import android.health.connect.datatypes.units.Percentage
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.deleteFile

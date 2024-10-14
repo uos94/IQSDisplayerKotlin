@@ -196,6 +196,7 @@ object Const {
 
     enum class CallViewMode(val value: Int) {
         MAIN(0),
+        //AS-IS코드보면 1이 없다.
         SUB(2),
         SOUND(3)
     }

@@ -1,12 +1,7 @@
 package com.kct.iqsdisplayer.network
 
-import androidx.lifecycle.ViewModelProvider
-import com.kct.iqsdisplayer.common.ScreenInfo
-import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.send.KeepAliveRequest
-import com.kct.iqsdisplayer.ui.FragmentFactory.Index
-import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
