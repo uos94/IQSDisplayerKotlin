@@ -108,6 +108,8 @@ object FragmentFactory {
 
         val fragmentManager = activity.supportFragmentManager
 
+        if(currentIndex == targetIndex) return
+
         currentIndex = targetIndex
 
         val tagName  = getTagName(targetIndex)

@@ -377,7 +377,8 @@ class MainActivity : AppCompatActivity() {
         ScreenInfo.updateDefaultInfo(data)
     }
 
-    /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음. */
+    /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.
+     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다보냈음만 알려주면 해결이 가능하다. */
     private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoResponse
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
@@ -388,6 +389,9 @@ class MainActivity : AppCompatActivity() {
                 requestOther()
             }
             1 -> { // 다운로드할 파일의 첫 번째 처리 부분
+                //정상동작중에 발행기가 재부팅되면서 업데이트가 되는경우가 있어 추가함. 아래 코드가 없으면 FragmentMain인 상태에서 업데이트가 정상진행 됨.
+                replaceFragment(Index.FRAGMENT_READY)
+
                 UpdateManager.setUpdateFileInfo(receivedData.updateSize, receivedData.updateFileName)
                 UpdateManager.setDownloadListener(listener = object : OnDownloadListener {
                     override fun onDownloading(fileName: String, tempFilePath: String, currentFileSize: Long, totalFileSize: Long, percentage: Int) {
