@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -28,18 +31,21 @@ android {
         buildConfig = true
         viewBinding = true
     }
-
+    val timestamp = SimpleDateFormat("yyMMdd_HHmm").format(Date())
     defaultConfig {
         applicationId = "com.kct.iqsdisplayer"
         minSdk = 24
         targetSdk = 34
-        versionCode = 111
-        versionName = "1.0.11"
+        versionCode = 112
+        versionName = "1.0.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
-
+        setProperty("archivesBaseName", "iqsdisplayer_v$versionName($versionCode)_$timestamp")
         //manifestPlaceholders["packageName"] = "$applicationId"
+        ndk {
+            abiFilters.add("armeabi-v7a") //API 25는 armeabi-v7a만 있으면 된다. 빌드 속도 최적화
+        }
     }
 
     buildTypes {
@@ -57,6 +63,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
