@@ -197,13 +197,11 @@ object ScreenInfo {
     }
 
     fun updateMediaList(data: MediaListResponse) {
-        Log.d("영상재생 리스트 업데이트 : ${data.mediaList}")
         mediaFileNameList.clear()
         mediaFileNameList.addAll(data.mediaList)
     }
 
     fun updatePausedWork(data: PausedWorkRequest) {
-        Log.d("부재상태 업데이트 : $data")
         _isPausedWork.postValue(data.isPausedWork)
         pausedWorkMessage   = data.pausedMessage
     }
