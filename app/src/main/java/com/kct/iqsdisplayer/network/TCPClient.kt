@@ -35,7 +35,7 @@ class TCPClient(private val host: String, private val port: Int) {
     private var enableKeepAlive = false
 
     private val supervisorJob = SupervisorJob()
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + supervisorJob)
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + supervisorJob)
     private lateinit var keepAliveJob: Job
     private lateinit var receiverJob: Job
 
@@ -44,7 +44,7 @@ class TCPClient(private val host: String, private val port: Int) {
     init { Log.d("Tcp 연결 시도: IP:${host}, PORT:${port}") }
 
     private fun reconnectAndStartJobs() {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             var retryCount = 0
             val retryDelay = 1000L
 
@@ -67,13 +67,13 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     fun start() {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             reconnectAndStartJobs()
         }
     }
 
     fun sendData(sendByteBuffer: ByteBuffer) {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             sendProtocol(sendByteBuffer)
         }
     }
@@ -132,7 +132,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private fun startKeepAlive() {
-        keepAliveJob = coroutineScope.launch(Dispatchers.IO) {
+        keepAliveJob = coroutineScope.launch {
             while (isActive) {
                 if (timerKeepAlive >= 10 && enableKeepAlive) {
                     //Log.v("KeepAlive 전송")
@@ -146,12 +146,12 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private fun startTcpReceiver() {
-        receiverJob = coroutineScope.launch(Dispatchers.IO) {
+        receiverJob = coroutineScope.launch {
             tcpReceiverLoop(this)
         }
     }
 
-    private suspend fun tcpReceiverLoop(scope: CoroutineScope) {
+    private fun tcpReceiverLoop(scope: CoroutineScope) {
         Log.d("TCP 네트워크 수신중...")
         while (scope.isActive) {
             try {
@@ -193,26 +193,24 @@ class TCPClient(private val host: String, private val port: Int) {
         reconnectAndStartJobs()
     }
 
-    private suspend fun sendProtocol(sendByteBuffer: ByteBuffer) {
-        withContext(Dispatchers.IO) {
-            socket?.let {
-                if (!it.isConnected || it.isClosed) {
-                    Log.w("SendProtocol: 연결되지 않은 상태입니다.")
-                    return@let
+    private fun sendProtocol(sendByteBuffer: ByteBuffer) {
+        socket?.let {
+            if (!it.isConnected || it.isClosed) {
+                Log.w("SendProtocol: 연결되지 않은 상태입니다.")
+                return@let
+            }
+            try {
+                it.getOutputStream().let { outStream ->
+                    outStream.write(sendByteBuffer.array())
+                    outStream.flush()
                 }
-                try {
-                    it.getOutputStream().let { outStream ->
-                        outStream.write(sendByteBuffer.array())
-                        outStream.flush()
-                    }
-                    timerKeepAlive = 0
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    handleError("SendProtocol: IOException (${e.message})")
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    handleError("SendProtocol: Exception (${e.message})")
-                }
+                timerKeepAlive = 0
+            } catch (e: IOException) {
+                e.printStackTrace()
+                handleError("SendProtocol: IOException (${e.message})")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                handleError("SendProtocol: Exception (${e.message})")
             }
         }
     }
