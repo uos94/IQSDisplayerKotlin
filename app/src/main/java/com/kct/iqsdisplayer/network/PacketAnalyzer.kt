@@ -35,8 +35,8 @@ class PacketAnalyzer(inputStream: InputStream) {
 
     /** 패킷에 따라 수행해야 할 funtion을 정의해 둔다. **/
     private val parserMap = mapOf<Short, Packet.() -> BaseReceivePacket?>(
-        ProtocolDefine.CONNECT_SUCCESS.value        to { null },
-        ProtocolDefine.CONNECT_REJECT.value         to { null },
+        ProtocolDefine.CONNECT_SUCCESS.value        to { EmptyData(ProtocolDefine.CONNECT_SUCCESS) },
+        ProtocolDefine.CONNECT_REJECT.value         to { EmptyData(ProtocolDefine.CONNECT_REJECT) },
         ProtocolDefine.ACCEPT_AUTH_RESPONSE.value   to Packet::toAcceptAuthResponse,
         ProtocolDefine.WAIT_RESPONSE.value          to Packet::toWaitResponse,
         ProtocolDefine.CALL_REQUEST.value           to Packet::toCallRequest,
@@ -44,12 +44,12 @@ class PacketAnalyzer(inputStream: InputStream) {
         ProtocolDefine.PAUSED_WORK_REQUEST.value    to Packet::toPausedWorkRequest,
         ProtocolDefine.INFO_MESSAGE_REQUEST.value   to Packet::toInfoMessageRequest,
         ProtocolDefine.TELLER_LIST.value            to Packet::toTellerList,
-        ProtocolDefine.SYSTEM_OFF.value             to { null },
-        ProtocolDefine.SERVICE_RETRY.value          to { null },
+        ProtocolDefine.SYSTEM_OFF.value             to { EmptyData(ProtocolDefine.SYSTEM_OFF) },
+        ProtocolDefine.SERVICE_RETRY.value          to { EmptyData(ProtocolDefine.SERVICE_RETRY) },
         ProtocolDefine.RESTART_REQUEST.value        to Packet::toRestartRequest,
         ProtocolDefine.CROWDED_REQUEST.value        to Packet::toCrowdedRequest,
         ProtocolDefine.WIN_RESPONSE.value           to Packet::toWinResponse,
-        ProtocolDefine.KEEP_ALIVE_RESPONSE.value    to { null },
+        ProtocolDefine.KEEP_ALIVE_RESPONSE.value    to { EmptyData(ProtocolDefine.KEEP_ALIVE_RESPONSE) },
         ProtocolDefine.MEDIA_LIST_RESPONSE.value    to Packet::toMediaListResponse,
         ProtocolDefine.RESERVE_LIST_RESPONSE.value  to Packet::toReserveListResponse,
         // 예약 추가,수정,취소의 경우 안쓰는것 같다는데 확실치 않음.
@@ -106,14 +106,10 @@ class PacketAnalyzer(inputStream: InputStream) {
 
                 val packet = Packet(headerBytes, dataBytes)
                 if (parserMap.containsKey(protocolId?.value)) {
-                    val parserFunction = parserMap[protocolId?.value]
-                    parsedData = if (parserFunction != null) {
-                        packet.parserFunction() ?: EmptyData(protocolId)
-                    } else {
-                        EmptyData(protocolId)
-                    }
+                    parsedData = parserMap[protocolId?.value]?.invoke(packet) ?: EmptyData(protocolId)
                 } else {
                     Log.w("프로토콜[${protocolId?.value}]에 대한 처리가 parseMap에 등록되지 않았습니다.")
+                    parsedData = EmptyData(protocolId)
                 }
             }
         } catch (e: Exception) { throw e }
