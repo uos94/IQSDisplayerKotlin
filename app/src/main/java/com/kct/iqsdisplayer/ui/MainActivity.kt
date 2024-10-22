@@ -530,10 +530,14 @@ class MainActivity : AppCompatActivity() {
             replaceFragment(Index.FRAGMENT_MAIN)
         }
 
-        val isPausedWork = ScreenInfo.isPausedWork.value ?: false
-        val logMessage = if(!isPausedWork) { "부재해제 수신 ... 업무중 메세지 : ${ScreenInfo.tellerMent.value}"}
-        else { "부재중 수신 ... 부재중 메세지 : ${ScreenInfo.pausedWorkMessage}"}
-        Log.d(logMessage)
+        ScreenInfo.isPausedWork.observe(this) { isPausedWork ->
+            val logMessage = if (!isPausedWork) {
+                "부재해제 수신 ... 업무중 메세지 : ${ScreenInfo.tellerMent.value}"
+            } else {
+                "부재중 수신 ... 부재중 메세지 : ${ScreenInfo.pausedWorkMessage}"
+            }
+            Log.d(logMessage)
+        }
     }
 
     private fun onInfoMessage(receivedData: BaseReceivePacket) {
