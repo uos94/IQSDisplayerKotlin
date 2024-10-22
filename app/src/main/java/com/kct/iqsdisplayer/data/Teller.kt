@@ -23,9 +23,9 @@ data class Teller(
     /** 백업 표시기 방향 , 기본값 1, 좌(1),우(2),중앙(3)*/
     var bkWay: Arrow = Arrow.LEFT,  // 백업 표시기 방향  //TODO : 나중에 변수명 수정해야함. backupArrow
     /** 프로필1 ( 자격증 | 자격등급)  */
-    var proFile1: String = "",      // 프로필1 ( 자격증 | 자격등급)
+    var profile1: String = "",      // 프로필1 ( 자격증 | 자격등급)
     /** 프로필2 ( 자격증 | 자격등급) */
-    var proFile2: String = "",      // 프로필2 ( 자격증 | 자격등급)
+    var profile2: String = "",      // 프로필2 ( 자격증 | 자격등급)
     /** 직원 행번 */
     var tellerNum: Int = 0,         // 직원 행번
     /** 표시기 IP  */
@@ -55,8 +55,8 @@ data class Teller(
         직원 PC IP    : $pcIP
         백업 표시기 번호: $bkDisplay
         백업 화살표 방향: ${bkWay.value}
-        프로필1        : $proFile1
-        프로필2        : $proFile2
+        프로필1        : $profile1
+        프로필2        : $profile2
         직원 행번      : $tellerNum
         표시기 IP      : $displayIP
         직원명         : $tellerName
@@ -80,8 +80,8 @@ fun String.toTeller(): Teller {
     if(size > 4) teller.pcIP        = splitTeller[4]
     if(size > 5) teller.bkDisplay   = splitTeller[5].toIntOrNull() ?: 0
     if(size > 6) teller.bkWay       = splitTeller[6].toIntOrNull()?.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT
-    if(size > 7) teller.proFile1    = splitTeller[7]
-    if(size > 8) teller.proFile2    = splitTeller[8]
+    if(size > 7) teller.profile1    = splitTeller[7]
+    if(size > 8) teller.profile2    = splitTeller[8]
     if(size > 9) teller.tellerNum   = splitTeller[9].toIntOrNull() ?: 0
     if(size > 10) teller.displayIP  = splitTeller[10]
     if(size > 11) teller.tellerName = splitTeller[11]
