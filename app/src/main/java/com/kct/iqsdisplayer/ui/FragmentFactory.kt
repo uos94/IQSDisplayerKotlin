@@ -59,6 +59,10 @@ object FragmentFactory {
     @Index
     fun getBeforeIndex() = beforeIndex
 
+    fun clearBeforeIndex() {
+        beforeIndex = Index.NONE
+    }
+
     private fun getCurrentFragment() = getFragment(getCurrentIndex())
 
     private fun getFragment(@Index index: Int): Fragment? {

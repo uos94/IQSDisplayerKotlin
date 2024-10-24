@@ -115,12 +115,15 @@ class MainActivity : AppCompatActivity() {
     private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             val beforeIndex = FragmentFactory.getBeforeIndex()
+            FragmentFactory.clearBeforeIndex()
+
             if(beforeIndex == Index.NONE) {
                 finishApp("백버튼으로 종료호출")
             }
             else {
                 Log.i("백버튼으로 이전화면[${FragmentFactory.getTagName(beforeIndex)}] 돌아감.")
                 replaceFragment(beforeIndex)
+                FragmentFactory.clearBeforeIndex()
             }
         }
     }
