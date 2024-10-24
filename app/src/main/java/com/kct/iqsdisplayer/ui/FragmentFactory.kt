@@ -56,6 +56,8 @@ object FragmentFactory {
 
     @Index
     fun getCurrentIndex() = currentIndex
+
+    /** 백버튼용으로 추가된 기능으로 한번만 뒤로가기 기능을 구현함 */
     @Index
     fun getBeforeIndex() = beforeIndex
 
