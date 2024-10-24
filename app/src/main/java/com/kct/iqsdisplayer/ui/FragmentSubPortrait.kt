@@ -27,27 +27,23 @@ class FragmentSubPortrait : Fragment() {
         return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT //세로전환
 
         setUIData()
     }
 
-    @SuppressLint("SourceLockedOrientationActivity")
-    override fun onResume() {
-        super.onResume()
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT //세로전환
-    }
-    
-    override fun onPause() {
-        super.onPause()
+    override fun onDestroyView() {
+        super.onDestroyView()
+
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE //가로전환
+
+        _binding = null
     }
+
 
     private fun setUIData() {
         val callItems = arrayOf(
