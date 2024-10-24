@@ -125,16 +125,17 @@ class FragmentMovie : Fragment() {
         val currentContentPath = list[currentIndex]
         val isImage = isImage(currentContentPath)
         if(isImage) {
-            Log.d("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
+            //Log.v("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
+            changeNextIndex()
         }
         else {
             if (mp.isPlaying) {
                 pauseVideo()
-                Log.d("재생 일시정지 Index($currentIndex) : ${list[currentIndex]}, 재생위치 저장: $playedPosition mSec")
+                //Log.v("재생 일시정지 Index($currentIndex) : ${list[currentIndex]}, 재생위치 저장: $playedPosition mSec")
             }
             else {
                 resetVideo()
-                Log.d("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
+                //Log.v("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
             }
         }
     }
@@ -208,7 +209,7 @@ class FragmentMovie : Fragment() {
     }
 
     private val preparedListener = MediaPlayer.OnPreparedListener {
-        Log.d("영상 시작")
+        //Log.d("영상 시작")
         it.start() }
 
     private val completeListener = MediaPlayer.OnCompletionListener {
@@ -249,7 +250,8 @@ class FragmentMovie : Fragment() {
             )
             .listener(object : RequestListener<Bitmap?> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap?>, isFirstResource: Boolean): Boolean {
-                    e?.message
+                    val contentsPath: String = list[currentIndex]
+                    Log.e("재생 실패 된 Index($currentIndex) : $contentsPath errorMsg:${e?.message}")
                     skipOnErrorAndContinuePlay()
                     return false
                 }

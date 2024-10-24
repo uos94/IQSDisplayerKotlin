@@ -114,13 +114,13 @@ class MainActivity : AppCompatActivity() {
 
     private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            val index = FragmentFactory.getCurrentIndex()
-            if(index != Index.FRAGMENT_MAIN) {
-                Log.i("백버튼으로 메인호출")
-                replaceFragment(Index.FRAGMENT_MAIN)
+            val beforeIndex = FragmentFactory.getBeforeIndex()
+            if(beforeIndex == Index.NONE) {
+                finishApp("백버튼으로 종료호출")
             }
             else {
-                finishApp("백버튼으로 종료호출")
+                Log.i("백버튼으로 이전화면[${FragmentFactory.getTagName(beforeIndex)}] 돌아감.")
+                replaceFragment(beforeIndex)
             }
         }
     }
@@ -142,7 +142,14 @@ class MainActivity : AppCompatActivity() {
                         |   영상정보수신:${vmSystemReady.isMediaPacket.value}
                         |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
-                if(it) { replaceFragment(Index.FRAGMENT_MAIN) }
+                if(it) {
+                    if(Const.ConnectionInfo.CALLVIEW_MODE == Const.CallViewMode.SUB) {
+                        replaceFragment(Index.FRAGMENT_SUB)
+                    }
+                    else {
+                        replaceFragment(Index.FRAGMENT_MAIN)
+                    }
+                }
             }
 
             replaceFragment(Index.FRAGMENT_READY)
@@ -301,36 +308,36 @@ class MainActivity : AppCompatActivity() {
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
             //Log.d("${protocolDefine}$receivedData")
             when(protocolDefine) {
-                ProtocolDefine.CONNECT_SUCCESS      -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
-                ProtocolDefine.CONNECT_REJECT       -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
-                ProtocolDefine.ACCEPT_AUTH_RESPONSE -> {
-                                                            onAcceptAuthResponse(receivedData)
-                                                            Log.d("업데이트 정보 요청")
-                                                            tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
-                                                        }
-                ProtocolDefine.WAIT_RESPONSE        -> onWaitResponse(receivedData)
-                ProtocolDefine.CALL_REQUEST         -> onCallRequest(receivedData)
-                ProtocolDefine.RE_CALL_REQUEST      -> onCallRequest(receivedData)
-                ProtocolDefine.PAUSED_WORK_REQUEST  -> onPausedWork(receivedData)
-                ProtocolDefine.INFO_MESSAGE_REQUEST -> onInfoMessage(receivedData)
-                ProtocolDefine.TELLER_LIST          -> onTellerList(receivedData)
-                ProtocolDefine.SYSTEM_OFF           -> onSystemOff()
-                ProtocolDefine.RESTART_REQUEST      -> onRestartRequest()
-                ProtocolDefine.CROWDED_REQUEST      -> onCrowedRequest(receivedData)
-                ProtocolDefine.WIN_RESPONSE         -> onWinResponse(receivedData)
-                ProtocolDefine.MEDIA_LIST_RESPONSE  -> onMediaListResponse(receivedData)
-                ProtocolDefine.RESERVE_LIST_RESPONSE  -> onReserveListResponse(receivedData)
-                ProtocolDefine.RESERVE_ADD_REQUEST    -> onReserveAddRequest(receivedData)
-                ProtocolDefine.RESERVE_UPDATE_REQUEST -> onReserveUpdateRequest(receivedData)
-                ProtocolDefine.RESERVE_CANCEL_REQUEST -> onReserveCancelRequest(receivedData)
-                ProtocolDefine.RESERVE_ARRIVE_REQUEST -> onReserveArriveRequest(receivedData)
-                ProtocolDefine.RESERVE_CALL_REQUEST   -> onReserveCallRequest(receivedData)
-                ProtocolDefine.RESERVE_RE_CALL_REQUEST -> onReserveCallRequest(receivedData)
+                ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
+                ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
+                ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> {
+                                                                onAcceptAuthResponse(receivedData)
+                                                                Log.d("업데이트 정보 요청")
+                                                                tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
+                                                           }
+                ProtocolDefine.WAIT_RESPONSE            -> onWaitResponse(receivedData)
+                ProtocolDefine.CALL_REQUEST             -> onCallRequest(receivedData)
+                ProtocolDefine.RE_CALL_REQUEST          -> onCallRequest(receivedData)
+                ProtocolDefine.PAUSED_WORK_REQUEST      -> onPausedWork(receivedData)
+                ProtocolDefine.INFO_MESSAGE_REQUEST     -> onInfoMessage(receivedData)
+                ProtocolDefine.TELLER_LIST              -> onTellerList(receivedData)
+                ProtocolDefine.SYSTEM_OFF               -> onSystemOff()
+                ProtocolDefine.RESTART_REQUEST          -> onRestartRequest()
+                ProtocolDefine.CROWDED_REQUEST          -> onCrowedRequest(receivedData)
+                ProtocolDefine.WIN_RESPONSE             -> onWinResponse(receivedData)
+                ProtocolDefine.MEDIA_LIST_RESPONSE      -> onMediaListResponse(receivedData)
+                ProtocolDefine.RESERVE_LIST_RESPONSE    -> onReserveListResponse(receivedData)
+                ProtocolDefine.RESERVE_ADD_REQUEST      -> onReserveAddRequest(receivedData)
+                ProtocolDefine.RESERVE_UPDATE_REQUEST   -> onReserveUpdateRequest(receivedData)
+                ProtocolDefine.RESERVE_CANCEL_REQUEST   -> onReserveCancelRequest(receivedData)
+                ProtocolDefine.RESERVE_ARRIVE_REQUEST   -> onReserveArriveRequest(receivedData)
+                ProtocolDefine.RESERVE_CALL_REQUEST     -> onReserveCallRequest(receivedData)
+                ProtocolDefine.RESERVE_RE_CALL_REQUEST  -> onReserveCallRequest(receivedData)
                 /** 업데이트 정보를 수신하고, 업데이트를 할지, 이후 정상동작을 할지 분기를 탄다. */
-                ProtocolDefine.UPDATE_INFO_RESPONSE -> onUpdateInfoResponse(receivedData)
-                ProtocolDefine.SERVICE_RETRY        -> onConnectRetry()
-                ProtocolDefine.TELLER_RENEW_REQUEST -> onTellerRenewRequest(receivedData)
-                ProtocolDefine.KEEP_ALIVE_RESPONSE -> {}
+                ProtocolDefine.UPDATE_INFO_RESPONSE     -> onUpdateInfoResponse(receivedData)
+                ProtocolDefine.SERVICE_RETRY            -> onConnectRetry()
+                ProtocolDefine.TELLER_RENEW_REQUEST     -> onTellerRenewRequest(receivedData)
+                ProtocolDefine.KEEP_ALIVE_RESPONSE      -> {}
                 else -> {
                     // PacketAnalyzer의 parserMap 확인요망
                     Log.e("잘못 처리된 Protocol이 존재함. $protocolDefine")
@@ -476,6 +483,7 @@ class MainActivity : AppCompatActivity() {
         }, Const.Handle.RETRY_SERVICE_TIME)
     }
 
+    /** Recall도 여기로 옴. */
     private fun onCallRequest(receivedData: BaseReceivePacket) {
         //LiveData observe 로 처리됨. 음성호출만 처리함.
         val data = receivedData as Call
@@ -513,6 +521,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        else { //ViewMode == Const.CallViewMode.SUB
+            ScreenInfo.updateCallInfo(data)
+        }
 
         if(!isStopWork && isMyCall) {
             CallSoundManager().play(callNum = data.callNum,
@@ -527,7 +538,9 @@ class MainActivity : AppCompatActivity() {
 
         if(ScreenInfo.winNum ==  receivedData.pausedWinNum) {
             ScreenInfo.updatePausedWork(receivedData)
-            replaceFragment(Index.FRAGMENT_MAIN)
+            if(Const.ConnectionInfo.CALLVIEW_MODE == Const.CallViewMode.MAIN) {
+                replaceFragment(Index.FRAGMENT_MAIN)
+            }
         }
 
         ScreenInfo.isPausedWork.observe(this) { isPausedWork ->

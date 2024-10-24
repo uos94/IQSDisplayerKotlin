@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -78,11 +79,14 @@ class FragmentSetting : Fragment() {
                     "발행기PORT"      -> Const.ConnectionInfo.IQS_PORT = newValue.toIntOrNull() ?: 8697
                     "백업서버IP"      -> { /* 사용 안 함 */ }
                     "백업서버PORT"    -> { /* 사용 안 함 */ }
-                    "호출화면"        -> Const.ConnectionInfo.CALLVIEW_MODE = when(newValue) {
-                        "0" -> CallViewMode.MAIN
-                        "2" -> CallViewMode.SUB
-                        "3" -> CallViewMode.SOUND
-                        else -> CallViewMode.MAIN
+                    "호출화면"        -> {
+                        Const.ConnectionInfo.CALLVIEW_MODE = when (newValue) {
+                            "0" -> CallViewMode.MAIN
+                            "2" -> CallViewMode.SUB
+                            "3" -> CallViewMode.SOUND
+                            else -> CallViewMode.MAIN
+                        }
+                        Toast.makeText(requireContext(), "호출화면을 변경은 재시작 이후 적용됩니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
 

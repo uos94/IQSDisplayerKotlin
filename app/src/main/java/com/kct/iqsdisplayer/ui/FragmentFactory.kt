@@ -21,37 +21,43 @@ object FragmentFactory {
         Index.FRAGMENT_MOVIE,       //동영상표출
         Index.FRAGMENT_RECENT_CALL, //최근응대고객
         Index.FRAGMENT_RESERVE_CALL,//예약호출 화면
-        Index.FRAGMENT_RESERVE_LIST //예약리스트 화면
+        Index.FRAGMENT_RESERVE_LIST,//예약리스트 화면
+        Index.FRAGMENT_SUB          //보조표시기 모드
     )
 
     annotation class Index {
         companion object {
-            const val NONE: Int                 = 0
-            const val FRAGMENT_READY: Int       = NONE + 1
-            const val FRAGMENT_SETTING: Int     = FRAGMENT_READY + 1
-            const val FRAGMENT_MAIN: Int        = FRAGMENT_SETTING + 1
-            const val FRAGMENT_BACKUP_CALL: Int = FRAGMENT_MAIN + 1
-            const val FRAGMENT_MOVIE: Int       = FRAGMENT_BACKUP_CALL + 1
-            const val FRAGMENT_RECENT_CALL: Int = FRAGMENT_MOVIE + 1
+            const val NONE: Int                  = 0
+            const val FRAGMENT_READY: Int        = NONE + 1
+            const val FRAGMENT_SETTING: Int      = FRAGMENT_READY + 1
+            const val FRAGMENT_MAIN: Int         = FRAGMENT_SETTING + 1
+            const val FRAGMENT_BACKUP_CALL: Int  = FRAGMENT_MAIN + 1
+            const val FRAGMENT_MOVIE: Int        = FRAGMENT_BACKUP_CALL + 1
+            const val FRAGMENT_RECENT_CALL: Int  = FRAGMENT_MOVIE + 1
             const val FRAGMENT_RESERVE_CALL: Int = FRAGMENT_RECENT_CALL + 1
             const val FRAGMENT_RESERVE_LIST: Int = FRAGMENT_RESERVE_CALL + 1
+            const val FRAGMENT_SUB: Int          = FRAGMENT_RESERVE_LIST + 1
         }
     }
 
     private lateinit var activity: AppCompatActivity
-    private var currentIndex = Index.NONE
+    private var currentIndex    = Index.NONE
+    private var beforeIndex     = Index.NONE
 
-    private val fragmentReady       = FragmentReady()
-    private val fragmentSetting     = FragmentSetting()
-    private val fragmentMain        = FragmentMain()
-    private val fragmentBackupCall  = FragmentBackupCall()
-    private val fragmentMovie       = FragmentMovie()
-    private val fragmentRecentCall  = FragmentRecentCall()
+    private val fragmentReady        = FragmentReady()
+    private val fragmentSetting      = FragmentSetting()
+    private val fragmentMain         = FragmentMain()
+    private val fragmentBackupCall   = FragmentBackupCall()
+    private val fragmentMovie        = FragmentMovie()
+    private val fragmentRecentCall   = FragmentRecentCall()
     private val fragmentReserveCall  = FragmentReserveCall()
     private val fragmentReserveList  = FragmentReserveList()
+    private val fragmentSub          = FragmentSubPortrait()
 
     @Index
     fun getCurrentIndex() = currentIndex
+    @Index
+    fun getBeforeIndex() = beforeIndex
 
     private fun getCurrentFragment() = getFragment(getCurrentIndex())
 
@@ -66,6 +72,7 @@ object FragmentFactory {
             Index.FRAGMENT_RECENT_CALL  -> fragmentRecentCall
             Index.FRAGMENT_RESERVE_CALL -> fragmentReserveCall
             Index.FRAGMENT_RESERVE_LIST -> fragmentReserveList
+            Index.FRAGMENT_SUB          -> fragmentSub
             else -> null
         }
     }
@@ -84,6 +91,7 @@ object FragmentFactory {
         Index.FRAGMENT_RECENT_CALL  -> "FragmentRecentCall"
         Index.FRAGMENT_RESERVE_CALL -> "fragmentReserveCall"
         Index.FRAGMENT_RESERVE_LIST -> "fragmentReserveList"
+        Index.FRAGMENT_SUB          -> "fragmentSub"
         else                        -> "UNKNOWN"
     }
 
@@ -110,6 +118,7 @@ object FragmentFactory {
 
         if(currentIndex == targetIndex) return
 
+        beforeIndex  = currentIndex
         currentIndex = targetIndex
 
         val tagName  = getTagName(targetIndex)
@@ -157,20 +166,20 @@ object FragmentFactory {
                     if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
                     else replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                Index.FRAGMENT_RECENT_CALL   -> { //현재화면 최근응대고객 화면
+                Index.FRAGMENT_RECENT_CALL  -> { //현재화면 최근응대고객 화면
                     if(isAvailableReserveList) replaceFragment(Index.FRAGMENT_RESERVE_LIST)
                     else replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                Index.FRAGMENT_RESERVE_LIST   -> { //예약리스트
+                Index.FRAGMENT_RESERVE_LIST -> { //예약리스트
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                Index.FRAGMENT_RESERVE_CALL   -> { //예약호출
+                Index.FRAGMENT_RESERVE_CALL -> { //예약호출
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                Index.FRAGMENT_BACKUP_CALL   -> { //백업호출
+                Index.FRAGMENT_BACKUP_CALL  -> { //백업호출
                     replaceFragment(Index.FRAGMENT_MAIN)
                 }
-                else -> { //현재화면 READY, SETTING, 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
+                else -> { //현재화면 READY, SETTING, 보조표시기 기타등등, 아무처리 없이 해당 화면에 그대로 있는다.
                     Log.d("ChangeFragment - 현재 화면 : ${getTagName(currentFragmentIndex)}")
                     return
                 }

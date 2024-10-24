@@ -8,11 +8,9 @@ import com.kct.iqsdisplayer.util.Log
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BOOT_COMPLETED")
-            val intentMainActivity = Intent(context, MainActivity::class.java)
-            intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            context.startActivity(intentMainActivity)
-        }
+        Log.d("BOOT_COMPLETED")
+        val intentMainActivity = Intent(context, MainActivity::class.java)
+        intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        context.startActivity(intentMainActivity)
     }
 }

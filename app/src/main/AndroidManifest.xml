@@ -4,6 +4,7 @@
     android:sharedUserId="android.uid.system">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />  <!-- 부팅 이벤트 -->
+    <uses-permission android:name="android.permission.REBOOT" />  <!-- 부팅 이벤트 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />  <!-- 재생 중 화면 잠금 방지 -->
     <uses-permission android:name="android.permission.INTERNET" /><!-- 네트워크 사용 -->
     <uses-permission
@@ -38,7 +39,10 @@
         <activity
             android:name=".ui.MainActivity"
             android:launchMode="singleTop"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -53,6 +57,7 @@
             android:label="Receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.REBOOT"/>
             </intent-filter>
         </receiver>
         <receiver
