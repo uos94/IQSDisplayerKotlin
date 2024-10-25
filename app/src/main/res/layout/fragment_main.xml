@@ -38,7 +38,7 @@
             android:layout_gravity="center"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            tools:src="@drawable/test1" />
+            tools:src="@drawable/test00" />
         <!--        android:scaleType="centerCrop"-->
     </androidx.cardview.widget.CardView>
     <ImageView
