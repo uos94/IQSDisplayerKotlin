@@ -18,6 +18,8 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MediatorLiveData
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
@@ -182,6 +184,7 @@ class FragmentMain : Fragment() {
 
         Glide.with(requireContext())
             .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")
+            .signature(ObjectKey(System.currentTimeMillis().toString()))
             .fitCenter()
             .error("${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}")
             .into(this)

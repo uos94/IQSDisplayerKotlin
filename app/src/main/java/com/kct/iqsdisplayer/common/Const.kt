@@ -36,15 +36,15 @@ object Const {
         val DIR_SOUND by lazy { "${DIR_IQS}Sound/" }
         /** 예상경로 : /storage/emulated/0/IQS/Patch/ */
         val DIR_PATCH by lazy { "${DIR_IQS}Patch/" }
-        /** 경로 : dicontrol/agent/resource/image/ */
+        /** 경로 : dicontrol/agent/resource/image/ 사용안함, FTP때 쓰던것으로 보임*/
         val SUB_PATH_IMAGE = "dicontrol/agent/resource/image/"
-        /** 경로 : dicontrol/agent/resource/movie/ */
+        /** 경로 : dicontrol/agent/resource/movie/ 사용안함, FTP때 쓰던것으로 보임*/
         val SUB_PATH_VIDEO = "dicontrol/agent/resource/movie/"
-        /** 경로 : dicontrol/agent/resource/sound/ */
+        /** 경로 : dicontrol/agent/resource/sound/ 사용안함, FTP때 쓰던것으로 보임*/
         val SUB_PATH_SOUND = "dicontrol/agent/resource/sound/"
-        /** 경로 : dicontrol/agent/patch/ */
+        /** 경로 : dicontrol/agent/patch/          사용안함, FTP때 쓰던것으로 보임*/
         val SUB_PATH_PATCH = "dicontrol/agent/patch/"
-        /** 경로 : dicontrol/agent/DisplayLog/ */
+        /** 경로 : dicontrol/agent/DisplayLog/     사용안함, FTP때 쓰던것으로 보임*/
         val SUB_PATH_LOG: String = "dicontrol/agent/DisplayLog/"
         /** 예상경로 : /storage/emulated/0/IQS/DownLoadSound/ */
         val DIR_DOWNLOAD_SOUND by lazy { "${DIR_IQS}DownLoadSound/"}
@@ -52,7 +52,7 @@ object Const {
         val DIR_DOWNLOAD_VIDEO by lazy { "${DIR_IQS}DownLoadVideo/"}
         /** 경로 /sys/class/net/eth0/address */
         val FILE_MAC_ADDRESS = "/sys/class/net/eth0/address"
-        // 이미지 비디오 사운드 패치파일을 가지고 있는 디렉토리 경로(IQS)
+
         val DIR_TELLER_IMAGE by lazy { "http://${ConnectionInfo.IQS_IP}/image/staff/" }
         /** 예상경로 : /data/data/com.kct.iqsdisplayer/shared_prefs/ */
         var DIR_SHARED_PREFS: String = "/data/data/com.kct.iqsdisplayer/shared_prefs/"
