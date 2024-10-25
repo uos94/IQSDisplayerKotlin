@@ -79,10 +79,9 @@ class FragmentReserveCall : Fragment() {
 
     private fun ImageView.setTellerImage() {
         val tellerImageFileName = ScreenInfo.tellerInfo.tellerImg
-        val serverIp = Const.ConnectionInfo.IQS_IP
 
         Glide.with(requireContext())
-            .load("http://$serverIp/image/staff/$tellerImageFileName")
+            .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")
             .fitCenter()
             .error("${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}")
             .into(this)
