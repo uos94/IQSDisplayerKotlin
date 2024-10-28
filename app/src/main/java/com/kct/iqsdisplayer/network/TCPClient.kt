@@ -46,7 +46,7 @@ class TCPClient(private val host: String, private val port: Int) {
     private fun reconnectAndStartJobs() {
         coroutineScope.launch {
             var retryCount = 0
-            val retryDelay = 1000L
+            val retryDelay = 1000L // 1초
 
             while (isActive && !isConnected) {
                 if (connect()) {
@@ -56,6 +56,7 @@ class TCPClient(private val host: String, private val port: Int) {
                     break
                 } else {
                     retryCount++
+                    Log.d("재접속 시도 중... (${retryCount}회)") // 1초마다 로그 출력
                     delay(retryDelay)
                 }
             }
@@ -67,9 +68,7 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     fun start() {
-        coroutineScope.launch {
-            reconnectAndStartJobs()
-        }
+        reconnectAndStartJobs()
     }
 
     fun sendData(sendByteBuffer: ByteBuffer) {

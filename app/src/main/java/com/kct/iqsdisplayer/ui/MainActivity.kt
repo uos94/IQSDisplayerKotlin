@@ -140,10 +140,6 @@ class MainActivity : AppCompatActivity() {
                         |시스템 준비상태 
                         |   접 속 완 료:${vmSystemReady.isConnect.value}
                         |   접속승인응답:${vmSystemReady.isAuthPacket.value}
-                        |   예약정보수신:${vmSystemReady.isReservePacket.value}
-                        |   대기인원수신:${vmSystemReady.isWaitPacket.value}
-                        |   영상정보수신:${vmSystemReady.isMediaPacket.value}
-                        |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
                 if(it) {
                     if(Const.ConnectionInfo.CALLVIEW_MODE == Const.CallViewMode.SUB) {
