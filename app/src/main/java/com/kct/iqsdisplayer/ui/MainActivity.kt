@@ -56,7 +56,6 @@ import com.kct.iqsdisplayer.util.copyFile
 import com.kct.iqsdisplayer.util.getLocalIpAddress
 import com.kct.iqsdisplayer.util.getMacAddress
 import com.kct.iqsdisplayer.util.installApk
-import com.kct.iqsdisplayer.util.installSilent
 import com.kct.iqsdisplayer.util.makeDir
 import com.kct.iqsdisplayer.util.setFullScreen
 import com.kct.iqsdisplayer.util.setPreference
@@ -140,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                         |시스템 준비상태 
                         |   접 속 완 료:${vmSystemReady.isConnect.value}
                         |   접속승인응답:${vmSystemReady.isAuthPacket.value}
+                        |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
                 if(it) {
                     if(Const.ConnectionInfo.CALLVIEW_MODE == Const.CallViewMode.SUB) {
@@ -298,6 +298,7 @@ class MainActivity : AppCompatActivity() {
      * 이후에 다른 패킷들 요청이 가능하다고 함.
     =====================================================================================================*/
     private val tcpEventListener = object : TCPClient.OnTcpEventListener {
+        val authRetryHandler: Handler = Handler(Looper.getMainLooper()) //Connect는 되었지만 ACCEPT_AUTH_RESPONSE만 안오는 경우가 있어 추가함.
         override fun onConnected() {
             //Log.d("onConnected")
             ScreenInfo.setSocketConnected(true)
@@ -308,13 +309,9 @@ class MainActivity : AppCompatActivity() {
             //Log.d("${protocolDefine}$receivedData")
             runOnUiThread {
                 when(protocolDefine) {
-                    ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
+                    ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess(authRetryHandler) //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
                     ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
-                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> {
-                        onAcceptAuthResponse(receivedData)
-                        Log.d("업데이트 정보 요청")
-                        tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
-                    }
+                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> onAcceptAuthResponse(receivedData, authRetryHandler)
                     ProtocolDefine.WAIT_RESPONSE            -> onWaitResponse(receivedData)
                     ProtocolDefine.CALL_REQUEST             -> onCallRequest(receivedData)
                     ProtocolDefine.RE_CALL_REQUEST          -> onCallRequest(receivedData)
@@ -363,7 +360,7 @@ class MainActivity : AppCompatActivity() {
         uploadLogFileToServer()
     }
 
-    private fun onConnectSuccess() {
+    private fun onConnectSuccess(authRetryHandler: Handler) {
         Log.d("TCP Connect 응답 수신 [onConnectSuccess]")
         val ip = getLocalIpAddress()
         val mac = getMacAddress()
@@ -372,17 +369,28 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             val sendData = AcceptAuthRequest(ip, mac)
-            Log.d("접속승인 요청[AcceptAuthRequest]")
+            Log.d("접속승인 요청 : $sendData")
             tcpClient.sendData(sendData.toByteBuffer())
+            authRetryHandler.postDelayed( {
+                onConnectSuccess(authRetryHandler)
+            }, 1000)
         }
     }
 
-    private fun onAcceptAuthResponse(receivedData: BaseReceivePacket) {
+    private fun onAcceptAuthResponse(receivedData: BaseReceivePacket, authRetryHandler: Handler) {
         val data = receivedData as AcceptAuthResponse
         Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
+
+        authRetryHandler.removeCallbacksAndMessages(null)
+
         vmSystemReady.setIsAuthPacket(true)
+
         tcpClient.enableKeepAlive(true)
+
         ScreenInfo.updateDefaultInfo(data)
+
+        Log.d("업데이트 정보 요청")
+        tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
     }
 
     /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.

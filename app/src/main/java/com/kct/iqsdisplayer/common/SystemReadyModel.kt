@@ -31,9 +31,9 @@ class SystemReadyModel : ViewModel() {
 
     // 모든 상태를 결합하여 systemReady Flow 생성
     val systemReady: Flow<Boolean> = combine(
-        _isConnect, _isAuthPacket//, _isUploadLog
-    ) { isConnect, isAuthPacket ->
-        isConnect && isAuthPacket
+        _isConnect, _isAuthPacket, _isUploadLog
+    ) { isConnect, isAuthPacket, isUploadLog ->
+        isConnect && isAuthPacket && isUploadLog
     }
 
     // Flow를 LiveData로 변환하여 외부에서 관찰 가능하도록 설정
