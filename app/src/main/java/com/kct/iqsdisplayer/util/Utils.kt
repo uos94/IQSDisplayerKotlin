@@ -91,6 +91,11 @@ fun deleteFile(filePath: String): Boolean {
     }
 }
 
+fun String.isExistFile(): Boolean {
+    val file = File(this)
+    return file.exists() && file.isFile
+}
+
 fun copyFile(sourcePath: String, destPath: String): Boolean {
     try {
         val sourceFile = File(sourcePath)

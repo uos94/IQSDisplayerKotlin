@@ -310,40 +310,42 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
             //Log.d("${protocolDefine}$receivedData")
-            when(protocolDefine) {
-                ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
-                ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
-                ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> {
-                                                                onAcceptAuthResponse(receivedData)
-                                                                Log.d("업데이트 정보 요청")
-                                                                tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
-                                                           }
-                ProtocolDefine.WAIT_RESPONSE            -> onWaitResponse(receivedData)
-                ProtocolDefine.CALL_REQUEST             -> onCallRequest(receivedData)
-                ProtocolDefine.RE_CALL_REQUEST          -> onCallRequest(receivedData)
-                ProtocolDefine.PAUSED_WORK_REQUEST      -> onPausedWork(receivedData)
-                ProtocolDefine.INFO_MESSAGE_REQUEST     -> onInfoMessage(receivedData)
-                ProtocolDefine.TELLER_LIST              -> onTellerList(receivedData)
-                ProtocolDefine.SYSTEM_OFF               -> onSystemOff()
-                ProtocolDefine.RESTART_REQUEST          -> onRestartRequest()
-                ProtocolDefine.CROWDED_REQUEST          -> onCrowedRequest(receivedData)
-                ProtocolDefine.WIN_RESPONSE             -> onWinResponse(receivedData)
-                ProtocolDefine.MEDIA_LIST_RESPONSE      -> onMediaListResponse(receivedData)
-                ProtocolDefine.RESERVE_LIST_RESPONSE    -> onReserveListResponse(receivedData)
-                ProtocolDefine.RESERVE_ADD_REQUEST      -> onReserveAddRequest(receivedData)
-                ProtocolDefine.RESERVE_UPDATE_REQUEST   -> onReserveUpdateRequest(receivedData)
-                ProtocolDefine.RESERVE_CANCEL_REQUEST   -> onReserveCancelRequest(receivedData)
-                ProtocolDefine.RESERVE_ARRIVE_REQUEST   -> onReserveArriveRequest(receivedData)
-                ProtocolDefine.RESERVE_CALL_REQUEST     -> onReserveCallRequest(receivedData)
-                ProtocolDefine.RESERVE_RE_CALL_REQUEST  -> onReserveCallRequest(receivedData)
-                /** 업데이트 정보를 수신하고, 업데이트를 할지, 이후 정상동작을 할지 분기를 탄다. */
-                ProtocolDefine.UPDATE_INFO_RESPONSE     -> onUpdateInfoResponse(receivedData)
-                ProtocolDefine.SERVICE_RETRY            -> onConnectRetry()
-                ProtocolDefine.TELLER_RENEW_REQUEST     -> onTellerRenewRequest(receivedData)
-                ProtocolDefine.KEEP_ALIVE_RESPONSE      -> {}
-                else -> {
-                    // PacketAnalyzer의 parserMap 확인요망
-                    Log.e("잘못 처리된 Protocol이 존재함. $protocolDefine")
+            runOnUiThread {
+                when(protocolDefine) {
+                    ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess() //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
+                    ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
+                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> {
+                        onAcceptAuthResponse(receivedData)
+                        Log.d("업데이트 정보 요청")
+                        tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
+                    }
+                    ProtocolDefine.WAIT_RESPONSE            -> onWaitResponse(receivedData)
+                    ProtocolDefine.CALL_REQUEST             -> onCallRequest(receivedData)
+                    ProtocolDefine.RE_CALL_REQUEST          -> onCallRequest(receivedData)
+                    ProtocolDefine.PAUSED_WORK_REQUEST      -> onPausedWork(receivedData)
+                    ProtocolDefine.INFO_MESSAGE_REQUEST     -> onInfoMessage(receivedData)
+                    ProtocolDefine.TELLER_LIST              -> onTellerList(receivedData)
+                    ProtocolDefine.SYSTEM_OFF               -> onSystemOff()
+                    ProtocolDefine.RESTART_REQUEST          -> onRestartRequest()
+                    ProtocolDefine.CROWDED_REQUEST          -> onCrowedRequest(receivedData)
+                    ProtocolDefine.WIN_RESPONSE             -> onWinResponse(receivedData)
+                    ProtocolDefine.MEDIA_LIST_RESPONSE      -> onMediaListResponse(receivedData)
+                    ProtocolDefine.RESERVE_LIST_RESPONSE    -> onReserveListResponse(receivedData)
+                    ProtocolDefine.RESERVE_ADD_REQUEST      -> onReserveAddRequest(receivedData)
+                    ProtocolDefine.RESERVE_UPDATE_REQUEST   -> onReserveUpdateRequest(receivedData)
+                    ProtocolDefine.RESERVE_CANCEL_REQUEST   -> onReserveCancelRequest(receivedData)
+                    ProtocolDefine.RESERVE_ARRIVE_REQUEST   -> onReserveArriveRequest(receivedData)
+                    ProtocolDefine.RESERVE_CALL_REQUEST     -> onReserveCallRequest(receivedData)
+                    ProtocolDefine.RESERVE_RE_CALL_REQUEST  -> onReserveCallRequest(receivedData)
+                    /** 업데이트 정보를 수신하고, 업데이트를 할지, 이후 정상동작을 할지 분기를 탄다. */
+                    ProtocolDefine.UPDATE_INFO_RESPONSE     -> onUpdateInfoResponse(receivedData)
+                    ProtocolDefine.SERVICE_RETRY            -> onConnectRetry()
+                    ProtocolDefine.TELLER_RENEW_REQUEST     -> onTellerRenewRequest(receivedData)
+                    ProtocolDefine.KEEP_ALIVE_RESPONSE      -> {}
+                    else -> {
+                        // PacketAnalyzer의 parserMap 확인요망
+                        Log.e("잘못 처리된 Protocol이 존재함. $protocolDefine")
+                    }
                 }
             }
         }

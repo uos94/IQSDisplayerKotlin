@@ -2,6 +2,7 @@ package com.kct.iqsdisplayer.common
 
 import android.media.MediaPlayer
 import com.kct.iqsdisplayer.util.Log
+import com.kct.iqsdisplayer.util.isExistFile
 import java.util.LinkedList
 import kotlin.math.floor
 import kotlin.math.ln
@@ -48,50 +49,50 @@ class CallSoundManager {
         mp.setVolume(fVolumeRate, fVolumeRate) //볼륨 설정
     }
 
-    private fun makePlayList(callNum:Int, callWinNum:Int, isVIP:Boolean = false) {
-
-        val repeatCount = ScreenInfo.callRepeatCount  //호출 반복횟수
+    private fun makePlayList(callNum: Int, callWinNum: Int, isVIP: Boolean = false) {
+        val repeatCount = ScreenInfo.callRepeatCount
         val bellFileName = ScreenInfo.bellFileName
         val ment = ScreenInfo.callMent
+
         val logMessage =
             """
                 |호출정보
                 |   변수값 : CallNum=$callNum, WinNum=$callWinNum, 반복횟수=$repeatCount, bellFileName=$bellFileName, ment=$ment
             """.trimMargin()
-        Log.d(logMessage)
 
-        for (i in 0 until repeatCount) {
-            //1. 띵동 벨소리
-            if(bellFileName.isNotEmpty()) {
-                listCallSound.add(Const.Path.DIR_SOUND+bellFileName)
+        fun addFileToPlayList(fileName: String) {
+            val filePath = Const.Path.DIR_SOUND + fileName
+            if (filePath.isExistFile()) listCallSound.add(filePath)
+            else Log.w("사운드 파일이 없음 : $filePath")
+        }
+
+        repeat(repeatCount) {
+            // 1. 띵동 벨소리
+            if (bellFileName.isNotEmpty()) {
+                addFileToPlayList(bellFileName)
             }
 
-            //2.호출 번호
-            if (callNum > 999) //천의자리
-            {
-                val strTmp = "P%04d.wav".format(floor((callNum / 1000).toDouble()).toInt() * 1000)
-                listCallSound.add(Const.Path.DIR_SOUND + strTmp)
+            // 2. 호출 번호
+            if (callNum > 999) { // 천의 자리
+                addFileToPlayList("P%04d.wav".format((callNum / 1000) * 1000))
             }
-            //나머지 자리
-            val nTmp = callNum % 1000
-            var strTmp = "N%04d.wav".format(nTmp)
-            listCallSound.add(Const.Path.DIR_SOUND + strTmp)
+            addFileToPlayList("N%04d.wav".format(callNum % 1000))
 
-            //3.안내 멘트
-            if(isVIP) {
-                listCallSound.add(Const.Path.DIR_SOUND + "W0000.wav") // VIP실로 오십시오
-            }
-            else {
-                //창구번호 (~번)
-                strTmp = "W%04d.wav".format(callWinNum)
-                listCallSound.add(Const.Path.DIR_SOUND + strTmp)
+            // 3. 안내 멘트
+            if (isVIP) {
+                addFileToPlayList("W0000.wav") // VIP 멘트
+            } else {
+                // 창구 번호 멘트
+                addFileToPlayList("W%04d.wav".format(callWinNum))
 
-                //안내멘트 (0:창구로 오십시오 / 1:창구로 모시겠습니다 2:창구에서 도와드리겠습니다.)
-                when (ment) {
-                    "창구로 오십시오." -> listCallSound.add(Const.Path.DIR_SOUND + "1025.wav")
-                    "창구로 모시겠습니다." -> listCallSound.add(Const.Path.DIR_SOUND + "1054.wav")
-                    "창구에서 도와드리겠습니다." -> listCallSound.add(Const.Path.DIR_SOUND + "1055.wav")
+                // 안내 멘트 (조건에 따른 파일명 선택)
+                val mentFileName = when (ment) {
+                    "창구로 오십시오." -> "1025.wav"
+                    "창구로 모시겠습니다." -> "1054.wav"
+                    "창구에서 도와드리겠습니다." -> "1055.wav"
+                    else -> "1025.wav"
                 }
+                addFileToPlayList(mentFileName)
             }
         }
     }
