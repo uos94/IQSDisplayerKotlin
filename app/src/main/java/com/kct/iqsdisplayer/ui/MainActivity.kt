@@ -99,12 +99,6 @@ class MainActivity : AppCompatActivity() {
         startSystem()
     }
 
-    override fun onNewIntent(intent: Intent) {
-        //Log.i("메인재시작")
-        //com.kct.iqsdisplaywatch에서 앱이 실행중인데도 불구하고 앱시작 명령이 날아온다. service를 check하는 듯하다.
-        super.onNewIntent(intent)
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         Log.i("메인종료")
@@ -127,6 +121,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+/*    fun showLoading() {
+        binding.lottieLoading.visibility = View.VISIBLE
+        binding.lottieLoading.playAnimation()
+    }
+
+    fun hideLoading() {
+        binding.lottieLoading.visibility = View.INVISIBLE
+        binding.lottieLoading.pauseAnimation()
+    }*/
+
     private fun startSystem() {
         if(checkStorage()) {
             //Storage 를 사용 할 준비가 되었다면 접속환경 설정, TCP접속부터 시작한다.
@@ -142,6 +146,7 @@ class MainActivity : AppCompatActivity() {
                         |   로그파일전송:${vmSystemReady.isUploadLog.value}
                     """.trimMargin())
                 if(it) {
+                    //hideLoading()
                     if(Const.ConnectionInfo.CALLVIEW_MODE == Const.CallViewMode.SUB) {
                         replaceFragment(Index.FRAGMENT_SUB)
                     }

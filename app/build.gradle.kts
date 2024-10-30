@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.glide)
+    //implementation(libs.lottie)
     implementation(libs.androidx.core.animation)
     kapt(libs.glide.compiler)
     implementation(libs.androidx.constraintlayout)

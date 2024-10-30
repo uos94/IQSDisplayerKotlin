@@ -117,7 +117,7 @@ class FragmentReady : Fragment() {
         when (it.id) {
             R.id.btSetting -> {
                 Log.i("설정버튼 선택")
-                replaceFragment(FragmentFactory.Index.FRAGMENT_SETTING)
+                replaceFragment(Index.FRAGMENT_SETTING)
             }
             R.id.btReboot -> {
                 Log.i("재부팅버튼 선택")
@@ -129,7 +129,7 @@ class FragmentReady : Fragment() {
             }
             R.id.btMoveMain -> {
                 Log.i("메인화면이동 선택")
-                replaceFragment(FragmentFactory.Index.FRAGMENT_MAIN)
+                replaceFragment(Index.FRAGMENT_MAIN)
             }
             else -> {
                 Log.e("알 수 없는 버튼")

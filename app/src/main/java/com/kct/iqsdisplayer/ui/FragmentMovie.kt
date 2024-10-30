@@ -56,10 +56,6 @@ class FragmentMovie : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
     private fun setUI() {
         binding.tvWinNum.text = ScreenInfo.winNum.toString()
     }
