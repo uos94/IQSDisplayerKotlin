@@ -1,11 +1,13 @@
 package com.kct.iqsdisplayer.util
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 
+@Deprecated("이 프로젝트에서는 사용 할 일이 없을 것으로 보임.")
 class FileDownloader {
 
     suspend fun downloadFile(url: String, destinationPath: String, progressCallback: (Float) -> Unit) = withContext(Dispatchers.IO) {
