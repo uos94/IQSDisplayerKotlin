@@ -219,7 +219,8 @@
         app:layout_constraintStart_toStartOf="@id/glVertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/vBottomBackground"
-        android:background="@android:color/transparent">
+        android:background="@android:color/transparent"
+        android:scrollbars="none">
 
         <TextView
             android:id="@+id/tvInfo"
