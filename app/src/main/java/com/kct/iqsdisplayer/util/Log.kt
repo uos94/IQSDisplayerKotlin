@@ -13,7 +13,8 @@ import java.util.Locale
 
 object Log {
     private const val TAG = "HISON"
-    private var isEnabled = BuildConfig.DEBUG // 빌드 타입에 따라 로그 출력 여부 설정
+//    private var isEnabled = BuildConfig.DEBUG // 빌드 타입에 따라 로그 출력 여부 설정
+    private var isEnabled = true // 빌드 타입에 따라 로그 출력 여부 설정
     private const val MAX_LOG_LINES = 1000 // View에 보여줄 최대 로그 줄 수
     private val logLines = ArrayList<String>()
     private var logListener: OnLogEventListener? = null
