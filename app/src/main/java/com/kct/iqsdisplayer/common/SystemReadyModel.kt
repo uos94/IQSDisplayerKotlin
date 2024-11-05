@@ -30,7 +30,7 @@ class SystemReadyModel : ViewModel() {
     val isUploadLog: StateFlow<Boolean> get() = _isUploadLog
 
     // 모든 상태를 결합하여 systemReady Flow 생성
-    val systemReady: Flow<Boolean> = combine(
+    private val systemReady: Flow<Boolean> = combine(
         _isConnect, _isAuthPacket, _isUploadLog
     ) { isConnect, isAuthPacket, isUploadLog ->
         isConnect && isAuthPacket && isUploadLog
