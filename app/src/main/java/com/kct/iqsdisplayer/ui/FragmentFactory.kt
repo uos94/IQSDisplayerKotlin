@@ -169,6 +169,7 @@ object FragmentFactory {
                 }
                 Index.FRAGMENT_MOVIE        -> { //현재화면 동영상화면
                     if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
+                    else if(isAvailableReserveList) replaceFragment(Index.FRAGMENT_RESERVE_LIST)
                     else replaceFragment(Index.FRAGMENT_MAIN)
                 }
                 Index.FRAGMENT_RECENT_CALL  -> { //현재화면 최근응대고객 화면
