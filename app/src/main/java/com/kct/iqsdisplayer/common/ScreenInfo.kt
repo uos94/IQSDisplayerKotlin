@@ -88,10 +88,10 @@ object ScreenInfo {
         _backupCallInfo.postValue(backupInfo)
     }
 
-    private val _normalCallData = MutableLiveData(CallData()) // 호출패킷 저장
+    private val _normalCallData = MutableLiveData(CallData()) // 일반 Call 번호
     val normalCallData: LiveData<CallData> get() = _normalCallData
 
-    private val _reserveCallInfo = MutableLiveData(ReserveCallData()) // 호출패킷 저장
+    private val _reserveCallInfo = MutableLiveData(ReserveCallData()) // 예약 Call 번호
     val reserveCallInfo: LiveData<ReserveCallData> get() = _reserveCallInfo
 
     fun updateCallInfo(newCallData: CallData) {

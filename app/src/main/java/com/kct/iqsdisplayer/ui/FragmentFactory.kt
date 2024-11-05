@@ -122,9 +122,8 @@ object FragmentFactory {
 
         val fragmentManager = activity.supportFragmentManager
 
-        if(currentIndex == targetIndex) return
+        if(currentIndex != targetIndex) beforeIndex  = currentIndex
 
-        beforeIndex  = currentIndex
         currentIndex = targetIndex
 
         val tagName  = getTagName(targetIndex)

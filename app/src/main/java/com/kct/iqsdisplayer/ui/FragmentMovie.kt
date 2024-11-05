@@ -58,6 +58,14 @@ class FragmentMovie : Fragment() {
 
     private fun setUI() {
         binding.tvWinNum.text = ScreenInfo.winNum.toString()
+
+        ScreenInfo.waitNum.observe(viewLifecycleOwner) {
+            binding.tvWaitNum.text  = it.toString()
+        }
+
+        ScreenInfo.normalCallData.observe(viewLifecycleOwner) {
+            binding.tvCallNum.text  = it.toString()
+        }
     }
 
     override fun onPause() {

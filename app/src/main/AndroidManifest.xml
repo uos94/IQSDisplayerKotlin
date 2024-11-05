@@ -4,7 +4,8 @@
     android:sharedUserId="android.uid.system">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />  <!-- 부팅 이벤트 -->
-    <uses-permission android:name="android.permission.REBOOT" />  <!-- 부팅 이벤트 -->
+    <uses-permission android:name="android.permission.REBOOT"
+        tools:ignore="ProtectedPermissions" />  <!-- 부팅 이벤트 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />  <!-- 재생 중 화면 잠금 방지 -->
     <uses-permission android:name="android.permission.INTERNET" /><!-- 네트워크 사용 -->
     <uses-permission
@@ -14,13 +15,11 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission
         android:name="android.permission.INSTALL_PACKAGES"
-        android:protectionLevel="signature"
         tools:ignore="ProtectedPermissions" />
-    <permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"
-        android:protectionLevel="signature"
-        tools:ignore="ReservedSystemPermission" />
 
     <application
         android:name=".common.MyApplication"
@@ -67,7 +66,7 @@
             android:label="Receiver">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED"/>
-                <data android:scheme="package" android:path="${packageName}"/>
+                <data android:scheme="package" android:path="${applicationId}"/>
             </intent-filter>
         </receiver>
         <provider
