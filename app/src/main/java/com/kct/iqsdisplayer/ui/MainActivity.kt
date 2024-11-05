@@ -25,10 +25,10 @@ import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.common.UpdateManager
 import com.kct.iqsdisplayer.common.UpdateManager.OnDownloadListener
-import com.kct.iqsdisplayer.data.BackupCallInfo
-import com.kct.iqsdisplayer.data.Call
-import com.kct.iqsdisplayer.data.Reserve
-import com.kct.iqsdisplayer.data.ReserveCall
+import com.kct.iqsdisplayer.data.packet.receive.BackupCallInfo
+import com.kct.iqsdisplayer.data.packet.receive.Call
+import com.kct.iqsdisplayer.data.packet.receive.Reserve
+import com.kct.iqsdisplayer.data.packet.receive.ReserveCall
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.CrowdedRequest

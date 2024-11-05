@@ -1,4 +1,4 @@
-package com.kct.iqsdisplayer.data
+package com.kct.iqsdisplayer.data.packet.receive
 
 data class LastCall(
     /** 발권창구ID */

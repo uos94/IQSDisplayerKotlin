@@ -2,19 +2,18 @@ package com.kct.iqsdisplayer.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.kct.iqsdisplayer.data.BackupCallInfo
-import com.kct.iqsdisplayer.data.Call
-import com.kct.iqsdisplayer.data.LastCall
-import com.kct.iqsdisplayer.data.Reserve
-import com.kct.iqsdisplayer.data.ReserveCall
-import com.kct.iqsdisplayer.data.Teller
-import com.kct.iqsdisplayer.data.WinInfo
+import com.kct.iqsdisplayer.data.packet.receive.BackupCallInfo
+import com.kct.iqsdisplayer.data.packet.receive.Call
+import com.kct.iqsdisplayer.data.packet.receive.LastCall
+import com.kct.iqsdisplayer.data.packet.receive.Reserve
+import com.kct.iqsdisplayer.data.packet.receive.ReserveCall
+import com.kct.iqsdisplayer.data.packet.receive.Teller
+import com.kct.iqsdisplayer.data.packet.receive.WinInfo
 import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
 import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
 import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
-import com.kct.iqsdisplayer.data.toTeller
-import com.kct.iqsdisplayer.util.Log
+import com.kct.iqsdisplayer.data.packet.receive.toTeller
 import com.kct.iqsdisplayer.util.splitData
 
 /**

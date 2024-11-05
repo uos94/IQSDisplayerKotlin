@@ -152,7 +152,7 @@ object FragmentFactory {
 
     private val handlerChange = Handler(Looper.getMainLooper())
 
-    /** 화면병경 순서는 MAIN -> MOVIE -> RECENT -> RESERVE_LIST 이다 */
+    /** 화면변경 순서는 MAIN -> MOVIE -> RECENT -> RESERVE_LIST 이다 */
     private val runChangeFragment = object : Runnable {
         override fun run() {
             val currentFragmentIndex = getCurrentIndex()

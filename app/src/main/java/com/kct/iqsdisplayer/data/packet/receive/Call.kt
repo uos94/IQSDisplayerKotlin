@@ -1,4 +1,4 @@
-package com.kct.iqsdisplayer.data
+package com.kct.iqsdisplayer.data.packet.receive
 
 import com.kct.iqsdisplayer.common.Const.Arrow
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket

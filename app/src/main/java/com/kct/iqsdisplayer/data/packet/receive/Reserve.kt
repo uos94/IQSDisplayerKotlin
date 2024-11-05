@@ -1,7 +1,6 @@
-package com.kct.iqsdisplayer.data
+package com.kct.iqsdisplayer.data.packet.receive
 
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
-import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.splitData
