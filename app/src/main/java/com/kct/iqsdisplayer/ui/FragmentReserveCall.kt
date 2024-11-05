@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
@@ -49,7 +48,7 @@ class FragmentReserveCall : Fragment() {
         binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
         binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
         binding.ivTellerImg.setTellerImage()
-        binding.tvTellerName.text   = ScreenInfo.tellerInfo.tellerName
+        binding.tvTellerName.text   = ScreenInfo.tellerData.tellerName
 
         ScreenInfo.reserveCallInfo.observe(viewLifecycleOwner) { reserveCallInfo ->
             val customerName = with(reserveCallInfo.customerName) {
@@ -80,7 +79,7 @@ class FragmentReserveCall : Fragment() {
     }
 
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfo.tellerInfo.tellerImg
+        val tellerImageFileName = ScreenInfo.tellerData.tellerImg
 
         Glide.with(requireContext())
             .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")

@@ -4,7 +4,7 @@ import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
-data class WaitResponse(
+data class WaitData(
     val ticketNum: Int,     // 발권 번호
     val winId: Int,        // 창구 ID
     val waitNum: Int        // 창구 대기 인수
@@ -19,8 +19,8 @@ data class WaitResponse(
     }
 }
 
-fun Packet.toWaitResponse(): WaitResponse {
-    return WaitResponse(
+fun Packet.toWaitData(): WaitData {
+    return WaitData(
         ticketNum = integer,
         winId = integer,
         waitNum = integer

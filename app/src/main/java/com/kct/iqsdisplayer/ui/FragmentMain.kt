@@ -18,13 +18,11 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MediatorLiveData
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
 import com.kct.iqsdisplayer.R
 import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.databinding.FragmentMainBinding
-import com.kct.iqsdisplayer.util.Log
 
 class FragmentMain : Fragment() {
 
@@ -70,7 +68,7 @@ class FragmentMain : Fragment() {
         binding.tvCallNum.text       = updateCallNumText(null)
 
         binding.ivTellerImg.setTellerImage()
-        binding.tvTellerName.text   = ScreenInfo.tellerInfo.tellerName
+        binding.tvTellerName.text   = ScreenInfo.tellerData.tellerName
 
         ScreenInfo.waitNum.observe(viewLifecycleOwner) {
             binding.tvWaitingNum.text  = it.toString()
@@ -84,7 +82,7 @@ class FragmentMain : Fragment() {
         liveInfoData.observe(viewLifecycleOwner) { newInfoMessage -> setInfoText(newInfoMessage)}
 
         val liveCallNumData = MediatorLiveData<String>()
-        liveCallNumData.addSource(ScreenInfo.normalCallInfo)        { updateCallNumText(liveCallNumData) }
+        liveCallNumData.addSource(ScreenInfo.normalCallData)        { updateCallNumText(liveCallNumData) }
         liveCallNumData.addSource(ScreenInfo.isPausedWork)          { updateCallNumText(liveCallNumData) }
         liveCallNumData.addSource(ScreenInfo.isStopWork)            { updateCallNumText(liveCallNumData) }
         liveCallNumData.addSource(ScreenInfo.isTcpConnected)        { updateCallNumText(liveCallNumData) }
@@ -107,13 +105,13 @@ class FragmentMain : Fragment() {
     //우선순위 1.공석, 2.부재중, 3.호출번호
     private fun updateCallNumText(liveCallNumData: MediatorLiveData<String>?) : String {
 
-        val emptyMsg = ScreenInfo.tellerInfo.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
+        val emptyMsg = ScreenInfo.tellerData.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
         val callNumText = when {
             ScreenInfo.isStopWork.value == true            -> getString(R.string.msg_vacancy)
             ScreenInfo.isTcpConnected.value == false       -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedWork.value == true          -> emptyMsg
-            else -> getString(R.string.format_four_digit).format(ScreenInfo.normalCallInfo.value?.callNum)
+            else -> getString(R.string.format_four_digit).format(ScreenInfo.normalCallData.value?.callNum)
         }
         liveCallNumData?.value = callNumText
         return callNumText
@@ -180,7 +178,7 @@ class FragmentMain : Fragment() {
     }
 
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfo.tellerInfo.tellerImg
+        val tellerImageFileName = ScreenInfo.tellerData.tellerImg
 
         Glide.with(requireContext())
             .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")

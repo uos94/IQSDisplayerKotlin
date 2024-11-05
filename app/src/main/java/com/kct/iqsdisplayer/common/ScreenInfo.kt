@@ -2,17 +2,17 @@ package com.kct.iqsdisplayer.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.kct.iqsdisplayer.data.packet.receive.BackupCallInfo
-import com.kct.iqsdisplayer.data.packet.receive.Call
-import com.kct.iqsdisplayer.data.packet.receive.LastCall
-import com.kct.iqsdisplayer.data.packet.receive.Reserve
-import com.kct.iqsdisplayer.data.packet.receive.ReserveCall
-import com.kct.iqsdisplayer.data.packet.receive.Teller
+import com.kct.iqsdisplayer.data.packet.receive.BackupCallData
+import com.kct.iqsdisplayer.data.packet.receive.CallData
+import com.kct.iqsdisplayer.data.packet.receive.LastCallData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveCallData
+import com.kct.iqsdisplayer.data.packet.receive.TellerData
 import com.kct.iqsdisplayer.data.packet.receive.WinInfo
-import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
-import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
-import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
-import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
+import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthData
+import com.kct.iqsdisplayer.data.packet.receive.MediaListData
+import com.kct.iqsdisplayer.data.packet.receive.PausedWorkData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveListData
 import com.kct.iqsdisplayer.data.packet.receive.toTeller
 import com.kct.iqsdisplayer.util.splitData
 
@@ -26,7 +26,7 @@ object ScreenInfo {
     /** 표시기의 창구 번호 */
     var winNum          = 0
     var listWinInfos    = ArrayList<WinInfo>()
-    var tellerInfo: Teller = Teller()
+    var tellerData: TellerData = TellerData()
         set(value) {
             field = value
             winId = value.winId
@@ -62,8 +62,8 @@ object ScreenInfo {
     var pausedWorkMessage = ""
     var crowdedMsg: String = "" // 혼잡 메세지
 
-    val reserveList = ArrayList<Reserve>() //상담예약리스트
-    val lastCallList: MutableLiveData<ArrayList<LastCall>> = MutableLiveData(ArrayList()) // 최근 호출 리스트
+    val reserveList = ArrayList<ReserveData>() //상담예약리스트
+    val lastCallList: MutableLiveData<ArrayList<LastCallData>> = MutableLiveData(ArrayList()) // 최근 호출 리스트
 
     private val _isCrowded = MutableLiveData(false) // 혼잡여부 BOOL
     fun updateCrowded(isCrowded: Boolean) {
@@ -82,40 +82,40 @@ object ScreenInfo {
         _waitNum.postValue(newWaitNum)
     }
 
-    private val _backupCallInfo = MutableLiveData(BackupCallInfo())
-    val backupCallInfo: LiveData<BackupCallInfo> get() = _backupCallInfo
-    fun updateBackupCall(backupInfo: BackupCallInfo) {
+    private val _backupCallInfo = MutableLiveData(BackupCallData())
+    val backupCallInfo: LiveData<BackupCallData> get() = _backupCallInfo
+    fun updateBackupCall(backupInfo: BackupCallData) {
         _backupCallInfo.postValue(backupInfo)
     }
 
-    private val _normalCallInfo = MutableLiveData(Call()) // 호출패킷 저장
-    val normalCallInfo: LiveData<Call> get() = _normalCallInfo
+    private val _normalCallData = MutableLiveData(CallData()) // 호출패킷 저장
+    val normalCallData: LiveData<CallData> get() = _normalCallData
 
-    private val _reserveCallInfo = MutableLiveData(ReserveCall()) // 호출패킷 저장
-    val reserveCallInfo: LiveData<ReserveCall> get() = _reserveCallInfo
+    private val _reserveCallInfo = MutableLiveData(ReserveCallData()) // 호출패킷 저장
+    val reserveCallInfo: LiveData<ReserveCallData> get() = _reserveCallInfo
 
-    fun updateCallInfo(newCall: Call) {
-        _normalCallInfo.postValue(newCall)
-        updateWaitNum(newCall.winWaitNum)
-        lastCallList.postValue(newCall.lastCallList)
+    fun updateCallInfo(newCallData: CallData) {
+        _normalCallData.postValue(newCallData)
+        updateWaitNum(newCallData.winWaitNum)
+        lastCallList.postValue(newCallData.lastCallList)
     }
 
-    fun updateReserveCallInfo(newCall: ReserveCall) {
+    fun updateReserveCallInfo(newCall: ReserveCallData) {
         _reserveCallInfo.postValue(newCall)
     }
 
     /** AcceptAuthResponse를 받았을 때 기본적인 정보는 거의 다 내려온다.
      * 데이터가 많아서 여기서 한번 더 가공한다.*/
-    fun updateDefaultInfo(data: AcceptAuthResponse) {
+    fun updateDefaultInfo(data: AcceptAuthData) {
         winNum = data.winNum
 
-        updateWinInfos(data.winIdList, data.winNameList, data.waitingNumList)
+        updateWinInfos(data.winIds, data.winNames, data.waitNums)
 
-        tellerInfo = data.tellerInfo.toTeller()
+        tellerData = data.tellerInfo.toTeller()
 
-        winId = tellerInfo.winId
+        winId = tellerData.winId
 
-        updateWaitNum(listWinInfos.find { it.winID == winId }?.waitNum ?: 0)
+        updateWaitNum(listWinInfos.find { it.winId == winId }?.waitNum ?: 0)
 
         //15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
         data.mediaInfo.splitData("#").forEachIndexed { index, value ->
@@ -173,40 +173,40 @@ object ScreenInfo {
     }
 
     //모든 창구의 상담예약리스트가 넘어온다. 나의것만 걸러서 가져오도록 함.
-    fun updateReserveList(data: ReserveListResponse) {
+    fun updateReserveList(data: ReserveListData) {
         reserveList.clear()
         val myList = data.reserveList.filter { reserve -> winNum == reserve.reserveWinID }
         reserveList.addAll(myList)
     }
 
-    fun addReserveList(data: Reserve) {
+    fun addReserveList(data: ReserveData) {
         if(winId == data.reserveWinID) reserveList.add(data)
     }
 
-    fun updateReserveList(data: Reserve) {
+    fun updateReserveList(data: ReserveData) {
         reserveList.replaceAll{ if(it.reserveNum == data.reserveNum) data else it }
     }
 
-    fun cancelReserve(data: Reserve) {
+    fun cancelReserve(data: ReserveData) {
         reserveList.removeIf { it.reserveNum == data.reserveNum }
     }
 
-    fun arriveReserve(data: Reserve) {
+    fun arriveReserve(data: ReserveData) {
         reserveList.replaceAll{ if(it.reserveNum == data.reserveNum) data else it }
     }
 
-    fun updateMediaList(data: MediaListResponse) {
+    fun updateMediaList(data: MediaListData) {
         mediaFileNameList.clear()
         mediaFileNameList.addAll(data.mediaList)
     }
 
-    fun updatePausedWork(data: PausedWorkRequest) {
+    fun updatePausedWork(data: PausedWorkData) {
         _isPausedWork.postValue(data.isPausedWork)
         pausedWorkMessage   = data.pausedMessage
     }
 
     fun getWinName(winId: Int): String {
-        val winName = listWinInfos.find { it.winID == winId }?.winName ?: ""
+        val winName = listWinInfos.find { it.winId == winId }?.winName ?: ""
         return winName
     }
 

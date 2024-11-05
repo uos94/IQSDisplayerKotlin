@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
 // ProtocolDefine.EMPTY_REQUEST 데이터 클래스
-data class PausedWorkRequest(
+data class PausedWorkData(
     val pausedWinNum: Int,      // 부재 설정 창구 직원 창구 번호
     val isPausedWork: Boolean,  // 부재 설정 여부
     val pausedMessage: String   // 부재 설정 메시지
@@ -15,8 +15,8 @@ data class PausedWorkRequest(
         return "PausedWorkRequest(pausedWinNum=$pausedWinNum, isPaused=$isPausedWork, pausedMessage='$pausedMessage', protocolDefine=$protocolDefine)"
     }
 }
-fun Packet.toPausedWorkRequest(): PausedWorkRequest {
-    return PausedWorkRequest(
+fun Packet.toPausedWorkData(): PausedWorkData {
+    return PausedWorkData(
         pausedWinNum = integer,
         isPausedWork = integer == 1,
         pausedMessage = string

@@ -25,22 +25,22 @@ import com.kct.iqsdisplayer.common.ScreenInfo
 import com.kct.iqsdisplayer.common.SystemReadyModel
 import com.kct.iqsdisplayer.common.UpdateManager
 import com.kct.iqsdisplayer.common.UpdateManager.OnDownloadListener
-import com.kct.iqsdisplayer.data.packet.receive.BackupCallInfo
-import com.kct.iqsdisplayer.data.packet.receive.Call
-import com.kct.iqsdisplayer.data.packet.receive.Reserve
-import com.kct.iqsdisplayer.data.packet.receive.ReserveCall
+import com.kct.iqsdisplayer.data.packet.receive.BackupCallData
+import com.kct.iqsdisplayer.data.packet.receive.CallData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveCallData
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
-import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthResponse
-import com.kct.iqsdisplayer.data.packet.receive.CrowdedRequest
-import com.kct.iqsdisplayer.data.packet.receive.InfoMessageRequest
-import com.kct.iqsdisplayer.data.packet.receive.MediaListResponse
-import com.kct.iqsdisplayer.data.packet.receive.PausedWorkRequest
-import com.kct.iqsdisplayer.data.packet.receive.ReserveListResponse
-import com.kct.iqsdisplayer.data.packet.receive.TellerListResponse
-import com.kct.iqsdisplayer.data.packet.receive.TellerRenewRequest
-import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoResponse
-import com.kct.iqsdisplayer.data.packet.receive.WaitResponse
-import com.kct.iqsdisplayer.data.packet.receive.WinResponse
+import com.kct.iqsdisplayer.data.packet.receive.AcceptAuthData
+import com.kct.iqsdisplayer.data.packet.receive.CrowdedData
+import com.kct.iqsdisplayer.data.packet.receive.InfoMessage
+import com.kct.iqsdisplayer.data.packet.receive.MediaListData
+import com.kct.iqsdisplayer.data.packet.receive.PausedWorkData
+import com.kct.iqsdisplayer.data.packet.receive.ReserveListData
+import com.kct.iqsdisplayer.data.packet.receive.TellerListData
+import com.kct.iqsdisplayer.data.packet.receive.TellerRenewData
+import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoData
+import com.kct.iqsdisplayer.data.packet.receive.WaitData
+import com.kct.iqsdisplayer.data.packet.receive.WinInfos
 import com.kct.iqsdisplayer.data.packet.send.AcceptAuthRequest
 import com.kct.iqsdisplayer.data.packet.send.MediaListRequest
 import com.kct.iqsdisplayer.data.packet.send.ReserveListRequest
@@ -316,29 +316,29 @@ class MainActivity : AppCompatActivity() {
                 when(protocolDefine) {
                     ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess(authRetryHandler) //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
                     ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
-                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> onAcceptAuthResponse(receivedData, authRetryHandler)
-                    ProtocolDefine.WAIT_RESPONSE            -> onWaitResponse(receivedData)
-                    ProtocolDefine.CALL_REQUEST             -> onCallRequest(receivedData)
-                    ProtocolDefine.RE_CALL_REQUEST          -> onCallRequest(receivedData)
+                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> onAcceptAuth(receivedData, authRetryHandler)
+                    ProtocolDefine.WAIT_RESPONSE            -> onWait(receivedData)
+                    ProtocolDefine.CALL_REQUEST             -> onCall(receivedData)
+                    ProtocolDefine.RE_CALL_REQUEST          -> onCall(receivedData)
                     ProtocolDefine.PAUSED_WORK_REQUEST      -> onPausedWork(receivedData)
                     ProtocolDefine.INFO_MESSAGE_REQUEST     -> onInfoMessage(receivedData)
                     ProtocolDefine.TELLER_LIST              -> onTellerList(receivedData)
                     ProtocolDefine.SYSTEM_OFF               -> onSystemOff()
                     ProtocolDefine.RESTART_REQUEST          -> onRestartRequest()
-                    ProtocolDefine.CROWDED_REQUEST          -> onCrowedRequest(receivedData)
-                    ProtocolDefine.WIN_RESPONSE             -> onWinResponse(receivedData)
-                    ProtocolDefine.MEDIA_LIST_RESPONSE      -> onMediaListResponse(receivedData)
-                    ProtocolDefine.RESERVE_LIST_RESPONSE    -> onReserveListResponse(receivedData)
-                    ProtocolDefine.RESERVE_ADD_REQUEST      -> onReserveAddRequest(receivedData)
-                    ProtocolDefine.RESERVE_UPDATE_REQUEST   -> onReserveUpdateRequest(receivedData)
-                    ProtocolDefine.RESERVE_CANCEL_REQUEST   -> onReserveCancelRequest(receivedData)
-                    ProtocolDefine.RESERVE_ARRIVE_REQUEST   -> onReserveArriveRequest(receivedData)
-                    ProtocolDefine.RESERVE_CALL_REQUEST     -> onReserveCallRequest(receivedData)
-                    ProtocolDefine.RESERVE_RE_CALL_REQUEST  -> onReserveCallRequest(receivedData)
+                    ProtocolDefine.CROWDED_REQUEST          -> onCrowded(receivedData)
+                    ProtocolDefine.WIN_RESPONSE             -> onWinInfos(receivedData)
+                    ProtocolDefine.MEDIA_LIST_RESPONSE      -> onMediaList(receivedData)
+                    ProtocolDefine.RESERVE_LIST_RESPONSE    -> onReserveList(receivedData)
+                    ProtocolDefine.RESERVE_ADD_REQUEST      -> onReserveAdd(receivedData)
+                    ProtocolDefine.RESERVE_UPDATE_REQUEST   -> onReserveUpdate(receivedData)
+                    ProtocolDefine.RESERVE_CANCEL_REQUEST   -> onReserveCancel(receivedData)
+                    ProtocolDefine.RESERVE_ARRIVE_REQUEST   -> onReserveArrive(receivedData)
+                    ProtocolDefine.RESERVE_CALL_REQUEST     -> onReserveCall(receivedData)
+                    ProtocolDefine.RESERVE_RE_CALL_REQUEST  -> onReserveCall(receivedData)
                     /** 업데이트 정보를 수신하고, 업데이트를 할지, 이후 정상동작을 할지 분기를 탄다. */
-                    ProtocolDefine.UPDATE_INFO_RESPONSE     -> onUpdateInfoResponse(receivedData)
+                    ProtocolDefine.UPDATE_INFO_RESPONSE     -> onUpdateInfo(receivedData)
                     ProtocolDefine.SERVICE_RETRY            -> onConnectRetry()
-                    ProtocolDefine.TELLER_RENEW_REQUEST     -> onTellerRenewRequest(receivedData)
+                    ProtocolDefine.TELLER_RENEW_REQUEST     -> onTellerRenew(receivedData)
                     ProtocolDefine.KEEP_ALIVE_RESPONSE      -> {}
                     else -> {
                         // PacketAnalyzer의 parserMap 확인요망
@@ -382,8 +382,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onAcceptAuthResponse(receivedData: BaseReceivePacket, authRetryHandler: Handler) {
-        val data = receivedData as AcceptAuthResponse
+    private fun onAcceptAuth(receivedData: BaseReceivePacket, authRetryHandler: Handler) {
+        val data = receivedData as AcceptAuthData
         Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
 
         authRetryHandler.removeCallbacksAndMessages(null)
@@ -400,8 +400,8 @@ class MainActivity : AppCompatActivity() {
 
     /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.
      * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다보냈음만 알려주면 해결이 가능하다. */
-    private fun onUpdateInfoResponse(receivedData: BaseReceivePacket) {
-        val data = receivedData as UpdateInfoResponse
+    private fun onUpdateInfo(receivedData: BaseReceivePacket) {
+        val data = receivedData as UpdateInfoData
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
 
         when(data.updateType) {
@@ -439,39 +439,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onReserveListResponse(receivedData: BaseReceivePacket) {
-        val data = receivedData as ReserveListResponse
+    private fun onReserveList(receivedData: BaseReceivePacket) {
+        val data = receivedData as ReserveListData
         Log.i( "onReserveListResponse :상담예약리스트 수신 완료...$data")
         vmSystemReady.setIsReservePacket(true)
         ScreenInfo.updateReserveList(data)
     }
 
-    private fun onReserveAddRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as Reserve
+    private fun onReserveAdd(receivedData: BaseReceivePacket) {
+        val data = receivedData as ReserveData
         Log.i( "onReserveAddRequest :상담예약 추가 수신 완료...$data")
         ScreenInfo.addReserveList(data)
     }
 
-    private fun onReserveUpdateRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as Reserve
+    private fun onReserveUpdate(receivedData: BaseReceivePacket) {
+        val data = receivedData as ReserveData
         Log.i( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
         ScreenInfo.updateReserveList(data)
     }
     
-    private fun onReserveCancelRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as Reserve
+    private fun onReserveCancel(receivedData: BaseReceivePacket) {
+        val data = receivedData as ReserveData
         Log.i( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
         ScreenInfo.cancelReserve(data)
     }
     
-    private fun onReserveArriveRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as Reserve
+    private fun onReserveArrive(receivedData: BaseReceivePacket) {
+        val data = receivedData as ReserveData
         Log.i( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
         ScreenInfo.arriveReserve(data)
     }
 
-    private fun onMediaListResponse(receivedData: BaseReceivePacket) {
-        val data = receivedData as MediaListResponse
+    private fun onMediaList(receivedData: BaseReceivePacket) {
+        val data = receivedData as MediaListData
         Log.i( "onMediaListResponse : 영상리스트 수신 완료...$data")
 
         vmSystemReady.setIsMediaPacket(true)
@@ -479,8 +479,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
-    private fun onWaitResponse(receivedData: BaseReceivePacket) {
-        val data = receivedData as WaitResponse
+    private fun onWait(receivedData: BaseReceivePacket) {
+        val data = receivedData as WaitData
         Log.i( "onWaitResopnse : 대기자수 응답 현재 창구ID:${ScreenInfo.winId}...$data")
         if(ScreenInfo.winId == data.winId) {
             vmSystemReady.setIsWaitPacket(true)
@@ -498,9 +498,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Recall도 여기로 옴. */
-    private fun onCallRequest(receivedData: BaseReceivePacket) {
+    private fun onCall(receivedData: BaseReceivePacket) {
         //LiveData observe 로 처리됨. 음성호출만 처리함.
-        val data = receivedData as Call
+        val data = receivedData as CallData
         Log.i("onCall : 호출 수신... data:$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE //나의 ViewMode
@@ -515,7 +515,7 @@ class MainActivity : AppCompatActivity() {
                 if(data.isError) { // Call이 장애상황에 해당하면
                     if(data.bkDisplayNum == ScreenInfo.winNum) { //백업표시로 나에게 할당 되었다면
 
-                        val backupData = BackupCallInfo(
+                        val backupData = BackupCallData(
                             callNum         = data.callNum,
                             backupWinNum    = data.callWinNum,
                             backupWinName   = ScreenInfo.getWinName(data.callWinId),
@@ -547,7 +547,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onPausedWork(receivedData: BaseReceivePacket) {
-        val data = receivedData as PausedWorkRequest
+        val data = receivedData as PausedWorkData
         Log.i("onPausedWork : 호출 수신... data:$data")
 
         if(ScreenInfo.winNum ==  receivedData.pausedWinNum) {
@@ -568,7 +568,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onInfoMessage(receivedData: BaseReceivePacket) {
-        val data = receivedData as InfoMessageRequest
+        val data = receivedData as InfoMessage
         Log.i("onInfoMessage : 안내문구 수신... (${data})")
         if(ScreenInfo.winNum == data.infoMessageWinNum) {
             ScreenInfo.updateTellerMent(data.infoMessage)
@@ -577,12 +577,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onTellerList(receivedData: BaseReceivePacket) {
-        val data = receivedData as TellerListResponse
+        val data = receivedData as TellerListData
         Log.i("onTellerList : 직원정보 수신... (${data})")
 
         val teller = data.tellerList.find { teller -> teller.displayIP == Const.ConnectionInfo.DISPLAY_IP }
         if(teller != null) {
-            ScreenInfo.tellerInfo = teller
+            ScreenInfo.tellerData = teller
             ScreenInfo.winId = teller.winId
         }
     }
@@ -626,8 +626,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     //창구 대기인수가 혼잡상태 및 해제 상태 발생시 순번발행기에서 전송하는 패킷
-    private fun onCrowedRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as CrowdedRequest
+    private fun onCrowded(receivedData: BaseReceivePacket) {
+        val data = receivedData as CrowdedData
         Log.i("onCrowedRequest : 창구혼잡 수신... (${data})")
         if(ScreenInfo.winId == data.crowdedWinID) {
             ScreenInfo.updateCrowded(data.isCrowded)
@@ -635,26 +635,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
     //순번발행기에서 창구정보 변경 시 전송하는 패킷
-    private fun onWinResponse(receivedData: BaseReceivePacket) {
-        val data = receivedData as WinResponse
+    private fun onWinInfos(receivedData: BaseReceivePacket) {
+        val data = receivedData as WinInfos
         Log.i("onWinResponse : 창구정보 수신... (${data})")
         ScreenInfo.updateWinInfos(data.winIds, data.winNames, data.waitNums)
     }
 
     /** 직원정보를 다주는 것이 아니라서 안하는것이 나을 것 같은데..
      * TODO : 쓰는 패킷인지 확인요망 */
-    private fun onTellerRenewRequest(receivedData: BaseReceivePacket) {
-        val data = receivedData as TellerRenewRequest
+    private fun onTellerRenew(receivedData: BaseReceivePacket) {
+        val data = receivedData as TellerRenewData
         Log.i("onTellerRenewRequest : 직원정보갱신 수신... (${data})")
 
         ScreenInfo.winNum = data.renewWinNum
-        ScreenInfo.tellerInfo.tellerName = data.tellerName
-        ScreenInfo.tellerInfo.tellerNum = data.tellerNum
+        ScreenInfo.tellerData.tellerName = data.tellerName
+        ScreenInfo.tellerData.tellerNum = data.tellerNum
     }
 
-    private fun onReserveCallRequest(receivedData: BaseReceivePacket) {
+    private fun onReserveCall(receivedData: BaseReceivePacket) {
 
-        val data = receivedData as ReserveCall
+        val data = receivedData as ReserveCallData
         Log.i( "onReserveCallRequest :상담예약 호출 수신 완료...$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE  //나의 ViewMode
@@ -669,7 +669,7 @@ class MainActivity : AppCompatActivity() {
                 if(data.isError) { // Call이 장애상황에 해당하면
                     if(data.reserveBkDisplayNum == ScreenInfo.winNum) { //백업표시로 나에게 할당 되었다면
 
-                        val backupData = BackupCallInfo(
+                        val backupData = BackupCallData(
                             callNum         = data.reserveCallNum,
                             backupWinNum    = data.reserveCallWinNum,
                             backupWinName   = ScreenInfo.getWinName(data.reserveCallWinID),

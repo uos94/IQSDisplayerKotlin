@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
 // ProtocolDefine.INFO_MESSAGE_REQUEST 데이터 클래스
-data class InfoMessageRequest(
+data class InfoMessage(
     val infoMessageWinNum: Int,// 창구 번호
     val infoMessage: String // 안내 메시지
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.INFO_MESSAGE_REQUEST
@@ -15,8 +15,8 @@ data class InfoMessageRequest(
     }
 }
 
-fun Packet.toInfoMessageRequest(): InfoMessageRequest {
-    return InfoMessageRequest(
+fun Packet.toInfoMessage(): InfoMessage {
+    return InfoMessage(
         infoMessageWinNum = integer,
         infoMessage = string
     )

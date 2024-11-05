@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
 // ProtocolDefine.WIN_RESPONSE 데이터 클래스
-data class WinResponse(
+data class WinInfos(
     val winIds: String,  // 창구 ID 리스트
     val winNames: String,  // 창구명 리스트
     val waitNums: String    // 대기 인수 리스트
@@ -15,8 +15,8 @@ data class WinResponse(
         return "WinResponse(winIDList='$winIds', winNmList='$winNames', waitList='$waitNums')"
     }
 }
-fun Packet.toWinResponse(): WinResponse {
-    return WinResponse(
+fun Packet.toWinInfos(): WinInfos {
+    return WinInfos(
         winIds = string,
         winNames = string,
         waitNums = string

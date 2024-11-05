@@ -7,7 +7,7 @@ import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.removeChar
 import com.kct.iqsdisplayer.util.splitData
 
-data class ReserveCall(
+data class ReserveCallData(
     var reserveNum: Int = 0,            // 1.예약 번호
     var reserveTime: Int = 0,           // 2.예약 시간
     var customerNum: String = "",       // 3.고객 ID, AI-IS코드 확인 결과 고객번호와 같음(0으로 시작하는 고객도 있어 Int로 하면 안됨)
@@ -41,9 +41,9 @@ data class ReserveCall(
     }
 }
 
-fun Packet.toReserveCallRequest(): ReserveCall {
+fun Packet.toReserveCallData(): ReserveCallData {
     val splitData = string.splitData("#")
-    return ReserveCall(
+    return ReserveCallData(
         reserveNum          = splitData[0].toIntOrNull() ?: 0,
         reserveTime         = splitData[1].removeChar(":").toIntOrNull() ?: 0,
         customerNum         = splitData[2],

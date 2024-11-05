@@ -1,6 +1,6 @@
 package com.kct.iqsdisplayer.data.packet.receive
 
-data class LastCall(
+data class LastCallData(
     /** 발권창구ID */
     var ticketWinID: Int = 0,
     /** 호출창구ID */
@@ -22,8 +22,8 @@ data class LastCall(
  * 예) 9;9;3;2;0;#9;9;1;1;0;#
  */
 
-fun String?.toLastCallList() : ArrayList<LastCall> {
-    val lastCallList = ArrayList<LastCall>()
+fun String?.toLastCallList() : ArrayList<LastCallData> {
+    val lastCallList = ArrayList<LastCallData>()
     if(this.isNullOrEmpty()) return lastCallList
 
     val splitData = this.split("#")
@@ -34,7 +34,7 @@ fun String?.toLastCallList() : ArrayList<LastCall> {
 
         if(size < 5) continue
 
-        val item = LastCall()
+        val item = LastCallData()
 
         item.ticketWinID   = split[0].toIntOrNull() ?: 0
         item.callWinID     = split[1].toIntOrNull() ?: 0

@@ -4,13 +4,13 @@ import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
-data class AcceptAuthResponse(
+data class AcceptAuthData(
     /** 표시기의 창구 번호 */
     val winNum : Int = 0,//1
     /** 지점에서 사용중인 창구ID 리스트(구분자 “;”) */
-    val winIdList : String = "",//1;2;3;
+    val winIds : String = "",//1;2;3;
     /** 지점에서 사용중인 창구명 리스트 (구분자 “;”) */
-    val winNameList : String = "",//입출금/제신고;일반업무;상담업무;
+    val winNames : String = "",//입출금/제신고;일반업무;상담업무;
     /** 직원정보(구분자 “;”) */
     val tellerInfo : String = "",//5;1;;;10.131.54.65;0;1;;;30702819;1.1.1.3;구민가;1;입출금/제신고;1;;0;0;
     /** 미디어 표시 정보(구분자 “#”)  */
@@ -18,7 +18,7 @@ data class AcceptAuthResponse(
     /** 1~10 까지의 볼륨값 */
     val volumeLevel : String = "",//10
     /** 창구별 대기인수 리스트 (구분자 “;”) */
-    val waitingNumList : String = "",//0;0;0;
+    val waitNums : String = "",//0;0;0;
     /** 현재 시간, time_t 형식의 현재 시간값(고정값 0) */
     val serverTime : Int = 0,//0
     /** 화면설정정보, 대기인수 화면 표시 여부, 표시기 안내문구(구분자 “;”)
@@ -44,12 +44,12 @@ data class AcceptAuthResponse(
         return """
         AcceptAuthResponse(
             winNum=$winNum,
-            winIdList='$winIdList',
-            winNameList='$winNameList',
+            winIdList='$winIds',
+            winNameList='$winNames',
             tellerInfo='$tellerInfo',
             mediaInfo='$mediaInfo',
             volumeLevel='$volumeLevel',
-            waitingNumList='$waitingNumList',
+            waitingNumList='$waitNums',
             serverTime=$serverTime,
             displaySettingInfo='$displaySettingInfo',
             deleteMovieInfo='$deleteMovieInfo',
@@ -65,15 +65,15 @@ data class AcceptAuthResponse(
 }
 
 /** 데이터가 많아 이 패킷만 특별히 다른데서 한번 더 가공하겠음 */
-fun Packet.toAcceptAuthResponse(): AcceptAuthResponse {
-    return AcceptAuthResponse(
+fun Packet.toAcceptAuthData(): AcceptAuthData {
+    return AcceptAuthData(
         winNum = integer,
-        winIdList = string,
-        winNameList = string,
+        winIds = string,
+        winNames = string,
         tellerInfo = string,
         mediaInfo = string,
         volumeLevel = string,
-        waitingNumList = string,
+        waitNums = string,
         serverTime = integer, //AS-IS그대로 가져옴..문서에 따르면 Long임.
         displaySettingInfo = string,
         deleteMovieInfo = string,

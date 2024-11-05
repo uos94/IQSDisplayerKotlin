@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 
-data class Call(
+data class CallData(
     /** 해당 표시기 장애 여부 BOOL (4) */
     val isError: Boolean = false,
     /** 호출번호(고객이 발권한 번호) */
@@ -23,7 +23,7 @@ data class Call(
      * 순서대로
      * 발권창구ID, 호출창구ID, 호출창구번호, 호출번호, 대기인수
      * 예) 9;9;3;2;0;#9;9;1;1;0;#*/
-    val lastCallList: ArrayList<LastCall> = ArrayList(),
+    val lastCallList: ArrayList<LastCallData> = ArrayList(),
     /** 백업 표시기 번호 */
     val bkDisplayNum: Int = 0,
     /** 백업 표시기 화살표 방향 */
@@ -55,8 +55,8 @@ data class Call(
     }
 }
 
-fun Packet.toCallRequest(): Call {
-    return Call(
+fun Packet.toCallRequest(): CallData {
+    return CallData(
         isError = integer == 1,
         callNum = integer,
         ticketWinId = integer,

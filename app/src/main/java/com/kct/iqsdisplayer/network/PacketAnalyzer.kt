@@ -2,23 +2,23 @@ package com.kct.iqsdisplayer.network
 
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.receive.EmptyData
-import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthResponse
-import com.kct.iqsdisplayer.data.packet.receive.toCrowdedRequest
-import com.kct.iqsdisplayer.data.packet.receive.toInfoMessageRequest
-import com.kct.iqsdisplayer.data.packet.receive.toMediaListResponse
-import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkRequest
+import com.kct.iqsdisplayer.data.packet.receive.toAcceptAuthData
+import com.kct.iqsdisplayer.data.packet.receive.toCrowdedData
+import com.kct.iqsdisplayer.data.packet.receive.toInfoMessage
+import com.kct.iqsdisplayer.data.packet.receive.toMediaListData
+import com.kct.iqsdisplayer.data.packet.receive.toPausedWorkData
 import com.kct.iqsdisplayer.data.packet.receive.toRestartRequest
-import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewRequest
-import com.kct.iqsdisplayer.data.packet.receive.toUpdateInfoResponse
-import com.kct.iqsdisplayer.data.packet.receive.toWaitResponse
-import com.kct.iqsdisplayer.data.packet.receive.toWinResponse
+import com.kct.iqsdisplayer.data.packet.receive.toTellerRenewData
+import com.kct.iqsdisplayer.data.packet.receive.toUpdateInfoData
+import com.kct.iqsdisplayer.data.packet.receive.toWaitData
+import com.kct.iqsdisplayer.data.packet.receive.toWinInfos
 import com.kct.iqsdisplayer.data.packet.receive.toCallRequest
-import com.kct.iqsdisplayer.data.packet.receive.toReserveAddRequest
-import com.kct.iqsdisplayer.data.packet.receive.toReserveArriveRequest
-import com.kct.iqsdisplayer.data.packet.receive.toReserveCallRequest
-import com.kct.iqsdisplayer.data.packet.receive.toReserveCancelRequest
-import com.kct.iqsdisplayer.data.packet.receive.toReserveListResponse
-import com.kct.iqsdisplayer.data.packet.receive.toReserveUpdateRequest
+import com.kct.iqsdisplayer.data.packet.receive.toReserveAdd
+import com.kct.iqsdisplayer.data.packet.receive.toReserveArrive
+import com.kct.iqsdisplayer.data.packet.receive.toReserveCallData
+import com.kct.iqsdisplayer.data.packet.receive.toReserveCancel
+import com.kct.iqsdisplayer.data.packet.receive.toReserveList
+import com.kct.iqsdisplayer.data.packet.receive.toReserveUpdate
 import com.kct.iqsdisplayer.data.packet.receive.toTellerList
 import com.kct.iqsdisplayer.util.Log
 import java.io.IOException
@@ -37,31 +37,31 @@ class PacketAnalyzer(inputStream: InputStream) {
     private val parserMap = mapOf<Short, Packet.() -> BaseReceivePacket?>(
         ProtocolDefine.CONNECT_SUCCESS.value        to { EmptyData(ProtocolDefine.CONNECT_SUCCESS) },
         ProtocolDefine.CONNECT_REJECT.value         to { EmptyData(ProtocolDefine.CONNECT_REJECT) },
-        ProtocolDefine.ACCEPT_AUTH_RESPONSE.value   to Packet::toAcceptAuthResponse,
-        ProtocolDefine.WAIT_RESPONSE.value          to Packet::toWaitResponse,
+        ProtocolDefine.ACCEPT_AUTH_RESPONSE.value   to Packet::toAcceptAuthData,
+        ProtocolDefine.WAIT_RESPONSE.value          to Packet::toWaitData,
         ProtocolDefine.CALL_REQUEST.value           to Packet::toCallRequest,
         ProtocolDefine.RE_CALL_REQUEST.value        to Packet::toCallRequest,
-        ProtocolDefine.PAUSED_WORK_REQUEST.value    to Packet::toPausedWorkRequest,
-        ProtocolDefine.INFO_MESSAGE_REQUEST.value   to Packet::toInfoMessageRequest,
+        ProtocolDefine.PAUSED_WORK_REQUEST.value    to Packet::toPausedWorkData,
+        ProtocolDefine.INFO_MESSAGE_REQUEST.value   to Packet::toInfoMessage,
         ProtocolDefine.TELLER_LIST.value            to Packet::toTellerList,
         ProtocolDefine.SYSTEM_OFF.value             to { EmptyData(ProtocolDefine.SYSTEM_OFF) },
         ProtocolDefine.SERVICE_RETRY.value          to { EmptyData(ProtocolDefine.SERVICE_RETRY) },
         ProtocolDefine.RESTART_REQUEST.value        to Packet::toRestartRequest,
-        ProtocolDefine.CROWDED_REQUEST.value        to Packet::toCrowdedRequest,
-        ProtocolDefine.WIN_RESPONSE.value           to Packet::toWinResponse,
+        ProtocolDefine.CROWDED_REQUEST.value        to Packet::toCrowdedData,
+        ProtocolDefine.WIN_RESPONSE.value           to Packet::toWinInfos,
         ProtocolDefine.KEEP_ALIVE_RESPONSE.value    to { EmptyData(ProtocolDefine.KEEP_ALIVE_RESPONSE) },
-        ProtocolDefine.MEDIA_LIST_RESPONSE.value    to Packet::toMediaListResponse,
-        ProtocolDefine.RESERVE_LIST_RESPONSE.value  to Packet::toReserveListResponse,
+        ProtocolDefine.MEDIA_LIST_RESPONSE.value    to Packet::toMediaListData,
+        ProtocolDefine.RESERVE_LIST_RESPONSE.value  to Packet::toReserveList,
         // 예약 추가,수정,취소의 경우 안쓰는것 같다는데 확실치 않음.
-        ProtocolDefine.RESERVE_ADD_REQUEST.value    to  Packet::toReserveAddRequest,
-        ProtocolDefine.RESERVE_UPDATE_REQUEST.value to  Packet::toReserveUpdateRequest,
-        ProtocolDefine.RESERVE_CANCEL_REQUEST.value to  Packet::toReserveCancelRequest,
-        ProtocolDefine.RESERVE_ARRIVE_REQUEST.value to  Packet::toReserveArriveRequest,
+        ProtocolDefine.RESERVE_ADD_REQUEST.value    to  Packet::toReserveAdd,
+        ProtocolDefine.RESERVE_UPDATE_REQUEST.value to  Packet::toReserveUpdate,
+        ProtocolDefine.RESERVE_CANCEL_REQUEST.value to  Packet::toReserveCancel,
+        ProtocolDefine.RESERVE_ARRIVE_REQUEST.value to  Packet::toReserveArrive,
         // 예약 호출 요청 패킷은 사용함.
-        ProtocolDefine.RESERVE_CALL_REQUEST.value   to  Packet::toReserveCallRequest,
-        ProtocolDefine.RESERVE_RE_CALL_REQUEST.value to Packet::toReserveCallRequest,
-        ProtocolDefine.TELLER_RENEW_REQUEST.value   to  Packet::toTellerRenewRequest,
-        ProtocolDefine.UPDATE_INFO_RESPONSE.value   to  Packet::toUpdateInfoResponse
+        ProtocolDefine.RESERVE_CALL_REQUEST.value   to  Packet::toReserveCallData,
+        ProtocolDefine.RESERVE_RE_CALL_REQUEST.value to Packet::toReserveCallData,
+        ProtocolDefine.TELLER_RENEW_REQUEST.value   to  Packet::toTellerRenewData,
+        ProtocolDefine.UPDATE_INFO_RESPONSE.value   to  Packet::toUpdateInfoData
     )
 
     private var protocolId: ProtocolDefine? = null

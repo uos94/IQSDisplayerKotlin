@@ -3,13 +3,12 @@ package com.kct.iqsdisplayer.data.packet.receive
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
-import com.kct.iqsdisplayer.util.Log
 
 /**
  * updateType이 1일때는 fileSize와 fileName이 온다.
  * updateType이 2일때는 fileSize와 fileName이 없다.
  */
-data class UpdateInfoResponse(
+data class UpdateInfoData(
     var updateType: Int = 0,
     var updateSize: Int = 0,
     var updateFileName: String = "",
@@ -25,7 +24,7 @@ data class UpdateInfoResponse(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as UpdateInfoResponse
+        other as UpdateInfoData
 
         if (updateType != other.updateType) return false
         if (updateSize != other.updateSize) return false
@@ -49,9 +48,9 @@ data class UpdateInfoResponse(
     }
 }
 
-fun Packet.toUpdateInfoResponse(): UpdateInfoResponse {
+fun Packet.toUpdateInfoData(): UpdateInfoData {
     val updateType = integer
-    val result = UpdateInfoResponse()
+    val result = UpdateInfoData()
     if(updateType == 1) {
         result.updateType = updateType
         result.updateSize = integer

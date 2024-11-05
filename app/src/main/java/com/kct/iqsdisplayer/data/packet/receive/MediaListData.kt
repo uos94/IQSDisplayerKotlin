@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.splitData
 
-data class MediaListResponse(
+data class MediaListData(
     val mediaList: ArrayList<String>
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.MEDIA_LIST_RESPONSE
 ) : BaseReceivePacket() {
@@ -13,13 +13,13 @@ data class MediaListResponse(
         return "MediaListResponse(mediaList=$mediaList)"
     }
 }
-fun Packet.toMediaListResponse(): MediaListResponse {
+fun Packet.toMediaListData(): MediaListData {
     val mediaList = ArrayList<String>()
     val splitData = string.splitData(";")
     for (data in splitData) {
         if(data.isNotEmpty() && data.isNotBlank()) mediaList.add(data)
     }
-    return MediaListResponse(
+    return MediaListData(
         mediaList = mediaList
     )
 }

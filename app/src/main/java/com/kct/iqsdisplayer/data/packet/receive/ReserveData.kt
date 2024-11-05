@@ -5,7 +5,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.splitData
 
-data class Reserve(
+data class ReserveData(
     /** 예약 일자 YYYY-MM-DD */
     var reserveDate: String = "",   // 1.예약일자
     var branchNum: Int = 0,         // 2.예약 점번
@@ -42,11 +42,11 @@ data class Reserve(
     }
 }
 
-private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve {
+private fun Array<String>.newReserve(protocol: ProtocolDefine) : ReserveData {
     // 데이터 추출 및 변환
     val size = this.size
 
-    val result = Reserve().apply { protocolDefine = protocol }
+    val result = ReserveData().apply { protocolDefine = protocol }
     if(size > 0) result.reserveDate     = this[0]
     if(size > 1) result.branchNum       = this[1].toIntOrNull() ?: 0
     if(size > 2) result.reserveNum      = this[2].toIntOrNull() ?: 0
@@ -68,13 +68,13 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : Reserve {
     return result
 }
 
-fun Packet.toReserveAddRequest(): Reserve {
+fun Packet.toReserveAdd(): ReserveData {
     val splitData = string.splitData("#")
 
     return splitData.newReserve(ProtocolDefine.RESERVE_ADD_REQUEST)
 }
 
-fun Packet.toReserveUpdateRequest(): Reserve {
+fun Packet.toReserveUpdate(): ReserveData {
     //TODO : 패킷정의서에는 없는 데이터 인데. AS-IS보면 실제로 뭔가 넘어온다. 변수명도 mul 그대로 가져옴. 사용하지 않지만 버퍼를 소모시켜줘야한다.
     val mul = integer
     val splitData = string.splitData("#")
@@ -82,23 +82,23 @@ fun Packet.toReserveUpdateRequest(): Reserve {
     return splitData.newReserve(ProtocolDefine.RESERVE_UPDATE_REQUEST)
 }
 
-fun Packet.toReserveCancelRequest(): Reserve {
+fun Packet.toReserveCancel(): ReserveData {
     val splitData = string.splitData("#")
 
     return splitData.newReserve(ProtocolDefine.RESERVE_CANCEL_REQUEST)
 }
 
 
-fun Packet.toReserveArriveRequest(): Reserve {
+fun Packet.toReserveArrive(): ReserveData {
 // 2019-12-12#0000#2019121200009008#14:30:00#CUST0123456789#김고객님#01012345566#3###개인대출상담#1#종합상담창구#14:18:32#Y#00:00:00#N
     val splitData = string.splitData("#")
 
     return splitData.newReserve(ProtocolDefine.RESERVE_ARRIVE_REQUEST)
 }
 
-fun Packet.toReserveListResponse(): ReserveListResponse {
+fun Packet.toReserveList(): ReserveListData {
     val mul = integer //항상 0인데 뭐하는 용도인지는 모르겠음.
-    val resultList = ArrayList<Reserve>()
+    val resultList = ArrayList<ReserveData>()
     val reserveSplitData = string.splitData("&")
     for (reserveData in reserveSplitData) {
         val splitData = reserveData.splitData("#")
@@ -106,7 +106,7 @@ fun Packet.toReserveListResponse(): ReserveListResponse {
         reserve.let { resultList.add(it) }
     }
 
-    return ReserveListResponse(
+    return ReserveListData(
         mul = mul,
         reserveList = resultList,
         protocolDefine = ProtocolDefine.RESERVE_LIST_RESPONSE

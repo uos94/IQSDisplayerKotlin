@@ -6,7 +6,7 @@ import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.util.splitData
 
-data class Teller(
+data class TellerData(
     /** 직원 IDX */
     var tellerId: Int = 0,          // 직원 IDX
     /** 소속 창구ID */
@@ -68,41 +68,41 @@ data class Teller(
     """.trimIndent()
     }
 }
-fun String.toTeller(): Teller {
+fun String.toTeller(): TellerData {
     val splitTeller = this.splitData(";")
     val size = splitTeller.size
-    val teller = Teller()
-    if(size > 0) teller.tellerId    = splitTeller[0].toIntOrNull() ?: 0
-    if(size > 1) teller.winId       = splitTeller[1].toIntOrNull() ?: 0
-    if(size > 2) teller.job         = splitTeller[2]
-    if(size > 3) teller.tellerImg   = splitTeller[3]
-    if(size > 4) teller.pcIP        = splitTeller[4]
-    if(size > 5) teller.bkDisplay   = splitTeller[5].toIntOrNull() ?: 0
-    if(size > 6) teller.bkWay       = splitTeller[6].toIntOrNull()?.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT
-    if(size > 7) teller.profile1    = splitTeller[7]
-    if(size > 8) teller.profile2    = splitTeller[8]
-    if(size > 9) teller.tellerNum   = splitTeller[9].toIntOrNull() ?: 0
-    if(size > 10) teller.displayIP  = splitTeller[10]
-    if(size > 11) teller.tellerName = splitTeller[11]
-    if(size > 12) teller.isNotWork  = when(splitTeller[12]) {"공석", "공석(PJT)", "1" -> true  else -> false }
-    if(size > 13) teller.winName    = splitTeller[13]
-    if(size > 14) teller.winNum     = splitTeller[14].toIntOrNull() ?: 0
-    if(size > 15) teller.emptyMsg   = splitTeller[15]
-    if(size > 16) teller.vip        = splitTeller[16]
-    if(size > 17) teller.dispatch   = splitTeller[17]
-    return teller
+    val tellerData = TellerData()
+    if(size > 0) tellerData.tellerId    = splitTeller[0].toIntOrNull() ?: 0
+    if(size > 1) tellerData.winId       = splitTeller[1].toIntOrNull() ?: 0
+    if(size > 2) tellerData.job         = splitTeller[2]
+    if(size > 3) tellerData.tellerImg   = splitTeller[3]
+    if(size > 4) tellerData.pcIP        = splitTeller[4]
+    if(size > 5) tellerData.bkDisplay   = splitTeller[5].toIntOrNull() ?: 0
+    if(size > 6) tellerData.bkWay       = splitTeller[6].toIntOrNull()?.let { Arrow.entries.find { arrow -> arrow.value == it } } ?: Arrow.LEFT
+    if(size > 7) tellerData.profile1    = splitTeller[7]
+    if(size > 8) tellerData.profile2    = splitTeller[8]
+    if(size > 9) tellerData.tellerNum   = splitTeller[9].toIntOrNull() ?: 0
+    if(size > 10) tellerData.displayIP  = splitTeller[10]
+    if(size > 11) tellerData.tellerName = splitTeller[11]
+    if(size > 12) tellerData.isNotWork  = when(splitTeller[12]) {"공석", "공석(PJT)", "1" -> true  else -> false }
+    if(size > 13) tellerData.winName    = splitTeller[13]
+    if(size > 14) tellerData.winNum     = splitTeller[14].toIntOrNull() ?: 0
+    if(size > 15) tellerData.emptyMsg   = splitTeller[15]
+    if(size > 16) tellerData.vip        = splitTeller[16]
+    if(size > 17) tellerData.dispatch   = splitTeller[17]
+    return tellerData
 }
 
-fun Packet.toTellerList(): TellerListResponse {
+fun Packet.toTellerList(): TellerListData {
     val data = string.replace("DATA#직원#", "")
     val splitTellerInfo = data.splitData("&")
-    val tellerList = ArrayList<Teller>()
+    val tellerList = ArrayList<TellerData>()
     for (tellerInfo in splitTellerInfo) {
         val teller = tellerInfo.toTeller()
         tellerList.add(teller)
     }
 
-    return TellerListResponse(
+    return TellerListData(
         tellerList = tellerList,
         protocolDefine = ProtocolDefine.TELLER_LIST
     )
