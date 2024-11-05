@@ -358,8 +358,7 @@ fun Context.installApk(fileName: String) {
     startActivity(intent)
 }
 
-//TODO : 기존에 설치하던 방식인데. 이러면 설치완료 시점을 알 수 없어 앱 재시작이 힘들다.
-// 업체 패치 파일 업데이트 함수 AS-IS코드 적용
+// TODO : 기존에 설치하던 방식인데. 이러면 설치완료 시점을 알 수 없어 앱 재시작이 힘들다. 폐기 예정
 fun installSilent(packageName: String, fileName: String): Int {
     Log.d("신규앱 설치 시작..File Name : $fileName")
 

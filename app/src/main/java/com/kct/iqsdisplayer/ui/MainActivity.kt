@@ -300,7 +300,7 @@ class MainActivity : AppCompatActivity() {
      * 주고받는 데이터 순서에 주의
      * TCPClient로 접속시작
      * CONNECT_SUCCESS가 내려오면 ACCEPT_AUTH_REQUEST요청
-     * 이후에 다른 패킷들 요청이 가능하다고 함.
+     * ACCEPT_AUTH_RESPONSE 이후에 다른 패킷들 요청이 가능하다고 함.
     =====================================================================================================*/
     private val tcpEventListener = object : TCPClient.OnTcpEventListener {
         val authRetryHandler: Handler = Handler(Looper.getMainLooper()) //Connect는 되었지만 ACCEPT_AUTH_RESPONSE만 안오는 경우가 있어 추가함.
@@ -399,7 +399,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.
-     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다보냈음만 알려주면 해결이 가능하다. */
+     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. */
     private fun onUpdateInfo(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoData
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
@@ -515,14 +515,14 @@ class MainActivity : AppCompatActivity() {
                 if(data.isError) { // Call이 장애상황에 해당하면
                     if(data.bkDisplayNum == ScreenInfo.winNum) { //백업표시로 나에게 할당 되었다면
 
-                        val backupData = BackupCallData(
+                        val backupCallData = BackupCallData(
                             callNum         = data.callNum,
                             backupWinNum    = data.callWinNum,
                             backupWinName   = ScreenInfo.getWinName(data.callWinId),
                             bkWay           = data.bkWay
                         )
 
-                        ScreenInfo.updateBackupCall(backupData)
+                        ScreenInfo.updateBackupCall(backupCallData)
 
                         replaceFragment(Index.FRAGMENT_BACKUP_CALL, 20000)
                     }
@@ -600,7 +600,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 230905, by HAHU  iqsdisplayer 재시작
     private fun restartIQSDisplayer() {
         Log.i("IQSDisplayerRestart : 재시작")
         val packageManager = packageManager
