@@ -36,8 +36,8 @@ android {
         applicationId = "com.kct.iqsdisplayer"
         minSdk = 24
         targetSdk = 34
-        versionCode = 115
-        versionName = "1.0.15"
+        versionCode = 116
+        versionName = "1.0.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
@@ -89,7 +89,7 @@ dependencies {
     kapt(libs.glide.compiler)
     implementation(libs.androidx.constraintlayout)
     //ksp(libs.glide.compiler)
-    implementation(files("libs/commons-net-3.6.jar"))
+    //implementation(files("libs/commons-net-3.6.jar"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

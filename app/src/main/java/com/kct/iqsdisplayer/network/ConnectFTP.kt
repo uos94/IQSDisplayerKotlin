@@ -1,15 +1,8 @@
 package com.kct.iqsdisplayer.network
 
-import com.kct.iqsdisplayer.util.Log
-import org.apache.commons.net.ftp.FTP
-import org.apache.commons.net.ftp.FTPClient
-import org.apache.commons.net.ftp.FTPReply
-import java.io.FileInputStream
-import java.io.FileOutputStream
-
 @Deprecated("은행에서 FTP는 이제 사용 안함. 따라서 쓸일은 없을 듯")
 class ConnectFTP {
-
+/*
     private val ftpClient = FTPClient().apply {
         controlEncoding = "euc-kr"
     }
@@ -173,4 +166,5 @@ class ConnectFTP {
         }
         return result
     }
+    */
 }

@@ -1,17 +1,11 @@
 package com.kct.iqsdisplayer.network
 
-import com.kct.iqsdisplayer.common.Const
-import com.kct.iqsdisplayer.util.Log
-import java.io.IOException
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.SocketException
-
 /**
  * 필요 없는 것으로 보임.
  */
 @Deprecated("AS-IS에 코드는 있었으나 사용하지 않는 것으로 보임")
 class ConnectUDP : Thread() {
+/*
     private var udpSocket: DatagramSocket? = null
 
     override fun run() {
@@ -32,4 +26,6 @@ class ConnectUDP : Thread() {
             udpSocket?.close() // 소켓 닫기
         }
     }
+    */
+
 }
