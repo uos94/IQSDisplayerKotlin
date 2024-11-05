@@ -165,6 +165,7 @@ object FragmentFactory {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
                     if(isAvailableMovie && isViewModeMain) replaceFragment(Index.FRAGMENT_MOVIE)
                     else if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
+                    else if(isAvailableReserveList) replaceFragment(Index.FRAGMENT_RESERVE_LIST)
                     //else Log.d("Not call, No Movie.. always MainFragment")
                 }
                 Index.FRAGMENT_MOVIE        -> { //현재화면 동영상화면
