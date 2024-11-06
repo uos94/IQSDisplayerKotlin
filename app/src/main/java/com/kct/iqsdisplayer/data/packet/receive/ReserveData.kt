@@ -51,13 +51,13 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : ReserveData {
     if(size > 1) result.branchNum       = this[1].toIntOrNull() ?: 0
     if(size > 2) result.reserveNum      = this[2].toIntOrNull() ?: 0
     if(size > 3) result.reserveTime     = this[3]
-    if(size > 4) result.tellerNum       = this[4].toIntOrNull() ?: 0
-    if(size > 5) result.tellerName      = this[5]
-    if(size > 6) result.tellerJob       = this[6]
-    if(size > 7) result.customerNum     = this[7]
-    if(size > 8) result.customerName    = this[8]
-    if(size > 9) result.customerTel     = this[9]
-    if(size > 10) result.customerGrade  = this[10].toIntOrNull() ?: 10
+    if(size > 4) result.customerNum     = this[4]
+    if(size > 5) result.customerName    = this[5]
+    if(size > 6) result.customerTel     = this[6]
+    if(size > 7) result.customerGrade   = this[7].toIntOrNull() ?: 10
+    if(size > 8) result.tellerNum       = this[8].toIntOrNull() ?: 0
+    if(size > 9) result.tellerName      = this[9]
+    if(size > 10) result.tellerJob      = this[10]
     if(size > 11) result.reserveWinID   = this[11].toIntOrNull() ?: 0
     if(size > 12) result.reserveWinName = this[12]
     if(size > 13) result.arriveTime     = this[13]
@@ -65,6 +65,7 @@ private fun Array<String>.newReserve(protocol: ProtocolDefine) : ReserveData {
     if(size > 15) result.callTime       = this[15]
     if(size > 16) result.isCancel       = this[16] == "Y"
     if(size > 17) result.reserveType    = this[17]
+
     return result
 }
 

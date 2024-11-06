@@ -37,6 +37,9 @@ class FragmentReserveList : Fragment() {
     }
 
     private fun setUIData() {
+        binding.tvDeskNum.text = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
+        binding.tvDeskName.text = ScreenInfo.getWinName(ScreenInfo.winId)
+
         val row1 = binding.row1
         val row2 = binding.row2
         val row3 = binding.row3

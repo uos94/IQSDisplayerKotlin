@@ -175,7 +175,7 @@ object ScreenInfo {
     //모든 창구의 상담예약리스트가 넘어온다. 나의것만 걸러서 가져오도록 함.
     fun updateReserveList(data: ReserveListData) {
         reserveList.clear()
-        val myList = data.reserveList.filter { reserve -> winNum == reserve.reserveWinID }
+        val myList = data.reserveList.filter { reserve -> winId == reserve.reserveWinID }
         reserveList.addAll(myList)
     }
 

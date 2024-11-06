@@ -142,7 +142,7 @@ object FragmentFactory {
 
         val transaction = fragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment, tagName)
-        transaction.commit()
+        transaction.commitNow()
         Log.i("화면 변경 : $tagName")
         
         handlerChange.removeCallbacks(runChangeFragment)
@@ -161,9 +161,11 @@ object FragmentFactory {
             val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
             val isAvailableReserveList   = ScreenInfo.reserveList.size > 0
 
+            if(!isViewModeMain) return
+
             when(currentFragmentIndex) {
                 Index.FRAGMENT_MAIN         -> { //현재화면 대기화면
-                    if(isAvailableMovie && isViewModeMain) replaceFragment(Index.FRAGMENT_MOVIE)
+                    if(isAvailableMovie) replaceFragment(Index.FRAGMENT_MOVIE)
                     else if(isAvailableRecent) replaceFragment(Index.FRAGMENT_RECENT_CALL)
                     else if(isAvailableReserveList) replaceFragment(Index.FRAGMENT_RESERVE_LIST)
                     //else Log.d("Not call, No Movie.. always MainFragment")

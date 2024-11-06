@@ -50,6 +50,7 @@ import com.kct.iqsdisplayer.databinding.ActivityMainBinding
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.network.TCPClient
 import com.kct.iqsdisplayer.ui.FragmentFactory.Index
+import com.kct.iqsdisplayer.ui.FragmentFactory.getCurrentIndex
 import com.kct.iqsdisplayer.ui.FragmentFactory.replaceFragment
 import com.kct.iqsdisplayer.util.Log
 import com.kct.iqsdisplayer.util.copyFile
@@ -398,33 +399,38 @@ class MainActivity : AppCompatActivity() {
         tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
     }
 
+    val updateHandler = Handler(Looper.getMainLooper())
     /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.
-     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. */
+     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. 우선은 임시로 Handler로 처리함. */
     private fun onUpdateInfo(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoData
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
 
         when(data.updateType) {
             0 -> {
-                Log.d("update = 0. 다운로드할 파일이 없음")
+                Log.d("update = 0. 다운로드 할 파일이 없음")
                 requestOther()
             }
             1 -> { // 다운로드할 파일의 첫 번째 처리 부분
                 //정상동작중에 발행기가 재부팅되면서 업데이트가 되는경우가 있어 추가함. 아래 코드가 없으면 FragmentMain인 상태에서 업데이트가 정상진행 됨.
-                //replaceFragment(Index.FRAGMENT_READY)
+                if(getCurrentIndex() != Index.FRAGMENT_READY) replaceFragment(Index.FRAGMENT_READY)
+                Log.i( "업데이트 정보 수신 완료 다운로드 할 파일 데이터 있음 : $data")
 
                 UpdateManager.setUpdateFileInfo(receivedData.updateSize, receivedData.updateFileName)
                 UpdateManager.setDownloadListener(listener = object : OnDownloadListener {
                     override fun onDownloading(fileName: String, tempFilePath: String, currentFileSize: Long, totalFileSize: Long, percentage: Int) {
                         Log.d("파일 이름: ${fileName}, 진행중[$percentage%] - $currentFileSize/$totalFileSize]")
+                        updateHandler.removeCallbacksAndMessages(null)
                     }
 
                     override fun onDownloadComplete(fileName: String, targetFilePath: String, fileSize: Long) {
+                        Log.i( "파일 다운로드 완료...$fileName")
                         if(UpdateManager.getFileExtension() == "apk") {
                             backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
                             installApk(UpdateManager.getFileName())
                             //installSilent(packageName, UpdateManager.getFileName())
                         }
+                        updateHandler.postDelayed ({ replaceFragment(Index.FRAGMENT_MAIN) }, 1500) //1.5초내에 다른파일을 다운로드 하지 않으면 메인으로 돌아간다.
                     }
                 })
             }
@@ -442,7 +448,6 @@ class MainActivity : AppCompatActivity() {
     private fun onReserveList(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveListData
         Log.i( "onReserveListResponse :상담예약리스트 수신 완료...$data")
-        vmSystemReady.setIsReservePacket(true)
         ScreenInfo.updateReserveList(data)
     }
 
@@ -481,7 +486,7 @@ class MainActivity : AppCompatActivity() {
     /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
     private fun onWait(receivedData: BaseReceivePacket) {
         val data = receivedData as WaitData
-        Log.i( "onWaitResopnse : 대기자수 응답 현재 창구ID:${ScreenInfo.winId}...$data")
+        Log.i( "onWaitResopnse : 대기자수 응답, 현재 창구ID:${ScreenInfo.winId}...$data")
         if(ScreenInfo.winId == data.winId) {
             vmSystemReady.setIsWaitPacket(true)
             ScreenInfo.updateWaitNum(data.waitNum)
