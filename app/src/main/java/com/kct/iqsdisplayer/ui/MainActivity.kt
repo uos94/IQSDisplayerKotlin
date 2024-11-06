@@ -414,7 +414,7 @@ class MainActivity : AppCompatActivity() {
             1 -> { // 다운로드할 파일의 첫 번째 처리 부분
                 //정상동작중에 발행기가 재부팅되면서 업데이트가 되는경우가 있어 추가함. 아래 코드가 없으면 FragmentMain인 상태에서 업데이트가 정상진행 됨.
                 if(getCurrentIndex() != Index.FRAGMENT_READY) replaceFragment(Index.FRAGMENT_READY)
-                Log.i( "업데이트 정보 수신 완료 다운로드 할 파일 데이터 있음 : $data")
+                Log.d( "업데이트 정보 수신 완료 다운로드 할 파일 데이터 있음 : $data")
 
                 UpdateManager.setUpdateFileInfo(receivedData.updateSize, receivedData.updateFileName)
                 UpdateManager.setDownloadListener(listener = object : OnDownloadListener {
