@@ -51,11 +51,8 @@ class FragmentReserveCall : Fragment() {
         binding.tvTellerName.text   = ScreenInfo.tellerData.tellerName
 
         ScreenInfo.reserveCallInfo.observe(viewLifecycleOwner) { reserveCallInfo ->
-            val customerName = with(reserveCallInfo.customerName) {
-                substring(0, lastIndex) + "*"
-            }
             binding.tvCallNum.text = getString(R.string.format_four_digit).format(reserveCallInfo.reserveCallNum)
-            binding.tvCustomerName.text = customerName
+            binding.tvCustomerName.text = reserveCallInfo.customerName
 
             val colorAnim = ObjectAnimator.ofInt(
                 binding.tvCallNum, // 애니메이션을 적용할 TextView 객체

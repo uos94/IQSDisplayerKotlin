@@ -39,7 +39,6 @@ android {
         versionCode = 116
         versionName = "1.0.16"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
         setProperty("archivesBaseName", "iqsdisplayer_v$versionName($versionCode)_$timestamp")
         //manifestPlaceholders["packageName"] = "$applicationId"
@@ -90,7 +89,4 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     //ksp(libs.glide.compiler)
     //implementation(files("libs/commons-net-3.6.jar"))
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }
