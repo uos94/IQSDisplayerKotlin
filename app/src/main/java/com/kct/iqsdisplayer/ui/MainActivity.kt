@@ -394,7 +394,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onAcceptAuth(receivedData: BaseReceivePacket, retryHandler: Handler) {
         val data = receivedData as AcceptAuthData
-        Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
+        Log.d( "onAcceptAuthResponse : 정상접속 완료...$data")
 
         retryHandler.removeCallbacksAndMessages(null)
 
@@ -413,7 +413,7 @@ class MainActivity : AppCompatActivity() {
      * 발행기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. 우선은 임시로 Handler로 처리함. */
     private fun onUpdateInfo(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoData
-        //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
+        //Log.d( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
 
         when(data.updateType) {
             0 -> {
@@ -433,7 +433,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun onDownloadComplete(fileName: String, targetFilePath: String, fileSize: Long) {
-                        Log.i( "파일 다운로드 완료...$fileName")
+                        Log.d( "파일 다운로드 완료...$fileName")
                         if(UpdateManager.getFileExtension() == "apk") {
                             backupSharedPreferencesFiles()  //AS-iS보면 앱설치하기전에 백업한다.
                             installApk(UpdateManager.getFileName())
@@ -456,37 +456,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun onReserveList(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveListData
-        Log.i( "onReserveListResponse :상담예약리스트 수신 완료...$data")
+        Log.d( "onReserveListResponse :상담예약리스트 수신 완료...$data")
         ScreenInfo.updateReserveList(data)
     }
 
     private fun onReserveAdd(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveData
-        Log.i( "onReserveAddRequest :상담예약 추가 수신 완료...$data")
+        Log.d( "onReserveAddRequest :상담예약 추가 수신 완료...$data")
         ScreenInfo.addReserveList(data)
     }
 
     private fun onReserveUpdate(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveData
-        Log.i( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
+        Log.d( "onReserveUpdateRequest :상담예약 수정 수신 완료...$data")
         ScreenInfo.updateReserveList(data)
     }
     
     private fun onReserveCancel(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveData
-        Log.i( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
+        Log.d( "onReserveCancelRequest :상담예약 취소 수신 완료...$data")
         ScreenInfo.cancelReserve(data)
     }
     
     private fun onReserveArrive(receivedData: BaseReceivePacket) {
         val data = receivedData as ReserveData
-        Log.i( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
+        Log.d( "onReserveArriveRequest :상담예약 도착정보 수신 완료...$data")
         ScreenInfo.arriveReserve(data)
     }
 
     private fun onMediaList(receivedData: BaseReceivePacket) {
         val data = receivedData as MediaListData
-        Log.i( "onMediaListResponse : 영상리스트 수신 완료...$data")
+        Log.d( "onMediaListResponse : 영상리스트 수신 완료...$data")
 
         vmSystemReady.setIsMediaPacket(true)
         ScreenInfo.updateMediaList(data)
@@ -495,7 +495,7 @@ class MainActivity : AppCompatActivity() {
     /** 다른창구에 발권이 되어도 Broadcast 같이 날아옴 */
     private fun onWait(receivedData: BaseReceivePacket) {
         val data = receivedData as WaitData
-        Log.i( "onWaitResopnse : 대기자수 응답, 현재 창구ID:${ScreenInfo.winId}...$data")
+        Log.d( "onWaitResopnse : 대기자수 응답, 현재 창구ID:${ScreenInfo.winId}...$data")
         if(ScreenInfo.winId == data.winId) {
             vmSystemReady.setIsWaitPacket(true)
             ScreenInfo.updateWaitNum(data.waitNum)
@@ -503,7 +503,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onConnectRetry() {
-        Log.i( "onServiceRetry : TCPClient 재시작")
+        Log.d( "onServiceRetry : TCPClient 재시작")
         Handler(Looper.getMainLooper()).postDelayed({
             tcpClient.onDestroy()
             tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
@@ -515,7 +515,7 @@ class MainActivity : AppCompatActivity() {
     private fun onCall(receivedData: BaseReceivePacket) {
         //LiveData observe 로 처리됨. 음성호출만 처리함.
         val data = receivedData as CallData
-        Log.i("onCall : 호출 수신... data:$data")
+        Log.d("onCall : 호출 수신... data:$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE //나의 ViewMode
         val isStopWork  = ScreenInfo.isStopWork.value ?: false //나의 업무상태, 구 pjt
@@ -523,7 +523,7 @@ class MainActivity : AppCompatActivity() {
 
         if(viewMode == Const.CallViewMode.MAIN) {
             if(isStopWork) {    //내가 공석이면 처리안함.
-                Log.i("onCall PASS - 공석 상태")
+                Log.d("onCall PASS - 공석 상태")
             }
             else {  //공석이 아님
                 if(data.isError) { // Call이 장애상황에 해당하면
@@ -562,7 +562,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onPausedWork(receivedData: BaseReceivePacket) {
         val data = receivedData as PausedWorkData
-        Log.i("onPausedWork : 호출 수신... data:$data")
+        Log.d("onPausedWork : 호출 수신... data:$data")
 
         if(ScreenInfo.winNum ==  receivedData.pausedWinNum) {
             ScreenInfo.updatePausedWork(receivedData)
@@ -583,7 +583,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onInfoMessage(receivedData: BaseReceivePacket) {
         val data = receivedData as InfoMessage
-        Log.i("onInfoMessage : 안내문구 수신... (${data})")
+        Log.d("onInfoMessage : 안내문구 수신... (${data})")
         if(ScreenInfo.winNum == data.infoMessageWinNum) {
             ScreenInfo.updateTellerMent(data.infoMessage)
             setPreference(Const.Name.PREF_DISPLAY_INFO, Const.Key.DisplayInfo.STATUS_TEXT, data.infoMessage)
@@ -592,7 +592,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onTellerList(receivedData: BaseReceivePacket) {
         val data = receivedData as TellerListData
-        Log.i("onTellerList : 직원정보 수신... (${data})")
+        Log.d("onTellerList : 직원정보 수신... (${data})")
 
         val teller = data.tellerList.find { teller -> teller.displayIP == Const.ConnectionInfo.DISPLAY_IP }
         if(teller != null) {
@@ -602,7 +602,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSystemOff() {
-        Log.i("onSystemOff : 시스템종료 수신...")
+        Log.d("onSystemOff : 시스템종료 수신...")
 
         val pb = ProcessBuilder("su", "-c", "/system/bin/reboot -p")
         val process: Process?
@@ -615,7 +615,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restartIQSDisplayer() {
-        Log.i("IQSDisplayerRestart : 재시작")
+        Log.d("IQSDisplayerRestart : 재시작")
         val packageManager = packageManager
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         val componentName = intent!!.component
@@ -626,7 +626,7 @@ class MainActivity : AppCompatActivity() {
 
     //시스템 재시작
     private fun onRestartRequest() {
-        Log.i("onRestartRequest : 시스템재시작 수신...")
+        Log.d("onRestartRequest : 시스템재시작 수신...")
 
         val pb = ProcessBuilder("su", "-c", "/system/bin/reboot")
         val process: Process?
@@ -641,7 +641,7 @@ class MainActivity : AppCompatActivity() {
     //창구 대기인수가 혼잡상태 및 해제 상태 발생시 순번발행기에서 전송하는 패킷
     private fun onCrowded(receivedData: BaseReceivePacket) {
         val data = receivedData as CrowdedData
-        Log.i("onCrowedRequest : 창구혼잡 수신... (${data})")
+        Log.d("onCrowedRequest : 창구혼잡 수신... (${data})")
         if(ScreenInfo.winId == data.crowdedWinID) {
             ScreenInfo.updateCrowded(data.isCrowded)
             ScreenInfo.crowdedMsg = data.crowdedMsg
@@ -650,7 +650,7 @@ class MainActivity : AppCompatActivity() {
     //순번발행기에서 창구정보 변경 시 전송하는 패킷
     private fun onWinInfos(receivedData: BaseReceivePacket) {
         val data = receivedData as WinInfos
-        Log.i("onWinResponse : 창구정보 수신... (${data})")
+        Log.d("onWinResponse : 창구정보 수신... (${data})")
         ScreenInfo.updateWinInfos(data.winIds, data.winNames, data.waitNums)
     }
 
@@ -658,7 +658,7 @@ class MainActivity : AppCompatActivity() {
      * TODO : 쓰는 패킷인지 확인요망 */
     private fun onTellerRenew(receivedData: BaseReceivePacket) {
         val data = receivedData as TellerRenewData
-        Log.i("onTellerRenewRequest : 직원정보갱신 수신... (${data})")
+        Log.d("onTellerRenewRequest : 직원정보갱신 수신... (${data})")
 
         ScreenInfo.winNum = data.renewWinNum
         ScreenInfo.tellerData.tellerName = data.tellerName
@@ -668,7 +668,7 @@ class MainActivity : AppCompatActivity() {
     private fun onReserveCall(receivedData: BaseReceivePacket) {
 
         val data = receivedData as ReserveCallData
-        Log.i( "onReserveCallRequest :상담예약 호출 수신 완료...$data")
+        Log.d( "onReserveCallRequest :상담예약 호출 수신 완료...$data")
 
         val viewMode    = Const.ConnectionInfo.CALLVIEW_MODE  //나의 ViewMode
         val isStopWork  = ScreenInfo.isStopWork.value ?: false //나의 업무상태, 구 pjt
@@ -676,7 +676,7 @@ class MainActivity : AppCompatActivity() {
 
         if(viewMode == Const.CallViewMode.MAIN) {
             if(isStopWork) {    //내가 공석이면 처리안함.
-                Log.i("onReserveCall PASS - 공석 상태")
+                Log.d("onReserveCall PASS - 공석 상태")
             }
             else {  //공석이 아님
                 if(data.isError) { // Call이 장애상황에 해당하면
