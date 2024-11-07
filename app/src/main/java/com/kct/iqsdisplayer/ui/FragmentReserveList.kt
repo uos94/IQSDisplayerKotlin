@@ -58,7 +58,7 @@ class FragmentReserveList : Fragment() {
 
             reserveItems[index].viewGroup.visibility = View.VISIBLE
             reserveItems[index].tvCustomerName.text  = reserve.customerName
-            reserveItems[index].tvReserveTime.text   = reserve.reserveTime
+            reserveItems[index].tvReserveTime.text   = convertTimeFormat(reserve.reserveTime)
             reserveItems[index].tvReserveType.text    = reserve.reserveType
             reserveItems[index].tvReserveNum.text    = digitFormat.format(reserve.reserveNum)
         }
@@ -66,6 +66,17 @@ class FragmentReserveList : Fragment() {
         for (index in ScreenInfo.reserveList.size until reserveItems.size) {
             reserveItems[index].viewGroup.visibility = View.INVISIBLE
         }
+    }
+
+    private fun convertTimeFormat(time: String): String {
+        if(!time.contains(":")) {
+            return time
+        }
+        if(time.isEmpty()) {
+            return "00:00"
+        }
+        val parts = time.split(":")
+        return "${parts[0]}:${parts[1]}"
     }
 
     inner class ReserveListItem(
