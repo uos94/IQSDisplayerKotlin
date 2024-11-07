@@ -10,6 +10,6 @@ data class ReserveListData(
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.RESERVE_LIST_RESPONSE
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return "ReserveListResponse(reserveList='$reserveList')"
+        return "ReserveListResponse(reserveList=$reserveList)"
     }
 }
