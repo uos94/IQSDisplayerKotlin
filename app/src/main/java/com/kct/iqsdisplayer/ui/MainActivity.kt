@@ -304,20 +304,26 @@ class MainActivity : AppCompatActivity() {
      * ACCEPT_AUTH_RESPONSE 이후에 다른 패킷들 요청이 가능하다고 함.
     =====================================================================================================*/
     private val tcpEventListener = object : TCPClient.OnTcpEventListener {
-        val authRetryHandler: Handler = Handler(Looper.getMainLooper()) //Connect는 되었지만 ACCEPT_AUTH_RESPONSE만 안오는 경우가 있어 추가함.
+
+        val retryHandler: Handler = Handler(Looper.getMainLooper())
+
         override fun onConnected() {
             //Log.d("onConnected")
             ScreenInfo.setSocketConnected(true)
             vmSystemReady.setIsConnect(true)
+
+            retryHandler.postDelayed({
+                Log.w("ProtocolDefine.CONNECT_SUCCESS가 안내려와서 재시도함.")
+                tcpClient.start() }, 1000)
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
             //Log.d("${protocolDefine}$receivedData")
             runOnUiThread {
                 when(protocolDefine) {
-                    ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess(authRetryHandler) //여기에서 ACCEPT_AUTH_REQUEST 보냄. 지저분해서 함수 안에 넣었음.
+                    ProtocolDefine.CONNECT_SUCCESS          -> onConnectSuccess(retryHandler) //여기에서 ACCEPT_AUTH_REQUEST 보냄.
                     ProtocolDefine.CONNECT_REJECT           -> Log.e("접속 실패 - protocol:${protocolDefine.name}[${protocolDefine.value}]")
-                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> onAcceptAuth(receivedData, authRetryHandler)
+                    ProtocolDefine.ACCEPT_AUTH_RESPONSE     -> onAcceptAuth(receivedData, retryHandler)
                     ProtocolDefine.WAIT_RESPONSE            -> onWait(receivedData)
                     ProtocolDefine.CALL_REQUEST             -> onCall(receivedData)
                     ProtocolDefine.RE_CALL_REQUEST          -> onCall(receivedData)
@@ -366,8 +372,11 @@ class MainActivity : AppCompatActivity() {
         uploadLogFileToServer()
     }
 
-    private fun onConnectSuccess(authRetryHandler: Handler) {
+    private fun onConnectSuccess(retryHandler: Handler) {
         Log.d("TCP Connect 응답 수신 [onConnectSuccess]")
+
+        retryHandler.removeCallbacksAndMessages(null)
+
         val ip = getLocalIpAddress()
         val mac = getMacAddress()
         if(ip.isNullOrEmpty() || mac.isNullOrEmpty()) {
@@ -377,17 +386,17 @@ class MainActivity : AppCompatActivity() {
             val sendData = AcceptAuthRequest(ip, mac)
             Log.d("접속승인 요청 : $sendData")
             tcpClient.sendData(sendData.toByteBuffer())
-            authRetryHandler.postDelayed( {
-                onConnectSuccess(authRetryHandler)
+            retryHandler.postDelayed( {
+                onConnectSuccess(retryHandler)
             }, 1000)
         }
     }
 
-    private fun onAcceptAuth(receivedData: BaseReceivePacket, authRetryHandler: Handler) {
+    private fun onAcceptAuth(receivedData: BaseReceivePacket, retryHandler: Handler) {
         val data = receivedData as AcceptAuthData
         Log.i( "onAcceptAuthResponse : 정상접속 완료...$data")
 
-        authRetryHandler.removeCallbacksAndMessages(null)
+        retryHandler.removeCallbacksAndMessages(null)
 
         vmSystemReady.setIsAuthPacket(true)
 
@@ -401,14 +410,14 @@ class MainActivity : AppCompatActivity() {
 
     val updateHandler = Handler(Looper.getMainLooper())
     /** TODO: 업데이트를 다 받았다는 정보가 없음..수정보완이 필요함. 현재 코드는 업데이트로 APK없이 wav파일만 받을경우 문제가 생길 수 있음.
-     * 발생기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. 우선은 임시로 Handler로 처리함. */
+     * 발행기 쪽에서 updateType값으로 4나 5같은거 정의해서 다 보냈음만 알려주면 해결이 가능하다. 우선은 임시로 Handler로 처리함. */
     private fun onUpdateInfo(receivedData: BaseReceivePacket) {
         val data = receivedData as UpdateInfoData
         //Log.i( "onUpdateInfoResponse :업데이트정보 수신 완료...$data") //너무 많이 나와서 로그 삭제
 
         when(data.updateType) {
             0 -> {
-                Log.d("update = 0. 다운로드 할 파일이 없음")
+                Log.d("업데이트 정보 수신 완료 update = 0. 다운로드 할 파일이 없음")
                 requestOther()
             }
             1 -> { // 다운로드할 파일의 첫 번째 처리 부분

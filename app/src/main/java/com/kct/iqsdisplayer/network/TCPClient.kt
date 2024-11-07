@@ -68,6 +68,9 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     fun start() {
+        if(isConnected) {
+            disconnect()
+        }
         reconnectAndStartJobs()
     }
 
