@@ -18,9 +18,9 @@ data class TellerData(
     /** 직원 PC IP */
     var pcIP: String = "",          // 직원 PC IP
     /** 백업 표시기 번호, 기본값 0 */
-    var bkDisplay: Int = 0,         // 백업 표시기 번호  //TODO : 나중에 변수명 수정해야함. backupDisplayNum
+    var bkDisplay: Int = 0,         // 백업 표시기 번호
     /** 백업 표시기 방향 , 기본값 1, 좌(1),우(2),중앙(3)*/
-    var bkWay: Arrow = Arrow.LEFT,  // 백업 표시기 방향  //TODO : 나중에 변수명 수정해야함. backupArrow
+    var bkWay: Arrow = Arrow.LEFT,  // 백업 표시기 방향
     /** 프로필1 ( 자격증 | 자격등급)  */
     var profile1: String = "",      // 프로필1 ( 자격증 | 자격등급)
     /** 프로필2 ( 자격증 | 자격등급) */
@@ -46,7 +46,8 @@ data class TellerData(
     , override var protocolDefine: ProtocolDefine? = ProtocolDefine.TELLER_LIST
 ) : BaseReceivePacket() {
     override fun toString(): String {
-        return """
+        return "\n직원 IDX:$tellerId,소속 창구 ID:$winId,직무명:$job,직원사진:$tellerImg,직원IP:$pcIP,백업표시기번호:$bkDisplay,백업화살표방향:${bkWay.value},프로필1:$profile1,프로필2:$profile2,행번:$tellerNum,표시기IP:$displayIP,직원명:$tellerName,공석여부:$isNotWork,창구명:$winName,창구 번호:$winNum,부재 메세지:$emptyMsg,VIP 구분:$vip,파견 구분:$dispatch"
+        /*return """
         직원 IDX      : $tellerId
         소속 창구 ID   : $winId
         직무명         : $job
@@ -65,7 +66,7 @@ data class TellerData(
         부재 메세지     : $emptyMsg
         VIP 구분       : $vip
         파견 구분       : $dispatch
-    """.trimIndent()
+    """.trimIndent()*/
     }
 }
 fun String.toTeller(): TellerData {
