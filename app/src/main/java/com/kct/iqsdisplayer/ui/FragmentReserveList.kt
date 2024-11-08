@@ -59,8 +59,8 @@ class FragmentReserveList : Fragment() {
             reserveItems[index].viewGroup.visibility = View.VISIBLE
             reserveItems[index].tvCustomerName.text  = reserve.customerName
             reserveItems[index].tvReserveTime.text   = convertTimeFormat(reserve.reserveTime)
-            reserveItems[index].tvReserveType.text    = reserve.reserveType
-            reserveItems[index].tvReserveNum.text    = digitFormat.format(reserve.reserveNum)
+            reserveItems[index].tvReserveType.text   = reserve.reserveType
+            reserveItems[index].tvReserveNum.text    = if(reserve.isArrive) digitFormat.format(reserve.reserveNum) else "미발권"
         }
         // 나머지 callItems는 숨김 처리
         for (index in ScreenInfo.reserveList.size until reserveItems.size) {
