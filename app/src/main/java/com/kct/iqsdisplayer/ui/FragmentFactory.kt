@@ -95,9 +95,9 @@ object FragmentFactory {
         Index.FRAGMENT_BACKUP_CALL  -> "FragmentBackupCall"
         Index.FRAGMENT_MOVIE        -> "FragmentMovie"
         Index.FRAGMENT_RECENT_CALL  -> "FragmentRecentCall"
-        Index.FRAGMENT_RESERVE_CALL -> "fragmentReserveCall"
-        Index.FRAGMENT_RESERVE_LIST -> "fragmentReserveList"
-        Index.FRAGMENT_SUB          -> "fragmentSub"
+        Index.FRAGMENT_RESERVE_CALL -> "FragmentReserveCall"
+        Index.FRAGMENT_RESERVE_LIST -> "FragmentReserveList"
+        Index.FRAGMENT_SUB          -> "FragmentSub"
         else                        -> "UNKNOWN"
     }
 
