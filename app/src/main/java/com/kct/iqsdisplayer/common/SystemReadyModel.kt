@@ -17,8 +17,8 @@ class SystemReadyModel : ViewModel() {
     private val _isAuthPacket = MutableStateFlow(false)
     val isAuthPacket: StateFlow<Boolean> get() = _isAuthPacket
 
-    private val _isMediaPacket = MutableStateFlow(false)
-    val isMediaPacket: StateFlow<Boolean> get() = _isMediaPacket
+//    private val _isMediaPacket_isMediaPacket = MutableStateFlow(false)
+//    val isMediaPacket: StateFlow<Boolean> get() = _isMediaPacket
 
     private val _isWaitPacket = MutableStateFlow(false)
     val isWaitPacket: StateFlow<Boolean> get() = _isWaitPacket
@@ -45,9 +45,9 @@ class SystemReadyModel : ViewModel() {
         _isAuthPacket.value = value
     }
 
-    fun setIsMediaPacket(value: Boolean) {
+/*    fun setIsMediaPacket(value: Boolean) {
         _isMediaPacket.value = value
-    }
+    }*/
 
     fun setIsWaitPacket(value: Boolean) {
         _isWaitPacket.value = value

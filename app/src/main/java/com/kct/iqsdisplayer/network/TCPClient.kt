@@ -28,6 +28,7 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private var socket: Socket? = null
     //private val socketLock = Mutex()
+    private val retryDelay = 3000L
 
     private var inputStream: InputStream? = null
     private var timerKeepAlive = 0
@@ -46,7 +47,6 @@ class TCPClient(private val host: String, private val port: Int) {
     private fun reconnectAndStartJobs() {
         coroutineScope.launch {
             var retryCount = 0
-            val retryDelay = 1000L // 1초
 
             while (isActive && !isConnected) {
                 if (connect()) {
@@ -56,7 +56,7 @@ class TCPClient(private val host: String, private val port: Int) {
                     break
                 } else {
                     retryCount++
-                    Log.d("재접속 시도 중... (${retryCount}회)") // 1초마다 로그 출력
+                    Log.d("재접속 시도 중... (${retryCount}회)") // 3초마다 로그 출력
                     delay(retryDelay)
                 }
             }
@@ -68,10 +68,13 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     fun start() {
-        if(isConnected) {
-            disconnect()
+        coroutineScope.launch {
+            if(isConnected) {
+                disconnect()
+                delay(retryDelay)
+            }
+            reconnectAndStartJobs()
         }
-        reconnectAndStartJobs()
     }
 
     fun sendData(sendByteBuffer: ByteBuffer) {
@@ -191,8 +194,12 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private fun handleError(errorMessage: String) {
         Log.e(errorMessage)
-        disconnect()
-        reconnectAndStartJobs()
+        coroutineScope.launch {
+            disconnect()
+            delay(retryDelay)
+
+            reconnectAndStartJobs()
+        }
     }
 
     private fun sendProtocol(sendByteBuffer: ByteBuffer) {

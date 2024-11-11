@@ -47,6 +47,8 @@ import com.kct.iqsdisplayer.data.packet.send.ReserveListRequest
 import com.kct.iqsdisplayer.data.packet.send.UpdateInfoRequest
 import com.kct.iqsdisplayer.data.packet.send.WaitRequest
 import com.kct.iqsdisplayer.databinding.ActivityMainBinding
+import com.kct.iqsdisplayer.network.PacketAnalyzer.Companion.HEADER_SIZE
+import com.kct.iqsdisplayer.network.PacketAnalyzer.Companion.MAX_PACKET_SIZE
 import com.kct.iqsdisplayer.network.ProtocolDefine
 import com.kct.iqsdisplayer.network.TCPClient
 import com.kct.iqsdisplayer.ui.FragmentFactory.Index
@@ -314,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
             retryHandler.postDelayed({
                 Log.w("ProtocolDefine.CONNECT_SUCCESS가 안내려와서 재시도함.")
-                tcpClient.start() }, 1000)
+                tcpClient.start() }, 2000)
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
@@ -364,8 +366,8 @@ class MainActivity : AppCompatActivity() {
     private fun requestOther() {
         Log.d("상담예약리스트 요청")
         tcpClient.sendData(ReserveListRequest().toByteBuffer())
-        Log.d("영상 재생 리스트 요청")
-        tcpClient.sendData(MediaListRequest().toByteBuffer())
+        //Log.d("영상 재생 리스트 요청")
+        //tcpClient.sendData(MediaListRequest().toByteBuffer())
         Log.d("대기인수 리스트 요청")
         tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
         Log.d("로그파일 업로드")
@@ -484,11 +486,12 @@ class MainActivity : AppCompatActivity() {
         ScreenInfo.arriveReserve(data)
     }
 
+    // 굳이 필요없을 듯하다.
     private fun onMediaList(receivedData: BaseReceivePacket) {
         val data = receivedData as MediaListData
         Log.d( "onMediaListResponse : 영상리스트 수신 완료...$data")
 
-        vmSystemReady.setIsMediaPacket(true)
+        //vmSystemReady.setIsMediaPacket(true)
         ScreenInfo.updateMediaList(data)
     }
 
@@ -737,14 +740,21 @@ class MainActivity : AppCompatActivity() {
 
         try {
             val uploadFile = File(Const.Path.DIR_LOG + fileName)
-            Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName , size[${uploadFile.length()/1024.0}kb]")
+            val fileSizeInKb = uploadFile.length() / 1024.0
+            Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName , size[${String.format(Locale.getDefault(), "%.2f", fileSizeInKb)}kb]")
+
             if (!uploadFile.exists()) {
                 Log.d("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
                 return
             }
 
+            val DELIMITER_SIZE = 2 // 구분자(0x00 1바이트 두번, 총 2byte)
+            val fileNameBytes = fileName.toByteArray()
+            val dataSize = MAX_PACKET_SIZE - HEADER_SIZE - fileNameBytes.size - DELIMITER_SIZE
+            Log.d("fileName[$fileName] : dataSize = $dataSize, fileNameBytes.size[${fileNameBytes.size}]")
             FileInputStream(uploadFile).use { fis ->
-                val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
+//                val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
+                val readBuffer = ByteArray(dataSize)
                 var bytesRead: Int
 
                 while (fis.read(readBuffer).also { bytesRead = it } != -1) {
@@ -753,13 +763,14 @@ class MainActivity : AppCompatActivity() {
                     // 전송할 팩킷 구조
                     // datasize(2byte) + code(2byte) + sFileName(n byte) + 구분자(Null 1byte) + File contents(nReadLength와 같거나 작은값) + 구분자(Null 1byte)
                     // ----------------------------------------------------------------------------------------------------------------
-                    val dataSize = (fileName.length + 1 + bytesRead + 1).toShort()
+                    //val dataSize = (fileName.length + 1 + bytesRead + 1).toShort()
+                    val packetSize = HEADER_SIZE + fileNameBytes.size + DELIMITER_SIZE + bytesRead
 
-                    val sendByteBuffer = ByteBuffer.allocate(dataSize.toInt() + 4).apply {
+                    val sendByteBuffer = ByteBuffer.allocate(packetSize).apply {
                         order(ByteOrder.LITTLE_ENDIAN)
-                            .putShort(dataSize)
+                            .putShort(packetSize.toShort())
                             .putShort(code)
-                            .put(fileName.toByteArray())
+                            .put(fileNameBytes)
                             .put(0x00.toByte())
                             .put(readBuffer, 0, bytesRead)
                             .put(0x00.toByte())

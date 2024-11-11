@@ -36,8 +36,8 @@ android {
         applicationId = "com.kct.iqsdisplayer"
         minSdk = 24
         targetSdk = 34
-        versionCode = 116
-        versionName = "1.0.16"
+        versionCode = 117
+        versionName = "1.0.17"
 
         signingConfig = signingConfigs.getByName("debug")
         setProperty("archivesBaseName", "iqsdisplayer_v$versionName($versionCode)_$timestamp")
