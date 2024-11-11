@@ -366,6 +366,8 @@ class MainActivity : AppCompatActivity() {
     private fun requestOther() {
         Log.d("상담예약리스트 요청")
         tcpClient.sendData(ReserveListRequest().toByteBuffer())
+        // HISON 2024.11.11 미디어리스트 요청 삭제함.
+        // MediaListRequest(0x0020)을 요청하면 UPDATE_INFO_RESPONSE(0x0036)이 내려오면서 영상이나 이미지 파일을 다시 다운로드 받는다.
         //Log.d("영상 재생 리스트 요청")
         //tcpClient.sendData(MediaListRequest().toByteBuffer())
         Log.d("대기인수 리스트 요청")
