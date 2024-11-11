@@ -316,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
             retryHandler.postDelayed({
                 Log.w("ProtocolDefine.CONNECT_SUCCESS가 안내려와서 재시도함.")
-                tcpClient.start() }, 2000)
+                tcpClient.start() }, 3000)
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
