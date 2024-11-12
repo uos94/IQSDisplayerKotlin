@@ -118,6 +118,7 @@ object ScreenInfo {
         updateWaitNum(listWinInfos.find { it.winId == winId }?.waitNum ?: 0)
 
         //15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
+        //15000#0#5000#1#10000##
         data.mediaInfo.splitData("#").forEachIndexed { index, value ->
             when (index) {
                 0 -> playTimeMain   = value.toInt()
@@ -125,7 +126,10 @@ object ScreenInfo {
                 2 -> playTimeRecent = value.toInt()
                 3 -> usePlayMedia   = value == "1"
                 4 -> playTimeMedia  = value.toInt()
-                5 -> mediaFileNameList.apply { clear(); addAll(value.splitData(";")) }
+                5 -> mediaFileNameList.apply {
+                    clear()
+                    value.splitData(";").dropWhile { it == "" }.forEach { add(it) }
+                }
             }
         }
 
