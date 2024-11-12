@@ -6,16 +6,12 @@ import com.kct.iqsdisplayer.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.io.InputStream
 import java.net.Socket
 import java.net.SocketException
-import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 
 class TCPClient(private val host: String, private val port: Int) {
@@ -27,84 +23,73 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private var socket: Socket? = null
-    //private val socketLock = Mutex()
     private val retryDelay = 3000L
 
-    private var inputStream: InputStream? = null
     private var timerKeepAlive = 0
     private var isConnected = false
     private var enableKeepAlive = false
 
-    private val supervisorJob = SupervisorJob()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + supervisorJob)
-    private lateinit var keepAliveJob: Job
-    private lateinit var receiverJob: Job
+    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private var jobSendData: Job?    = null
+    private var jobKeepAlive: Job?   = null
+    private var jobTcpReceiver: Job? = null
 
     private var listener: OnTcpEventListener? = null
 
     init { Log.d("Tcp 연결 시도: IP:${host}, PORT:${port}") }
 
-    private fun reconnectAndStartJobs() {
-        coroutineScope.launch {
-            var retryCount = 0
+    fun setOnTcpEventListener(listener: OnTcpEventListener) {
+        this.listener = listener
+    }
 
-            while (isActive && !isConnected) {
+    fun connectAndStart() {
+        coroutineScope.launch {
+            // 연결이 성공할 때까지 재시도
+            //Log.v("connectAndStart isActive[$isActive], isConnected[$isConnected]")
+            while (isActive) {
+                if (isConnected) {
+                    disconnect() // 이미 연결된 상태라면 기존 연결을 끊고 재시작 준비
+                    delay(retryDelay)
+                }
+
                 if (connect()) {
-                    isConnected = true
-                    startKeepAlive()
-                    startTcpReceiver()
-                    break
+                    Log.i("연결 성공")
+                    startTcpReceiver() // 연결이 성공한 후 데이터 수신 시작
+                    break // 연결에 성공했으므로 반복 종료
                 } else {
-                    retryCount++
-                    Log.d("재접속 시도 중... (${retryCount}회)") // 3초마다 로그 출력
+                    Log.i("연결 재시도 중...") // 연결이 실패하면 재시도
                     delay(retryDelay)
                 }
             }
         }
     }
 
-    fun setOnTcpEventListener(listener: OnTcpEventListener) {
-        this.listener = listener
-    }
-
-    fun start() {
-        coroutineScope.launch {
-            if(isConnected) {
-                disconnect()
-                delay(retryDelay)
-            }
-            reconnectAndStartJobs()
-        }
-    }
-
     fun sendData(sendByteBuffer: ByteBuffer) {
-        coroutineScope.launch {
+        jobSendData = coroutineScope.launch {
             sendProtocol(sendByteBuffer)
         }
     }
 
+    fun enableKeepAlive(isEnable: Boolean) {
+        Log.d("KeepAlive 활성화 isEnable:$isEnable")
+        enableKeepAlive = isEnable
+    }
+
     private suspend fun connect(): Boolean {
-        return withContext(Dispatchers.IO) { // IO dispatcher를 사용하여 백그라운드에서 실행
+        return withContext(Dispatchers.IO) {
             var exceptionMessage: String? = null
             try {
                 if (socket == null || socket?.isClosed == true) {
                     socket = Socket(host, port).apply { soTimeout = 20000 }
                 }
-                inputStream = socket?.getInputStream()
-                listener?.onConnected() // 연결 성공 알림
+
+                isConnected = true
+                listener?.onConnected()
                 Log.d("Tcp 연결 성공: IP:${host}, PORT:${port}")
+                startKeepAlive() // 연결 후 keepAlive 시작
                 true
-            } catch (e: SocketException) {
-                exceptionMessage = "Tcp 연결 실패: SocketException (${e.message})"
-                false
-            } catch (e: SocketTimeoutException) {
-                exceptionMessage = "Tcp 연결 실패: SocketTimeoutException (${e.message})"
-                false
-            } catch (e: IOException) {
-                exceptionMessage = "Tcp 연결 실패: IOException (${e.message})"
-                false
             } catch (e: Exception) {
-                e.printStackTrace()
                 exceptionMessage = "Tcp 연결 실패: Exception (${e.message})"
                 false
             } finally {
@@ -114,58 +99,60 @@ class TCPClient(private val host: String, private val port: Int) {
     }
 
     private fun disconnect() {
-        // 기존 코루틴 작업 취소
-        keepAliveJob.cancel()
-        receiverJob.cancel()
+        isConnected = false
+
+        jobTcpReceiver?.cancel()
+        jobSendData?.cancel()
+        jobKeepAlive?.cancel()
 
         try {
-            inputStream?.close()
+            socket?.inputStream?.close()
             socket?.close()
             socket = null
-            inputStream = null
-            isConnected = false
-            Log.d("Tcp 연결 종료")
-            listener?.onDisconnected() // 연결 끊김 알림
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e("Tcp 연결 종료 실패: IOException (${e.message})")
+            Log.i("Tcp 연결 종료")
+            listener?.onDisconnected()
+        } catch (e: Exception) {
+            Log.s(e)
+            Log.e("Tcp 연결 종료 실패: Exception (${e.message})")
         }
     }
 
-    fun enableKeepAlive(isEnable: Boolean) {
-        enableKeepAlive = isEnable
-    }
-
     private fun startKeepAlive() {
-        keepAliveJob = coroutineScope.launch {
-            while (isActive) {
-                if (timerKeepAlive >= 10 && enableKeepAlive) {
-                    //Log.v("KeepAlive 전송")
+        jobKeepAlive = coroutineScope.launch {
+            Log.d("startKeepAlive isActive[$isActive], isConnected[$isConnected]")
+            while (isActive && isConnected) {
+                // enableKeepAlive가 설정될 때까지 대기
+                if (!enableKeepAlive) {
+                    //Log.v("KeepAlive 활성화 대기중..")
+                    delay(1000)  // 1초 대기
+                    continue
+                }
+
+                if (timerKeepAlive >= 10) {
                     sendProtocol(KeepAliveRequest().toByteBuffer())
                 } else {
                     delay(1000)
                     timerKeepAlive++
                 }
             }
+            Log.d("KeepAlive 종료")
         }
     }
 
     private fun startTcpReceiver() {
-        receiverJob = coroutineScope.launch {
-            tcpReceiverLoop(this)
+        jobTcpReceiver = coroutineScope.launch {
+            tcpReceiverLoop()
         }
     }
 
-    private fun tcpReceiverLoop(scope: CoroutineScope) {
+    private fun tcpReceiverLoop() {
         Log.d("TCP 네트워크 수신중...")
-        while (scope.isActive) {
+        while (isConnected) {
             try {
-                // 연결 상태 확인
                 if (socket?.isConnected != true) {
                     throw SocketException("Socket is disconnected")
                 }
-
-                // 입력 스트림에 읽을 데이터가 있는지 확인
+                val inputStream = socket?.inputStream
                 if ((inputStream?.available() ?: 0) > 0) {
                     val packetAnalyzer = PacketAnalyzer(inputStream!!)
                     val protocolDefine = packetAnalyzer.getProtocolId()
@@ -177,35 +164,26 @@ class TCPClient(private val host: String, private val port: Int) {
                         Log.w("프로토콜 확인에 실패하였습니다.")
                     }
                 }
-            } catch (e: SocketTimeoutException) {
-                e.printStackTrace()
-                Log.e("TcpReceiver: SocketTimeoutException (${e.message})")
-            } catch (e: IOException) {
-                e.printStackTrace()
-                handleError("TcpReceiver: IOException (${e.message})")
-            } catch (e: SocketException) {
-                e.printStackTrace()
-                handleError("TcpReceiver: SocketException (${e.message})")
+            } catch (e: Exception) {
+                handleError("TcpReceiver: Exception (${e.message})", e)
             }
-            //delay(100)
         }
-        Log.d("TcpReceiver STOPPED")
+        Log.d("TcpReceiver 수신 종료")
     }
 
-    private fun handleError(errorMessage: String) {
+    private fun handleError(errorMessage: String, e: Throwable? = null) {
         Log.e(errorMessage)
-        coroutineScope.launch {
-            disconnect()
-            delay(retryDelay)
-
-            reconnectAndStartJobs()
-        }
+        e?.let { Log.s(e) }
+        coroutineScope.launch { connectAndStart() }
     }
 
     private fun sendProtocol(sendByteBuffer: ByteBuffer) {
+        timerKeepAlive = 0 // KeepAlive 타이머 초기화
+
         socket?.let {
-            if (!it.isConnected || it.isClosed) {
-                Log.w("SendProtocol: 연결되지 않은 상태입니다.")
+            if (!isConnected || it.isClosed || !it.isConnected) {
+                Log.w("SendProtocol: 연결되지 않은 상태입니다. 재연결 시도 중...")
+                connectAndStart() // 연결이 끊겼다면 재연결 시도
                 return@let
             }
             try {
@@ -213,18 +191,17 @@ class TCPClient(private val host: String, private val port: Int) {
                     outStream.write(sendByteBuffer.array())
                     outStream.flush()
                 }
-                timerKeepAlive = 0
-            } catch (e: IOException) {
-                e.printStackTrace()
-                handleError("SendProtocol: IOException (${e.message})")
             } catch (e: Exception) {
-                e.printStackTrace()
-                handleError("SendProtocol: Exception (${e.message})")
+                handleError("SendProtocol: 예기치 않은 오류 발생 - ${e.message}", e)
             }
+        } ?: run {
+            Log.w("SendProtocol: 소켓이 null 상태입니다. 재연결 시도 중...")
+            connectAndStart()
         }
     }
 
-    fun onDestroy() {
-        supervisorJob.cancel()
+    fun release() {
+        Log.i("TcpClient 사용 안함.")
+        disconnect()
     }
 }

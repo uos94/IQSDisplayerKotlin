@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i("메인종료")
-        tcpClient.onDestroy()
+        tcpClient.release()
     }
 
     private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
             tcpClient.setOnTcpEventListener(tcpEventListener)
             // 백그라운드 스레드에서 연결 시작
-            lifecycleScope.launch(Dispatchers.IO) { tcpClient.start() }
+            lifecycleScope.launch(Dispatchers.IO) { tcpClient.connectAndStart() }
         }
 
     }
@@ -314,9 +314,10 @@ class MainActivity : AppCompatActivity() {
             ScreenInfo.setSocketConnected(true)
             vmSystemReady.setIsConnect(true)
 
+            retryHandler.removeCallbacksAndMessages(null)
             retryHandler.postDelayed({
                 Log.w("ProtocolDefine.CONNECT_SUCCESS가 안내려와서 재시도함.")
-                tcpClient.start() }, 3000)
+                tcpClient.connectAndStart() }, 3000)
         }
 
         override fun onReceivedData(protocolDefine: ProtocolDefine, receivedData: BaseReceivePacket) {
@@ -391,7 +392,9 @@ class MainActivity : AppCompatActivity() {
             Log.d("접속승인 요청 : $sendData")
             tcpClient.sendData(sendData.toByteBuffer())
             retryHandler.postDelayed( {
-                onConnectSuccess(retryHandler)
+                if(ScreenInfo.isTcpConnected.value == true) {
+                    onConnectSuccess(retryHandler)
+                }
             }, 1000)
         }
     }
@@ -509,11 +512,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onConnectRetry() {
         Log.d( "onServiceRetry : TCPClient 재시작")
-        Handler(Looper.getMainLooper()).postDelayed({
-            tcpClient.onDestroy()
-            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
-            tcpClient.setOnTcpEventListener(tcpEventListener)
-        }, Const.Handle.RETRY_SERVICE_TIME)
+        Handler(Looper.getMainLooper()).postDelayed({ tcpClient.connectAndStart() }, Const.Handle.RETRY_SERVICE_TIME)
     }
 
     /** Recall도 여기로 옴. */
