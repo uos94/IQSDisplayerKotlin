@@ -607,6 +607,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onSystemOff() {
         Log.d("onSystemOff : 시스템종료 수신...")
+        tcpClient.release()
 
         val pb = ProcessBuilder("su", "-c", "/system/bin/reboot -p")
         val process: Process?
