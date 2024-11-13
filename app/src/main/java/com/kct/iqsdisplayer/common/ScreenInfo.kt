@@ -218,6 +218,47 @@ object ScreenInfo {
         _isTcpConnected.postValue(isConnected)
     }
 
+    override fun toString(): String {
+        return """
+================================================================================
+    ScreenInfo 정보확인              
+================================================================================
+winId=$winId
+winNum=$winNum
+창구정보=$listWinInfos
+직원정보=$tellerData
+사용여부[서브모니터]=$usePlaySub
+사용여부[영상]=$usePlayMedia
+표출시간[메인화면]=$playTimeMain
+표출시간[영상]=$playTimeMedia
+표출시간[최근호출리스트]=$playTimeRecent
+표출시간[예약호출]=$playTimeReserveCall
+표출시간[예약리스트]=$playTimeReserveList
+영상재생목록=$mediaFileNameList
+volumeLevel=$volumeLevel
+serverTime=$serverTime
+대기인수화면표시여부=$isShowWaiting
+bellFileName='$bellFileName'
+호출반복횟수=$callRepeatCount
+호출안내멘트='$callMent'
+네트워크연결여부=${_isTcpConnected.value}
+공석여부=${_isStopWork.value}
+업무일시정지=${_isPausedWork.value}
+전산장애여부=${_isPausedByServerError.value}
+혼잡여부=${_isCrowded.value}
+혼잡메세지='$crowdedMsg'
+부재중메세지='$pausedWorkMessage'
+예약리스트=$reserveList
+최근호출리스트=$lastCallList
+tellerMent=${_tellerMent.value}
+대기인수=${_waitNum.value}
+백업호출정보=${_backupCallInfo.value}
+호출정보=${_normalCallData.value}
+예약호출정보=${_reserveCallInfo.value}
+================================================================================
+        """.trimIndent()
+
+    }
 
 
 }

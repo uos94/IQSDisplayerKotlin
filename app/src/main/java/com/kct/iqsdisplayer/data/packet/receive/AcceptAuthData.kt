@@ -57,7 +57,7 @@ data class AcceptAuthData(
             callRepeatCount='$callRepeatCount',
             callMentNum='$callMentNum',
             pausedWork='$pausedWork',
-            notWork='$stopWork',
+            stopWork='$stopWork',
             protocolDefine=$protocolDefine
         )
     """ // trimIndent()를 사용하여 불필요한 들여쓰기 제거

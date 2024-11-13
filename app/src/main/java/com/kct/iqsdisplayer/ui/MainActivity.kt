@@ -366,14 +366,15 @@ class MainActivity : AppCompatActivity() {
     /** 업데이트 여부 패킷까지 완료 하면 각 요청을 보내 데이터를 받아온다.*/
     private fun requestOther() {
         Log.d("상담예약리스트 요청")
-        tcpClient.sendData(ReserveListRequest().toByteBuffer())
+        tcpClient.sendData(ReserveListRequest())
         // HISON 2024.11.11 미디어리스트 요청 삭제함.
         // MediaListRequest(0x0020)을 요청하면 UPDATE_INFO_RESPONSE(0x0036)이 내려오면서 영상이나 이미지 파일을 다시 다운로드 받는다.
         //Log.d("영상 재생 리스트 요청")
         //tcpClient.sendData(MediaListRequest().toByteBuffer())
         Log.d("대기인수 리스트 요청")
-        tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum).toByteBuffer())
+        tcpClient.sendData(WaitRequest(winNum = ScreenInfo.winNum))
         Log.d("로그파일 업로드")
+
         uploadLogFileToServer()
     }
 
@@ -390,7 +391,7 @@ class MainActivity : AppCompatActivity() {
         else {
             val sendData = AcceptAuthRequest(ip, mac)
             Log.d("접속승인 요청 : $sendData")
-            tcpClient.sendData(sendData.toByteBuffer())
+            tcpClient.sendData(sendData)
             retryHandler.postDelayed( {
                 if(ScreenInfo.isTcpConnected.value == true) {
                     onConnectSuccess(retryHandler)
@@ -412,7 +413,7 @@ class MainActivity : AppCompatActivity() {
         ScreenInfo.updateDefaultInfo(data)
 
         Log.d("업데이트 정보 요청")
-        tcpClient.sendData(UpdateInfoRequest().toByteBuffer())
+        tcpClient.sendData(UpdateInfoRequest())
     }
 
     val updateHandler = Handler(Looper.getMainLooper())
@@ -750,35 +751,28 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            val DELIMITER_SIZE = 2 // 구분자(0x00 1바이트 두번, 총 2byte)
-            val fileNameBytes = fileName.toByteArray()
-            val dataSize = MAX_PACKET_SIZE - HEADER_SIZE - fileNameBytes.size - DELIMITER_SIZE
-            Log.d("fileName[$fileName] : dataSize = $dataSize, fileNameBytes.size[${fileNameBytes.size}]")
             FileInputStream(uploadFile).use { fis ->
-//                val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
-                val readBuffer = ByteArray(dataSize)
+                val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
                 var bytesRead: Int
 
                 while (fis.read(readBuffer).also { bytesRead = it } != -1) {
-                    //여기에 로그를 넣으면 로그를 보내는 동안 파일 사이즈가 늘어나 끝나지 않는다...
                     // ================================================================================================================
                     // 전송할 팩킷 구조
                     // datasize(2byte) + code(2byte) + sFileName(n byte) + 구분자(Null 1byte) + File contents(nReadLength와 같거나 작은값) + 구분자(Null 1byte)
                     // ----------------------------------------------------------------------------------------------------------------
-                    //val dataSize = (fileName.length + 1 + bytesRead + 1).toShort()
-                    val packetSize = HEADER_SIZE + fileNameBytes.size + DELIMITER_SIZE + bytesRead
+                    val dataSize = (fileName.length + 1 + bytesRead + 1).toShort()
 
-                    val sendByteBuffer = ByteBuffer.allocate(packetSize).apply {
+                    val sendByteBuffer = ByteBuffer.allocate(dataSize.toInt() + 4).apply {
                         order(ByteOrder.LITTLE_ENDIAN)
-                            .putShort(packetSize.toShort())
+                            .putShort(dataSize)
                             .putShort(code)
-                            .put(fileNameBytes)
+                            .put(fileName.toByteArray())
                             .put(0x00.toByte())
                             .put(readBuffer, 0, bytesRead)
                             .put(0x00.toByte())
                     }
 
-                    tcpClient.sendData(sendByteBuffer)
+                    tcpClient.sendData(sendByteBuffer, "uploadLogFile")
                 }
 
                 uploadFile.delete()

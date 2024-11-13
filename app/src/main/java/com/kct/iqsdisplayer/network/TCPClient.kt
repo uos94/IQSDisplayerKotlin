@@ -1,6 +1,7 @@
 package com.kct.iqsdisplayer.network
 
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
+import com.kct.iqsdisplayer.data.packet.BaseSendPacket
 import com.kct.iqsdisplayer.data.packet.send.KeepAliveRequest
 import com.kct.iqsdisplayer.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -65,9 +66,17 @@ class TCPClient(private val host: String, private val port: Int) {
         }
     }
 
-    fun sendData(sendByteBuffer: ByteBuffer) {
+    fun sendData(sendByteBuffer: ByteBuffer, packetName: String = "") {
         jobSendData = coroutineScope.launch {
+            //Log.v(packetName)   //패킷전송 오류 시 디버그용
             sendProtocol(sendByteBuffer)
+        }
+    }
+
+    fun sendData(packet: BaseSendPacket) {
+        jobSendData = coroutineScope.launch {
+            //Log.v(packet.toString()) //패킷전송 오류 시 디버그용
+            sendProtocol(packet.toByteBuffer())
         }
     }
 
@@ -129,7 +138,8 @@ class TCPClient(private val host: String, private val port: Int) {
                 }
 
                 if (timerKeepAlive >= 10) {
-                    sendProtocol(KeepAliveRequest().toByteBuffer())
+                    sendData(KeepAliveRequest())
+                    timerKeepAlive = 0
                 } else {
                     delay(1000)
                     timerKeepAlive++
