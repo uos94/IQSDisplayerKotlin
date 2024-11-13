@@ -68,15 +68,13 @@ class TCPClient(private val host: String, private val port: Int) {
 
     fun sendData(sendByteBuffer: ByteBuffer, packetName: String = "") {
         jobSendData = coroutineScope.launch {
-            //Log.v(packetName)   //패킷전송 오류 시 디버그용
-            sendProtocol(sendByteBuffer)
+            sendProtocol(sendByteBuffer, packetName)
         }
     }
 
     fun sendData(packet: BaseSendPacket) {
         jobSendData = coroutineScope.launch {
-            //Log.v(packet.toString()) //패킷전송 오류 시 디버그용
-            sendProtocol(packet.toByteBuffer())
+            sendProtocol(packet.toByteBuffer(), packet.toString())
         }
     }
 
@@ -187,7 +185,7 @@ class TCPClient(private val host: String, private val port: Int) {
         coroutineScope.launch { connectAndStart() }
     }
 
-    private fun sendProtocol(sendByteBuffer: ByteBuffer) {
+    private fun sendProtocol(sendByteBuffer: ByteBuffer, tag: String) {
         timerKeepAlive = 0 // KeepAlive 타이머 초기화
 
         socket?.let {
@@ -203,6 +201,7 @@ class TCPClient(private val host: String, private val port: Int) {
                 }
             } catch (e: Exception) {
                 handleError("SendProtocol: 예기치 않은 오류 발생 - ${e.message}", e)
+                Log.e("실패한 패킷정보 $tag")
             }
         } ?: run {
             Log.w("SendProtocol: 소켓이 null 상태입니다. 재연결 시도 중...")
