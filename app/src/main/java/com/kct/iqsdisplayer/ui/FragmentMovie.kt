@@ -100,7 +100,7 @@ class FragmentMovie : Fragment() {
             if (fileName.isEmpty()) continue
 
             val path = Const.Path.DIR_VIDEO + fileName
-            Log.d("영상 재생 리스트 파일 : $path")
+            //Log.d("영상 재생 리스트 파일 : $path")
             list.add(path)
         }
     }
@@ -169,7 +169,7 @@ class FragmentMovie : Fragment() {
         if (currentIndex >= list.size) {
             currentIndex = 0
         }
-        Log.d("다음 재생 Index($currentIndex) : ${list[currentIndex]}")
+        //Log.d("다음 재생 Index($currentIndex) : ${list[currentIndex]}")
         return currentIndex
     }
 
@@ -198,12 +198,12 @@ class FragmentMovie : Fragment() {
         if (playedPosition > 0) {   //이전에 보던 영상이 있으면 이어서 재생
             //mp.seekTo(playedPosition)
             mp.start()
-            Log.d("영상 이어서 시작 Index($currentIndex) : ${list[currentIndex]}, $playedPosition mSec 부터 재생 시작")
+            //Log.d("영상 이어서 시작 Index($currentIndex) : ${list[currentIndex]}, $playedPosition mSec 부터 재생 시작")
         } else {
             try {
                 mp.setDataSource(path)
                 mp.prepareAsync()
-                Log.d("영상 처음부터 시작 Index($currentIndex) : ${list[currentIndex]}")
+                //Log.d("영상 처음부터 시작 Index($currentIndex) : ${list[currentIndex]}")
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.i("video play error__${path}__(${e.message}) $currentIndex/${list.size}")
@@ -218,7 +218,7 @@ class FragmentMovie : Fragment() {
         it.start() }
 
     private val completeListener = MediaPlayer.OnCompletionListener {
-        Log.i("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
+        //Log.i("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
         changeNextIndex()
 
         resetVideo()
