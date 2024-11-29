@@ -61,7 +61,7 @@ object Const {
     object Name {
         fun getLogFileName(): String {
             val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
-            return "$today.txt"
+            return "$today.log"
         }
 
         const val DEFAULT_TELLER_IMAGE = "no_image.png"
