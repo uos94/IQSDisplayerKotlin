@@ -7,6 +7,8 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,8 +68,26 @@ object Log {
     fun s(e: Throwable) {
         if (isEnabled) {
             Log.v(TAG, "PRINT STACK TRACE", e)
+            if (isFileWriteEnabled) {
+                val sw = StringWriter()
+                val pw = PrintWriter(sw)
+                e.printStackTrace(pw)
+                val stackTraceString = sw.toString()
+
+                logFile.write("Exception: ${e.javaClass.name}: ${e.message}")
+                logFile.write(stackTraceString)
+            }
+
+            val logMsg = "Exception: ${e.javaClass.name}: ${e.message}"
+            logLines.add(logMsg)
+            if (logLines.size > MAX_LOG_LINES) {
+                logLines.removeAt(0) // 가장 오래된 로그 삭제
+            }
+
+            logListener?.onLog(logMsg)
         }
     }
+
 
     fun getLogHistory() : String {
         val logLinesCopy = ArrayList(logLines)
