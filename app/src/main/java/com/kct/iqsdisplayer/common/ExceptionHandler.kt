@@ -8,7 +8,7 @@ import com.kct.iqsdisplayer.util.Log
 class ExceptionHandler(private val context: Context) : Thread.UncaughtExceptionHandler {
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         // 예외 처리 로직 (예: 로그 기록, 오류 보고 등)
-        Log.e("처리되지 않은 Exception 발생 : ${exception.message}")
+        //Log.e("처리되지 않은 Exception 발생 : ${exception.message}")
         Log.s(exception)
         // 앱 재시작
         val intentMainActivity = Intent(context, MainActivity::class.java)

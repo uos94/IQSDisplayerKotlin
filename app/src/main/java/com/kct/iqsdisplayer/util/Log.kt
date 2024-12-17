@@ -34,10 +34,10 @@ object Log {
             val callerElement = Exception().stackTrace[3]
             val logMsg = "[${callerElement.fileName} ${callerElement.lineNumber}] $strMsg"
             when (level) {
-                Log.ERROR -> Log.e(TAG, logMsg, tr)
-                Log.WARN -> Log.w(TAG, logMsg, tr)
-                Log.INFO -> Log.i(TAG, logMsg, tr)
-                Log.DEBUG -> Log.d(TAG, logMsg, tr)
+                Log.ERROR   -> Log.e(TAG, logMsg, tr)
+                Log.WARN    -> Log.w(TAG, logMsg, tr)
+                Log.INFO    -> Log.i(TAG, logMsg, tr)
+                Log.DEBUG   -> Log.d(TAG, logMsg, tr)
                 Log.VERBOSE -> Log.v(TAG, logMsg, tr)
             }
 

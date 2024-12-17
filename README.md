@@ -26,6 +26,7 @@
    
 3. 로그Viewer 추가함
    - Log를 보고 싶어도 PC를 연결해야만 볼 수 있었기 때문에 MainFragment에서 창구번호를 Long click하면 로그화면을 보여주도록 함.
+   - 앱에서 발생하는 **모든 Exception은 로그파일**에 남기도록 되어 있음.
    - 기존 Log를 File로 남기는 부분이 나누어져 있어. Log부분과 File로 저장하는 부분을 통합함.
    - Log클래스 Custom 하여 클래스명과 Line 수 확인가능하도록 함.
 
