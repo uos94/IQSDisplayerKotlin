@@ -9,9 +9,13 @@ data class MediaListRequest(
     val code: Short = ProtocolDefine.MEDIA_LIST_REQUEST.value
 ) : BaseSendPacket(code) {
 
-    private val videoList: String by lazy { getVideoList() }
+    private val videoListValue: String by lazy { generateVideoList() }
 
-    private fun getVideoList(): String {
+    override fun getDataArray(): Array<Any> {
+        return arrayOf(videoListValue)
+    }
+
+    private fun generateVideoList(): String {
         val videoPath = Const.Path.DIR_VIDEO
         val videoFolder = File(videoPath)
         val filesToStringData = StringBuilder()
@@ -25,20 +29,19 @@ data class MediaListRequest(
                     filesToStringData.append("$fileName;$fileSize#")
                 }
             } else {
-                // 디렉터리가 아니거나 경로가 존재하지 않음
                 return ""
             }
         } catch (ex: Exception) {
-            // 기타 예외 처리
             return ""
         }
 
         return filesToStringData.toString()
     }
 
-    override fun getDataArray(): Array<Any> {
-        return arrayOf(videoList)
+    override fun toString(): String {
+        return "MediaListRequest(videoListValue='$videoListValue')"
     }
+
 
 }
 

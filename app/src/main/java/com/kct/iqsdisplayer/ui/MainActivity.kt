@@ -490,7 +490,6 @@ class MainActivity : AppCompatActivity() {
         ScreenInfo.arriveReserve(data)
     }
 
-    // 굳이 필요없을 듯하다.
     private fun onMediaList(receivedData: BaseReceivePacket) {
         val data = receivedData as MediaListData
         Log.d( "onMediaListResponse : 영상리스트 수신 완료...$data")
