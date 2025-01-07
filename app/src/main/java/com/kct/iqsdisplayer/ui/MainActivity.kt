@@ -36,6 +36,7 @@ import com.kct.iqsdisplayer.data.packet.receive.InfoMessage
 import com.kct.iqsdisplayer.data.packet.receive.MediaListData
 import com.kct.iqsdisplayer.data.packet.receive.PausedWorkData
 import com.kct.iqsdisplayer.data.packet.receive.ReserveListData
+import com.kct.iqsdisplayer.data.packet.receive.TellerData
 import com.kct.iqsdisplayer.data.packet.receive.TellerListData
 import com.kct.iqsdisplayer.data.packet.receive.TellerRenewData
 import com.kct.iqsdisplayer.data.packet.receive.UpdateInfoData
@@ -600,6 +601,10 @@ class MainActivity : AppCompatActivity() {
         if(teller != null) {
             ScreenInfo.tellerData = teller
             ScreenInfo.winId = teller.winId
+        }
+        else {
+            ScreenInfo.tellerData = TellerData()
+            ScreenInfo.winId = 0
         }
     }
 
