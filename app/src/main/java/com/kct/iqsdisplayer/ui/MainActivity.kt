@@ -164,12 +164,20 @@ class MainActivity : AppCompatActivity() {
 
             initConstInfo()
 
-            tcpClient = TCPClient(Const.ConnectionInfo.IQS_IP, Const.ConnectionInfo.IQS_PORT)
+            tcpClient = TCPClient()
             tcpClient.setOnTcpEventListener(tcpEventListener)
             // 백그라운드 스레드에서 연결 시작
             lifecycleScope.launch(Dispatchers.IO) { tcpClient.connectAndStart() }
         }
+    }
+    fun stopTcpClient() {
+        Log.d("TcpClient 중지")
+        tcpClient.release()
+    }
 
+    fun onConnectRetry() {
+        Log.d( "TCPClient 재시작")
+        Handler(Looper.getMainLooper()).postDelayed({ tcpClient.connectAndStart() }, Const.Handle.RETRY_SERVICE_TIME)
     }
 
     private fun checkStorage(): Boolean {
@@ -507,11 +515,6 @@ class MainActivity : AppCompatActivity() {
             vmSystemReady.setIsWaitPacket(true)
             ScreenInfo.updateWaitNum(data.waitNum)
         }
-    }
-
-    private fun onConnectRetry() {
-        Log.d( "onServiceRetry : TCPClient 재시작")
-        Handler(Looper.getMainLooper()).postDelayed({ tcpClient.connectAndStart() }, Const.Handle.RETRY_SERVICE_TIME)
     }
 
     /** Recall도 여기로 옴. */

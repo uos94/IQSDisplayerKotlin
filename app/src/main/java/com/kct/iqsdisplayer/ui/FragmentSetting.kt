@@ -1,6 +1,7 @@
 package com.kct.iqsdisplayer.ui
 
 import SettingListAdapter
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +23,7 @@ import com.kct.iqsdisplayer.util.setPreference
 class FragmentSetting : Fragment() {
     private var _binding: FragmentSettingBinding? = null
     private val binding get() = _binding!!
+    private var mainActivity: MainActivity? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,8 +34,19 @@ class FragmentSetting : Fragment() {
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        mainActivity = activity as MainActivity
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        mainActivity = null
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        mainActivity?.onConnectRetry()
         _binding = null
     }
 
@@ -41,6 +54,8 @@ class FragmentSetting : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setUIData()
+
+        mainActivity?.stopTcpClient()
     }
 
     private fun setUIData() {

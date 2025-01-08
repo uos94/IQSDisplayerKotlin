@@ -1,5 +1,6 @@
 package com.kct.iqsdisplayer.network
 
+import com.kct.iqsdisplayer.common.Const
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.data.packet.BaseSendPacket
 import com.kct.iqsdisplayer.data.packet.send.KeepAliveRequest
@@ -15,7 +16,7 @@ import java.net.Socket
 import java.net.SocketException
 import java.nio.ByteBuffer
 
-class TCPClient(private val host: String, private val port: Int) {
+class TCPClient() {
 
     interface OnTcpEventListener {
         fun onConnected()
@@ -32,20 +33,19 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private var coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    private var connection: Job?    = null
     private var jobSendData: Job?    = null
     private var jobKeepAlive: Job?   = null
     private var jobTcpReceiver: Job? = null
 
     private var listener: OnTcpEventListener? = null
 
-    init { Log.d("Tcp 연결 시도: IP:${host}, PORT:${port}") }
-
     fun setOnTcpEventListener(listener: OnTcpEventListener) {
         this.listener = listener
     }
 
     fun connectAndStart() {
-        coroutineScope.launch {
+        connection = coroutineScope.launch {
             // 연결이 성공할 때까지 재시도
             //Log.v("connectAndStart isActive[$isActive], isConnected[$isConnected]")
             while (isActive) {
@@ -85,6 +85,10 @@ class TCPClient(private val host: String, private val port: Int) {
 
     private suspend fun connect(): Boolean {
         return withContext(Dispatchers.IO) {
+            val host = Const.ConnectionInfo.IQS_IP
+            val port = Const.ConnectionInfo.IQS_PORT
+            Log.d("Tcp 연결 시도: IP:$host, PORT:${Const.ConnectionInfo.IQS_PORT}")
+
             var exceptionMessage: String? = null
             try {
                 if (socket == null || socket?.isClosed == true) {
@@ -108,6 +112,7 @@ class TCPClient(private val host: String, private val port: Int) {
     private fun disconnect() {
         isConnected = false
 
+        connection?.cancel()
         jobTcpReceiver?.cancel()
         jobSendData?.cancel()
         jobKeepAlive?.cancel()
