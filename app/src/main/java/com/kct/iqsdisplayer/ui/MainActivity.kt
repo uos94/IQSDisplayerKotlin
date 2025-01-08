@@ -598,14 +598,7 @@ class MainActivity : AppCompatActivity() {
         Log.d("onTellerList : 직원정보 수신... (${data})")
 
         val teller = data.tellerList.find { teller -> teller.displayIP == Const.ConnectionInfo.DISPLAY_IP }
-        if(teller != null) {
-            ScreenInfo.tellerData = teller
-            ScreenInfo.winId = teller.winId
-        }
-        else {
-            ScreenInfo.tellerData = TellerData()
-            ScreenInfo.winId = 0
-        }
+        ScreenInfo.updateTellerData(teller ?: TellerData())
     }
 
     private fun onSystemOff() {
@@ -669,8 +662,11 @@ class MainActivity : AppCompatActivity() {
         Log.d("onTellerRenewRequest : 직원정보갱신 수신... (${data})")
 
         ScreenInfo.winNum = data.renewWinNum
-        ScreenInfo.tellerData.tellerName = data.tellerName
-        ScreenInfo.tellerData.tellerNum = data.tellerNum
+
+        if(ScreenInfo.tellerData.value != null) {
+            ScreenInfo.tellerData.value!!.tellerName = data.tellerName
+            ScreenInfo.tellerData.value!!.tellerNum = data.tellerNum
+        }
     }
 
     private fun onReserveCall(receivedData: BaseReceivePacket) {

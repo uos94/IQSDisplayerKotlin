@@ -65,7 +65,7 @@ class FragmentMovie : Fragment() {
         }
 
         ScreenInfo.normalCallData.observe(viewLifecycleOwner) {
-            binding.tvCallNum.text  = getString(R.string.format_four_digit).format(it.callNum)
+            binding.tvCallNum.text  = if(it.callNum == 0) "" else getString(R.string.format_four_digit).format(it.callNum)
         }
     }
 
@@ -223,7 +223,9 @@ class FragmentMovie : Fragment() {
 
         resetVideo()
 
-        if(ScreenInfo.usePlaySub) {
+        val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
+
+        if(isAvailableRecent) {
             replaceFragment(Index.FRAGMENT_RECENT_CALL)
         }
         else {

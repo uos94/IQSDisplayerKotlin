@@ -59,16 +59,19 @@ class FragmentMain : Fragment() {
     }
 
     private fun setUIData() {
-        binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
         binding.tvDeskNum.setOnLongClickListener {
             FragmentFactory.replaceFragment(FragmentFactory.Index.FRAGMENT_READY)
             true
         }
-        binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
+
         binding.tvCallNum.text       = updateCallNumText(null)
 
-        binding.ivTellerImg.setTellerImage()
-        binding.tvTellerName.text   = ScreenInfo.tellerData.tellerName
+        ScreenInfo.tellerData.observe(viewLifecycleOwner) {
+            binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
+            binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
+            binding.ivTellerImg.setTellerImage()
+            binding.tvTellerName.text   = it.tellerName
+        }
 
         ScreenInfo.waitNum.observe(viewLifecycleOwner) {
             binding.tvWaitingNum.text  = it.toString()
@@ -104,13 +107,15 @@ class FragmentMain : Fragment() {
 
     //우선순위 1.공석, 2.부재중, 3.호출번호
     private fun updateCallNumText(liveCallNumData: MediatorLiveData<String>?) : String {
+        val emptyMsg = ScreenInfo.tellerData.value?.emptyMsg ?: ""
+        val msg = emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
 
-        val emptyMsg = ScreenInfo.tellerData.emptyMsg.ifEmpty { getString(R.string.msg_default_absence) }
         val callNumText = when {
             ScreenInfo.isStopWork.value == true            -> getString(R.string.msg_vacancy)
             ScreenInfo.isTcpConnected.value == false       -> getString(R.string.msg_system_error)
             ScreenInfo.isPausedByServerError.value == true -> getString(R.string.msg_system_error)
-            ScreenInfo.isPausedWork.value == true          -> emptyMsg
+            ScreenInfo.isPausedWork.value == true          -> msg
+            ScreenInfo.normalCallData.value?.callNum == 0  -> ""
             else -> getString(R.string.format_four_digit).format(ScreenInfo.normalCallData.value?.callNum)
         }
         liveCallNumData?.value = callNumText
@@ -178,10 +183,13 @@ class FragmentMain : Fragment() {
     }
 
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfo.tellerData.tellerImg
+        val tellerImageFileName = ScreenInfo.tellerData.value?.tellerImg ?: ""
+
+        val imgPath = if(tellerImageFileName.isEmpty()) "${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}"
+                      else "${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName"
 
         Glide.with(requireContext())
-            .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")
+            .load(imgPath)
             .signature(ObjectKey(System.currentTimeMillis().toString()))
             .fitCenter()
             .error("${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}")

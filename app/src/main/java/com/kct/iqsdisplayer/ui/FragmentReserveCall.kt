@@ -45,10 +45,13 @@ class FragmentReserveCall : Fragment() {
     }
 
     private fun setUIData() {
-        binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
-        binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
-        binding.ivTellerImg.setTellerImage()
-        binding.tvTellerName.text   = ScreenInfo.tellerData.tellerName
+        ScreenInfo.tellerData.observe(viewLifecycleOwner) {
+            binding.tvDeskNum.text       = getString(R.string.format_two_digit).format(ScreenInfo.winNum)
+            binding.tvDeskName.text      = ScreenInfo.getWinName(ScreenInfo.winId)
+
+            binding.ivTellerImg.setTellerImage()
+            binding.tvTellerName.text   = it.tellerName
+        }
 
         ScreenInfo.reserveCallInfo.observe(viewLifecycleOwner) { reserveCallInfo ->
             binding.tvCallNum.text = getString(R.string.format_four_digit).format(reserveCallInfo.reserveCallNum)
@@ -76,7 +79,10 @@ class FragmentReserveCall : Fragment() {
     }
 
     private fun ImageView.setTellerImage() {
-        val tellerImageFileName = ScreenInfo.tellerData.tellerImg
+        val tellerImageFileName = ScreenInfo.tellerData.value?.tellerImg ?: ""
+
+        val imgPath = if(tellerImageFileName.isEmpty()) "${Const.Path.DIR_IMAGE}${Const.Name.DEFAULT_TELLER_IMAGE}"
+        else "${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName"
 
         Glide.with(requireContext())
             .load("${Const.Path.DIR_TELLER_IMAGE}$tellerImageFileName")

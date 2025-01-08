@@ -1,7 +1,5 @@
 package com.kct.iqsdisplayer.data.packet.receive
 
-import android.nfc.Tag
-import android.util.Log
 import com.kct.iqsdisplayer.data.packet.BaseReceivePacket
 import com.kct.iqsdisplayer.network.Packet
 import com.kct.iqsdisplayer.network.ProtocolDefine

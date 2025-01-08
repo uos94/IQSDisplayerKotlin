@@ -12,9 +12,9 @@ data class AcceptAuthData(
     /** 지점에서 사용중인 창구명 리스트 (구분자 “;”) */
     val winNames : String = "",//입출금/제신고;일반업무;상담업무;
     /** 직원정보(구분자 “;”) */
-    val tellerInfo : String = "",//5;1;;;10.131.54.65;0;1;;;30702819;1.1.1.3;구민가;1;입출금/제신고;1;;0;0;
+    val tellerInfos : String = "",//5;1;;;10.131.54.65;0;1;;;30702819;1.1.1.3;구민가;1;입출금/제신고;1;;0;0;
     /** 미디어 표시 정보(구분자 “#”)  */
-    val mediaInfo : String = "",//15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
+    val mediaInfos : String = "",//15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
     /** 1~10 까지의 볼륨값 */
     val volumeLevel : String = "",//10
     /** 창구별 대기인수 리스트 (구분자 “;”) */
@@ -46,8 +46,8 @@ data class AcceptAuthData(
             winNum=$winNum,
             winIdList='$winIds',
             winNameList='$winNames',
-            tellerInfo='$tellerInfo',
-            mediaInfo='$mediaInfo',
+            tellerInfo='$tellerInfos',
+            mediaInfo='$mediaInfos',
             volumeLevel='$volumeLevel',
             waitingNumList='$waitNums',
             serverTime=$serverTime,
@@ -70,8 +70,8 @@ fun Packet.toAcceptAuthData(): AcceptAuthData {
         winNum = integer,
         winIds = string,
         winNames = string,
-        tellerInfo = string,
-        mediaInfo = string,
+        tellerInfos = string,
+        mediaInfos = string,
         volumeLevel = string,
         waitNums = string,
         serverTime = integer, //AS-IS그대로 가져옴..문서에 따르면 Long임.

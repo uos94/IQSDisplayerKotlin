@@ -26,23 +26,26 @@ object ScreenInfo {
     /** 표시기의 창구 번호 */
     var winNum          = 0
     var listWinInfos    = ArrayList<WinInfo>()
-    var tellerData: TellerData = TellerData()
-        set(value) {
-            field = value
-            winId = value.winId
-        }
+
+    private val _tellerData = MutableLiveData<TellerData>()
+    val tellerData: LiveData<TellerData> = _tellerData
+    fun updateTellerData(newTellerData: TellerData) {
+        winId = newTellerData.winId
+        _tellerData.value = newTellerData
+    }
+
     var playTimeMain    = 10000    //기본값 10초로 설정
     var usePlaySub      = false
     var playTimeRecent  = 10000
     var usePlayMedia    = false
     var playTimeMedia   = 10000
-    var playTimeReserveCall   = 20000   //서버에서 내려주는 값없음. 기본값
-    var playTimeReserveList   = 20000   //서버에서 내려주는 값없음. 기본값
+    var playTimeReserveCall   = 20000
+    var playTimeReserveList   = 20000
     var mediaFileNameList = ArrayList<String>()
     var volumeLevel     = 1         // 1~10까지의 볼륨값
     var serverTime      = 0
     var isShowWaiting   = false
-    var deleteMovieInfo = ""        //사용 안하는 것으로 예상된다.
+    var deleteMovieInfo = ""        //패킷에 항목이 있어 받아놓기는 하는데. 사용하는 부분이 없었다.
     var bellFileName    = ""        //호출 시 벨소리 파일명
     var callRepeatCount = 0         //호출 시 반복 출력 횟수
     var callMent        = ""        //호출안내멘트
@@ -104,22 +107,18 @@ object ScreenInfo {
         _reserveCallInfo.postValue(newCall)
     }
 
-    /** AcceptAuthResponse를 받았을 때 기본적인 정보는 거의 다 내려온다.
-     * 데이터가 많아서 여기서 한번 더 가공한다.*/
     fun updateDefaultInfo(data: AcceptAuthData) {
         winNum = data.winNum
 
         updateWinInfos(data.winIds, data.winNames, data.waitNums)
 
-        tellerData = data.tellerInfo.toTeller()
-
-        winId = tellerData.winId
+        updateTellerData(data.tellerInfos.toTeller())
 
         updateWaitNum(listWinInfos.find { it.winId == winId }?.waitNum ?: 0)
 
         //15000#1#5000#1#10000#woori_travel_15sec.mp4;woori2024.jpg;iqs_backup.jpg;#
         //15000#0#5000#1#10000##
-        data.mediaInfo.splitData("#").forEachIndexed { index, value ->
+        data.mediaInfos.splitData("#").forEachIndexed { index, value ->
             when (index) {
                 0 -> playTimeMain   = value.toInt()
                 1 -> usePlaySub     = value == "1"
