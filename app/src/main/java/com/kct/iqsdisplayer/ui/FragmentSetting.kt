@@ -71,10 +71,13 @@ class FragmentSetting : Fragment() {
             // 대화상자 생성
             val builder = AlertDialog.Builder(requireContext())
             val input = EditText(requireContext())
+            val pref = if(item.mainText == "표시기IP") Const.Name.PREF_DISPLAY_INFO else Const.Name.PREF_DISPLAYER_SETTING
 
-            val loadPrefData = requireContext().getPreference(Const.Name.PREF_DISPLAYER_SETTING, item.prefKey, item.prefDefaultValue)
-            Log.d("preference name[${Const.Name.PREF_DISPLAYER_SETTING}, key[${item.prefKey}], value[$loadPrefData]")
-            input.setText(loadPrefData.toString())
+            val loadSettingPrefData = requireContext().getPreference(pref, item.prefKey, item.prefDefaultValue)
+
+            Log.d("Pref에서 읽어오기 : name[$pref, key[${item.prefKey}], value[$loadSettingPrefData]")
+
+            input.setText(loadSettingPrefData)
             builder.setView(input)
 
             builder.setTitle(item.mainText)
@@ -83,10 +86,10 @@ class FragmentSetting : Fragment() {
             builder.setPositiveButton(R.string.ok) { _, _ ->
                 val newValue = input.text.toString()
 
-                requireContext().setPreference(Const.Name.PREF_DISPLAYER_SETTING, item.prefKey, newValue)
-
+                requireContext().setPreference(pref, item.prefKey, newValue)
+                Log.d("Pref에 저장 : name[${pref}, key[${item.prefKey}], value[$newValue]")
                 when (item.mainText) {
-                    "표시기IP"        -> { /* 사용 안 함  */ }
+                    "표시기IP"        -> Const.ConnectionInfo.DISPLAY_IP = newValue
 //                    "사운드파일위치"   -> Const.Path.DIR_SOUND = newValue //변경불가
 //                    "홍보영상파일위치"  -> Const.Path.DIR_VIDEO = newValue //변경불가
 //                    "이미지파일위치"    -> Const.Path.DIR_IMAGE = newValue //변경불가

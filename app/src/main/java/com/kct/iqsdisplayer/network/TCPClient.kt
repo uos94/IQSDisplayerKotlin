@@ -33,7 +33,7 @@ class TCPClient() {
 
     private var coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private var connection: Job?    = null
+    private var jobConnection: Job?    = null
     private var jobSendData: Job?    = null
     private var jobKeepAlive: Job?   = null
     private var jobTcpReceiver: Job? = null
@@ -45,7 +45,7 @@ class TCPClient() {
     }
 
     fun connectAndStart() {
-        connection = coroutineScope.launch {
+        jobConnection = coroutineScope.launch {
             // 연결이 성공할 때까지 재시도
             //Log.v("connectAndStart isActive[$isActive], isConnected[$isConnected]")
             while (isActive) {
@@ -101,6 +101,7 @@ class TCPClient() {
                 startKeepAlive() // 연결 후 keepAlive 시작
                 true
             } catch (e: Exception) {
+                e.printStackTrace()
                 exceptionMessage = "Tcp 연결 실패: Exception (${e.message})"
                 false
             } finally {
@@ -112,7 +113,6 @@ class TCPClient() {
     private fun disconnect() {
         isConnected = false
 
-        connection?.cancel()
         jobTcpReceiver?.cancel()
         jobSendData?.cancel()
         jobKeepAlive?.cancel()
@@ -216,6 +216,7 @@ class TCPClient() {
 
     fun release() {
         Log.i("TcpClient 사용 안함.")
+        jobConnection?.cancel()
         disconnect()
     }
 }

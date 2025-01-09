@@ -73,7 +73,7 @@ class FragmentReady : Fragment() {
 
         binding.clNetworkInfo.tvKey.text   = "IP"
         binding.clNetworkInfo.tvValue.text = getLocalIpAddress()
-
+        Log.d("getLocalIpAddress() : " + getLocalIpAddress())
         setLogText(Log.getLogHistory())
 
         Log.setOnLogEventListener( object : Log.OnLogEventListener {

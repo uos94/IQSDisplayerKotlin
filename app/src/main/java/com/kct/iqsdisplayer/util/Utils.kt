@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.view.View
@@ -12,6 +13,7 @@ import android.view.WindowInsetsController
 import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.FileProvider
 import com.kct.iqsdisplayer.common.Const
 import kotlinx.coroutines.CoroutineScope
@@ -270,6 +272,16 @@ fun getLocalIpAddress(): String? {
         e.printStackTrace()
         return null
     }
+}
+
+fun getLocalIpAddress(context: Context): String? {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val activeNetwork = connectivityManager.activeNetwork ?: return null
+    val linkProperties = connectivityManager.getLinkProperties(activeNetwork) ?: return null
+
+    return linkProperties.linkAddresses
+        .firstOrNull { it.address is Inet4Address }
+        ?.address?.hostAddress
 }
 
 /** 기기 맥주소 반환, 일반적으로 유선 네트워크 인터페이스(Ethernet)의 MAC 주소*/

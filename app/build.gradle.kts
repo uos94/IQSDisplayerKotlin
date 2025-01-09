@@ -10,17 +10,17 @@ plugins {
 
 android {
     signingConfigs {
-        getByName("debug") {
+        create("api25") {
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storeFile = file("C:\\Users\\uos94\\AndroidStudioProjects\\IQSDisplayerKotlin\\Signed\\platform.jks")
         }
-        create("release") {
+        create("api30") {
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
-            storeFile = file("C:\\Users\\uos94\\AndroidStudioProjects\\IQSDisplayerKotlin\\Signed\\platform.jks")
+            storeFile = file("C:\\Users\\uos94\\AndroidStudioProjects\\IQSDisplayerKotlin\\Signed\\platform_os11.jks")
         }
     }
 
@@ -31,15 +31,27 @@ android {
         buildConfig = true
         viewBinding = true
     }
+
+    flavorDimensions += "apiType"
+    productFlavors {
+        create("api30") {
+            dimension = "apiType"
+            //signingConfig = signingConfigs.getByName("api30")
+        }
+        create("api25") {
+            dimension = "apiType"
+            //signingConfig = signingConfigs.getByName("api25")
+        }
+    }
+
     val timestamp = SimpleDateFormat("yyMMdd_HHmm").format(Date())
     defaultConfig {
         applicationId = "com.kct.iqsdisplayer"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 34
         versionCode = 113
         versionName = "1.0.13"
 
-        signingConfig = signingConfigs.getByName("debug")
         setProperty("archivesBaseName", "iqsdisplayer_v$versionName($versionCode)_$timestamp")
         //manifestPlaceholders["packageName"] = "$applicationId"
         ndk {
@@ -51,15 +63,15 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("api30")
         }
         debug {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("api30")
         }
     }
 
@@ -90,3 +102,4 @@ dependencies {
     //ksp(libs.glide.compiler)
     //implementation(files("libs/commons-net-3.6.jar"))
 }
+

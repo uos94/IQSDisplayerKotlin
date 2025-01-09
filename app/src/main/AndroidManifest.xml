@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.REBOOT"
         tools:ignore="ProtectedPermissions" />  <!-- 부팅 이벤트 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />  <!-- 재생 중 화면 잠금 방지 -->
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><!-- 네트워크 사용 -->
     <uses-permission android:name="android.permission.INTERNET" /><!-- 네트워크 사용 -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -33,6 +35,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.IQSDisplayerKotlin"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
 
         <activity

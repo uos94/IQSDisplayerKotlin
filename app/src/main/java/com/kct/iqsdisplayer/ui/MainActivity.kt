@@ -743,14 +743,18 @@ class MainActivity : AppCompatActivity() {
         val code = ProtocolDefine.UPLOAD_LOG_FILE_TO_SERVER.value
 
         try {
-            val uploadFile = File(Const.Path.DIR_LOG + fileName)
+            val path = Const.Path.DIR_LOG + fileName
+            val uploadFile = File(path)
             val fileSizeInKb = uploadFile.length() / 1024.0
-            Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName , size[${String.format(Locale.getDefault(), "%.2f", fileSizeInKb)}kb]")
+            Log.d("uploadLogFileToServerSub() 시작하기 : 업로드 파일이름 = $fileName , size[${String.format(Locale.getDefault(), "%.2f", fileSizeInKb)}kb], path[$path]")
 
             if (!uploadFile.exists()) {
                 Log.d("uploadLogFileToServerSub() : 실제 파일이 없어 리턴")
                 return
             }
+
+            if(!uploadFile.canRead()) Log.w("$fileName 의 읽기권한 없음")
+            if(!uploadFile.canWrite()) Log.w("$fileName 의 쓰기권한 없음")
 
             FileInputStream(uploadFile).use { fis ->
                 val readBuffer = ByteArray(1024 * 7) // 한 번에 읽어서 전송하기 위한 길이
@@ -775,9 +779,9 @@ class MainActivity : AppCompatActivity() {
 
                     tcpClient.sendData(sendByteBuffer, "uploadLogFile")
                 }
-
-                uploadFile.delete()
             }
+
+            uploadFile.delete()
         } catch (e: Exception) {
             Log.e("uploadLogFileToServerSub() 예외 발생: ${e.message}", e)
         }
