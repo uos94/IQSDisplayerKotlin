@@ -75,10 +75,15 @@ class FragmentMovie : Fragment() {
     private val sfCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
             mp.setDisplay(holder)
+
             playMedia()
         }
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
-        override fun surfaceDestroyed(holder: SurfaceHolder) {}
+        override fun surfaceDestroyed(holder: SurfaceHolder) {
+            mp.setDisplay(null)
+
+            holder.removeCallback(this)
+        }
     }
 
     private fun makeList() {
@@ -158,7 +163,7 @@ class FragmentMovie : Fragment() {
 
     private fun pauseVideo() {
         playedPosition = mp.currentPosition
-        mp.pause()
+        mp.stop()
         //Log.v("재생 일시정지 Index($currentIndex) : ${list[currentIndex]}, 재생위치 저장: $playedPosition mSec")
     }
 
@@ -166,6 +171,13 @@ class FragmentMovie : Fragment() {
         playedPosition = 0
         mp.stop()
     }
+
+    private fun releaseVideo() {
+        mp.reset()
+        mp.release()
+        mp = MediaPlayer()
+    }
+
 
     private fun startVideo(path: String) {
         try {
