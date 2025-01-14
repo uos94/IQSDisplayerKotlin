@@ -31,11 +31,9 @@ class FragmentMovie : Fragment() {
 
     private var mp: MediaPlayer = MediaPlayer()
 
-    //플레이 리스트
     private var currentIndex = 0 //현재 플레이리스트 인덱스
     private val list: ArrayList<String> = ArrayList()
 
-    //이미지 표출 변수 및 객체
     private var playedPosition = 0 //영상이 재생된 위치, 중간에 끊겼을 때 이어 재생하기용
 
     override fun onCreateView(
@@ -83,19 +81,11 @@ class FragmentMovie : Fragment() {
         override fun surfaceDestroyed(holder: SurfaceHolder) {}
     }
 
-    //================================================================================================================================================================
-    // 컨텐츠 재생 관련 코드
-    //================================================================================================================================================================
     private fun makeList() {
         list.clear()
 
         val fileNames = ScreenInfo.mediaFileNameList
-        for (fileName in fileNames) {
-            if (fileName.isEmpty()) continue
-
-            val path = Const.Path.DIR_VIDEO + fileName
-            list.add(path)
-        }
+        list.addAll(fileNames.map { Const.Path.DIR_VIDEO + it })
     }
 
     private fun playMedia() {
@@ -123,17 +113,11 @@ class FragmentMovie : Fragment() {
         val currentContentPath = list[currentIndex]
         val isImage = isImage(currentContentPath)
         if(isImage) {
-            //Log.v("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
             changeNextIndex()
         }
         else {
-            if (mp.isPlaying) {
-                pauseVideo()
-            }
-            else {
-                resetVideo()
-                //Log.v("재생 중지 된 Index($currentIndex) : ${list[currentIndex]}")
-            }
+            if (mp.isPlaying) pauseVideo()
+            else resetVideo()
         }
     }
 
@@ -148,7 +132,6 @@ class FragmentMovie : Fragment() {
      * 보통은 index가 변경되고 바로 영상 재생 할 이유가 없다.
      */
     private fun playNext() {
-        //Log.w("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
         playedPosition = 0
 
         changeNextIndex()
@@ -158,19 +141,13 @@ class FragmentMovie : Fragment() {
 
     private fun changeNextIndex(): Int {
         currentIndex++
-        if (currentIndex >= list.size) {
-            currentIndex = 0
-        }
+        if (currentIndex >= list.size) currentIndex = 0
 
         playedPosition = 0
 
-        //Log.v("다음 재생 Index($currentIndex) : ${list[currentIndex]}")
         return currentIndex
     }
 
-    //================================================================================================================================================================
-    // 영상관련 코드
-    //================================================================================================================================================================
     private fun initVideo() {
         mp = MediaPlayer()
         mp.setVolume(0f, 0f) //볼륨 제거
@@ -198,7 +175,6 @@ class FragmentMovie : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
             Log.i("video play error__${path}__(${e.message}) $currentIndex/${list.size}")
-            //동영상 에러 시 다음 컨텐츠로..
             skipOnErrorAndContinuePlay()
         }
     }
@@ -208,8 +184,6 @@ class FragmentMovie : Fragment() {
             //Log.v("영상 이어서 시작 Index($currentIndex) : ${list[currentIndex]}, $playedPosition mSec 부터 재생 시작")
             mp.seekTo(playedPosition)
         }
-        //else Log.v("영상 처음부터 시작 Index($currentIndex) : ${list[currentIndex]}")
-
         mp.start()
     }
 
@@ -219,12 +193,7 @@ class FragmentMovie : Fragment() {
 
         val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
 
-        if(isAvailableRecent) {
-            replaceFragment(Index.FRAGMENT_RECENT_CALL)
-        }
-        else {
-            replaceFragment(Index.FRAGMENT_MAIN)
-        }
+        replaceFragment(if(isAvailableRecent)Index.FRAGMENT_RECENT_CALL else Index.FRAGMENT_MAIN)
     }
 
     private val errorListener = MediaPlayer.OnErrorListener { _: MediaPlayer?, what: Int, extra: Int ->
@@ -275,5 +244,4 @@ class FragmentMovie : Fragment() {
         val ext = contentsPath.getFileExtension().lowercase(Locale.getDefault())
         return ext == "jpg" || ext == "jpeg" || ext == "png"
     }
-
 }
