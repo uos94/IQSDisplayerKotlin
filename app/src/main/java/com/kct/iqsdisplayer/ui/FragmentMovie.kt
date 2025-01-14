@@ -117,12 +117,12 @@ class FragmentMovie : Fragment() {
         }
         else {
             if (mp.isPlaying) pauseVideo()
-            else resetVideo()
+            else stopVideo()
         }
     }
 
     private fun skipOnErrorAndContinuePlay() {
-        resetVideo()
+        stopVideo()
 
         playNext()
     }
@@ -162,10 +162,9 @@ class FragmentMovie : Fragment() {
         //Log.v("재생 일시정지 Index($currentIndex) : ${list[currentIndex]}, 재생위치 저장: $playedPosition mSec")
     }
 
-    private fun resetVideo() {
+    private fun stopVideo() {
         playedPosition = 0
         mp.stop()
-        mp.reset()
     }
 
     private fun startVideo(path: String) {
@@ -189,6 +188,8 @@ class FragmentMovie : Fragment() {
 
     private val completeListener = MediaPlayer.OnCompletionListener {
         //Log.v("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
+        stopVideo()
+
         changeNextIndex()
 
         val isAvailableRecent   = ScreenInfo.usePlaySub && ScreenInfo.lastCallList.value!!.size > 0
