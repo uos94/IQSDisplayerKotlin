@@ -29,7 +29,7 @@ class FragmentMovie : Fragment() {
     private var _binding: FragmentMovieBinding? = null
     private val binding get() = _binding!!
 
-    private var mp: MediaPlayer = MediaPlayer()
+    private var mp: MediaPlayer? = MediaPlayer()
 
     private var currentIndex = 0 //현재 플레이리스트 인덱스
     private val list: ArrayList<String> = ArrayList()
@@ -74,13 +74,13 @@ class FragmentMovie : Fragment() {
 
     private val sfCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
-            mp.setDisplay(holder)
+            mp?.setDisplay(holder)
 
             playMedia()
         }
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
         override fun surfaceDestroyed(holder: SurfaceHolder) {
-            mp.setDisplay(null)
+            mp?.setDisplay(null)
 
             holder.removeCallback(this)
         }
@@ -121,7 +121,7 @@ class FragmentMovie : Fragment() {
             changeNextIndex()
         }
         else {
-            if (mp.isPlaying) pauseVideo()
+            if (mp?.isPlaying == true) pauseVideo()
             else stopVideo()
         }
     }
@@ -155,34 +155,32 @@ class FragmentMovie : Fragment() {
 
     private fun initVideo() {
         mp = MediaPlayer()
-        mp.setVolume(0f, 0f) //볼륨 제거
-        mp.setOnPreparedListener(preparedListener)
-        mp.setOnCompletionListener(completeListener)
-        mp.setOnErrorListener(errorListener)
+        mp?.setVolume(0f, 0f) //볼륨 제거
+        mp?.setOnPreparedListener(preparedListener)
+        mp?.setOnCompletionListener(completeListener)
+        mp?.setOnErrorListener(errorListener)
     }
 
     private fun pauseVideo() {
-        playedPosition = mp.currentPosition
-        mp.stop()
+        playedPosition = mp?.currentPosition ?: 0
+        mp?.stop()
         //Log.v("재생 일시정지 Index($currentIndex) : ${list[currentIndex]}, 재생위치 저장: $playedPosition mSec")
     }
 
     private fun stopVideo() {
         playedPosition = 0
-        mp.stop()
+        mp?.stop()
     }
 
     private fun releaseVideo() {
-        mp.reset()
-        mp.release()
-        mp = MediaPlayer()
+        mp?.release()
+        mp = null
     }
-
 
     private fun startVideo(path: String) {
         try {
-            mp.setDataSource(path)
-            mp.prepareAsync()
+            mp?.setDataSource(path)
+            mp?.prepareAsync()
         } catch (e: Exception) {
             e.printStackTrace()
             Log.i("video play error__${path}__(${e.message}) $currentIndex/${list.size}")
@@ -193,14 +191,16 @@ class FragmentMovie : Fragment() {
     private val preparedListener = MediaPlayer.OnPreparedListener {
         if (playedPosition > 0) {   //이전에 보던 영상이 있으면 이어서 재생
             //Log.v("영상 이어서 시작 Index($currentIndex) : ${list[currentIndex]}, $playedPosition mSec 부터 재생 시작")
-            mp.seekTo(playedPosition)
+            mp?.seekTo(playedPosition)
         }
-        mp.start()
+        mp?.start()
     }
 
     private val completeListener = MediaPlayer.OnCompletionListener {
         //Log.v("재생 완료 된 Index($currentIndex) : ${list[currentIndex]}")
         stopVideo()
+
+        releaseVideo()
 
         changeNextIndex()
 
