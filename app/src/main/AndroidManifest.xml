@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:sharedUserId="android.uid.system">
-
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />  <!-- 부팅 이벤트 -->
     <uses-permission android:name="android.permission.REBOOT"
         tools:ignore="ProtectedPermissions" />  <!-- 부팅 이벤트 -->
@@ -55,7 +54,7 @@
         <receiver
             android:name=".receiver.BootReceiver"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:label="Receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
