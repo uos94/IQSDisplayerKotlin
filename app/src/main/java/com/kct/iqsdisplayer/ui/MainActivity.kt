@@ -325,7 +325,7 @@ class MainActivity : AppCompatActivity() {
 
             retryHandler.removeCallbacksAndMessages(null)
             retryHandler.postDelayed({
-                Log.w("ProtocolDefine.CONNECT_SUCCESS가 안내려와서 재시도함.")
+                Log.w("${ProtocolDefine.CONNECT_SUCCESS}가 안내려와서 재시도함.")
                 tcpClient.connectAndStart() }, 3000)
         }
 
